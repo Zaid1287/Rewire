@@ -4,7 +4,7 @@ import SwiftUI
 /// minimal grid of alternate marks built from the design system.
 struct AppIconView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var selected = 0
+    @AppStorage("selectedAppIcon") private var selected = 0
 
     private let icons: [(String, Color, Color)] = [
         ("checkmark.shield.fill", Color(hex: 0x2E7D32), Color(hex: 0xB6E8A0)),
@@ -12,6 +12,10 @@ struct AppIconView: View {
         ("drop.fill", .white, Theme.Colors.primary),
         ("bolt.fill", .black, Theme.Colors.noteYellow)
     ]
+    /// Alternate icon names — index 0 is the primary icon (nil). The bundle
+    /// ships no alternate .appiconset yet, so the system call fails gracefully
+    /// and only the in-app selection updates until the assets land.
+    private let iconNames: [String?] = [nil, "AppIconFlame", "AppIconDrop", "AppIconBolt"]
     private let columns = Array(repeating: GridItem(.flexible(), spacing: Theme.Spacing.md), count: 3)
 
     var body: some View {
@@ -20,7 +24,7 @@ struct AppIconView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: Theme.Spacing.lg) {
                     ForEach(Array(icons.enumerated()), id: \.offset) { idx, icon in
-                        Button { Haptics.select(); selected = idx } label: {
+                        Button { Haptics.select(); select(idx) } label: {
                             RoundedRectangle(cornerRadius: 20, style: .continuous)
                                 .fill(icon.2)
                                 .aspectRatio(1, contentMode: .fit)
@@ -40,6 +44,13 @@ struct AppIconView: View {
         .background(Theme.Colors.background)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
+    }
+
+    private func select(_ idx: Int) {
+        selected = idx
+        UIApplication.shared.setAlternateIconName(iconNames[idx]) { error in
+            if let error { print("App icon change failed: \(error.localizedDescription)") }
+        }
     }
 }
 

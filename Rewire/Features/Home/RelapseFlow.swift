@@ -4,6 +4,7 @@ import SwiftUI
 /// saved confirmation with an encouraging reminder. Resets the streak on entry.
 struct RelapseFlow: View {
     @Environment(StreakStore.self) private var streak
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
 
     @State private var step: Step = .reasons
@@ -22,7 +23,12 @@ struct RelapseFlow: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: step)
-        .onAppear { streak.relapse() }
+        .onAppear {
+            streak.relapse()
+            // Costs 500 coins per the copy, but a relapse report is never blocked
+            // on affordability — spend if possible, proceed regardless.
+            gems.spendCoins(500)
+        }
     }
 
     private var reasonsView: some View {

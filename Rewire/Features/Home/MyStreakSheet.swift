@@ -4,7 +4,13 @@ import SwiftUI
 /// the No Nut challenge milestone rail, a month calendar, and stat cards.
 struct MyStreakSheet: View {
     @Environment(StreakStore.self) private var streak
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
+
+    /// Reports with no P/M/O flags at all — a fully clean day.
+    private var cleanDaysCount: Int {
+        streak.reports.filter { !$0.watchedPorn && !$0.masturbated && !$0.relapsed }.count
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,16 +53,19 @@ struct MyStreakSheet: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: Theme.Spacing.xs) {
-                HStack(spacing: 4) { GemIcon(size: 20); Text("500").foregroundStyle(Color(hex: 0x6FB2FF)).font(.system(size: 16, weight: .semibold, design: .rounded)) }
-                HStack(spacing: 4) { CoinIcon(size: 20); Text("0").foregroundStyle(Theme.Colors.textPrimary).font(.system(size: 16, weight: .semibold, design: .rounded)) }
+                HStack(spacing: 4) { GemIcon(size: 20); Text("\(gems.gems)").foregroundStyle(Color(hex: 0x6FB2FF)).font(.system(size: 16, weight: .semibold, design: .rounded)) }
+                HStack(spacing: 4) { CoinIcon(size: 20); Text("\(gems.coins)").foregroundStyle(Theme.Colors.textPrimary).font(.system(size: 16, weight: .semibold, design: .rounded)) }
             }
         }
     }
 
     private var recordNote: some View {
-        HStack(spacing: Theme.Spacing.sm) {
+        let remaining = streak.recordSeconds - streak.elapsed
+        return HStack(spacing: Theme.Spacing.sm) {
             Image(systemName: "star.fill").foregroundStyle(Color(hex: 0x8B7BF0))
-            Text("1 minute left to break your own streak record.")
+            Text(remaining <= 0
+                 ? "New record! You've beaten your own streak record."
+                 : "\(remaining.humanShort()) left to break your own streak record.")
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.textPrimary)
         }
@@ -111,7 +120,7 @@ struct MyStreakSheet: View {
 
             HStack(spacing: Theme.Spacing.md) {
                 LabeledStatCard(symbol: "checkmark", iconBackground: Theme.Colors.green,
-                                value: "0", label: "clean days")
+                                value: "\(cleanDaysCount)", label: "clean days")
                 LabeledStatCard(symbol: "exclamationmark", iconBackground: Theme.Colors.red,
                                 value: "0", label: "times watched")
             }
@@ -125,6 +134,8 @@ struct MyStreakSheet: View {
     }
 
     private var bottomStats: some View {
+        // ponytail: DailyReport has no wet-dream/edging flags, only P/M/O — these
+        // stay at 0 until the model grows dedicated fields.
         HStack(spacing: Theme.Spacing.md) {
             LabeledStatCard(emoji: "💧", iconBackground: Color(hex: 0x2C6BE0),
                             value: "0", label: "wet dream")

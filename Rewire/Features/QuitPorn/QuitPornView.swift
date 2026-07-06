@@ -2,9 +2,29 @@ import SwiftUI
 
 /// Quit Porn tab (IMG_5458 / 5459): a hub of feature rows grouped into
 /// Recommended / Boost your progress / Willpower / Privacy.
+///
+/// Row wiring: "Challenges" pushes the existing WeeklyChallengeView. Rows that
+/// market a premium feature with no dedicated screen ("Power up your shield",
+/// "Porn Blocker", "Private Support") present the shared PaywallSheet, which
+/// already shows a "You're Premium" state once unlocked. Everything else
+/// (21-day Personal Plan, No Nut Community, Reminder Notifications, Breathing
+/// Exercise, My Motivations, Appearance Tracker, Face ID, Apple Watch, Data
+/// Backup) has no matching screen and isn't clearly premium-only, so those
+/// rows are left as static list items for now.
 struct QuitPornView: View {
+    @Environment(GemStore.self) private var gems
+    @State private var path: [Route] = []
+    @State private var showPaywall = false
+
+    enum Route: Hashable { case challenge }
+
+    /// Row titles that market a premium feature with no dedicated screen yet.
+    private let premiumGatedTitles: Set<String> = [
+        "Power up your shield", "Porn Blocker", "Private Support"
+    ]
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             VStack(spacing: 0) {
                 NavHeader(title: "Quit Porn")
                 ScrollView {
@@ -21,6 +41,14 @@ struct QuitPornView: View {
             }
             .background(Theme.Colors.background)
             .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: Route.self) { route in
+                switch route {
+                case .challenge: WeeklyChallengeView()
+                }
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallSheet().presentationDetents([.medium, .large])
+            }
         }
         .tint(Theme.Colors.green)
     }
@@ -31,7 +59,9 @@ struct QuitPornView: View {
             SectionHeader(title)
             VStack(spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { idx, item in
-                    FeatureRow(item: item, iconColor: item.title.contains("Power up") ? Theme.Colors.green : iconColor)
+                    FeatureRow(item: item,
+                               iconColor: item.title.contains("Power up") ? Theme.Colors.green : iconColor,
+                               action: { rowTapped(item) })
                         .padding(.horizontal, Theme.Spacing.md)
                     if idx < items.count - 1 { RowDivider(inset: 64) }
                 }
@@ -39,6 +69,15 @@ struct QuitPornView: View {
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
         }
     }
+
+    private func rowTapped(_ item: FeatureItem) {
+        if item.title == "Challenges" {
+            path.append(.challenge)
+        } else if premiumGatedTitles.contains(item.title) {
+            showPaywall = true
+        }
+        // Other rows have no destination yet — see the doc comment above.
+    }
 }
 
-#Preview { QuitPornView() }
+#Preview { QuitPornView().environment(GemStore()) }

@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var showRelapseFlow = false
     @State private var showReportFlow = false
     @State private var showRewardBox = false
+    @State private var showPaywall = false
     @State private var selectedPlan: Plan = SampleData.plans[1]
     @State private var offer = OfferClock()
 
@@ -60,6 +61,9 @@ struct HomeView: View {
             .fullScreenCover(isPresented: $showStreakSheet) { MyStreakSheet() }
             .sheet(isPresented: $showPanicSheet) {
                 PanicSheet().presentationDetents([.medium, .large])
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallSheet().presentationDetents([.medium, .large])
             }
             .fullScreenCover(isPresented: $showRelapseFlow) { RelapseFlow() }
             .fullScreenCover(isPresented: $showReportFlow) { DailyReportFlow() }
@@ -237,7 +241,7 @@ struct HomeView: View {
                         in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg).stroke(Theme.Colors.divider, lineWidth: 1))
 
-            PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") {}
+            PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") { showPaywall = true }
         }
         .screenPadding()
     }

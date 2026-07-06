@@ -4,6 +4,7 @@ import SwiftUI
 /// levels collection, and "make your streaks easier" feature rows.
 struct RecoveryView: View {
     enum Route: Hashable { case superpowers, badges, levels }
+    @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
 
     var body: some View {
@@ -76,11 +77,14 @@ struct RecoveryView: View {
             SectionHeader("My Collection")
             HStack(spacing: Theme.Spacing.md) {
                 collectionCard(icon: "rosette", iconColor: Color(hex: 0x8B7BF0),
-                               title: "Badges", badge: 2, value: "0", unit: "badges") {
+                               title: "Badges", badge: 2, value: "\(gems.claimedBadges.count)", unit: "badges") {
                     path.append(.badges)
                 }
                 collectionCard(icon: "trophy.fill", iconColor: Theme.Colors.gold,
-                               title: "Levels", badge: nil, value: "Newcomer", unit: nil) {
+                               title: "Levels",
+                               badge: nil,
+                               value: SampleData.levels.first(where: { $0.rank == gems.currentLevel })?.name ?? "Newcomer",
+                               unit: nil) {
                     path.append(.levels)
                 }
             }
@@ -148,4 +152,4 @@ struct RecoveryRing: View {
     }
 }
 
-#Preview { RecoveryView() }
+#Preview { RecoveryView().environment(GemStore()) }

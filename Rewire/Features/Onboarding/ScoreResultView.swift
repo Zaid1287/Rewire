@@ -4,13 +4,21 @@ import SwiftUI
 /// copy, an Average-vs-You bar comparison with mood faces, and the commit CTA.
 struct ScoreResultView: View {
     var onReady: () -> Void
+    @Environment(AppState.self) private var appState
     @State private var appeared = false
+
+    /// Days to recover, derived from score and rounded to the nearest 10
+    /// (default score 80 -> 200, matching the original screenshot copy).
+    private var recoveryDays: Int {
+        let raw = appState.addictionScore * 5 / 2
+        return (raw + 5) / 10 * 10
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: Theme.Spacing.huge)
 
-            Text("80%")
+            Text("\(appState.addictionScore)%")
                 .font(.system(size: 56, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .padding(.horizontal, Theme.Spacing.xxl)
@@ -40,7 +48,7 @@ struct ScoreResultView: View {
 
             Spacer()
 
-            Text("It may take more than 200 days for you to recover completely.")
+            Text("It may take more than \(recoveryDays) days for you to recover completely.")
                 .font(Theme.Typography.cardTitle())
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)

@@ -60,13 +60,14 @@ struct OnboardingFlow: View {
         ) {
             ForEach(Array(q.options.enumerated()), id: \.offset) { idx, option in
                 QuizOptionRow(letter: idx.optionLetter, text: option) {
-                    answerQuiz()
+                    answerQuiz(optionIndex: idx)
                 }
             }
         }
     }
 
-    private func answerQuiz() {
+    private func answerQuiz(optionIndex: Int) {
+        appState.recordAnswer(questionIndex: quizIndex, optionIndex: optionIndex)
         if quizIndex < SampleData.quizQuestions.count - 1 {
             withAnimation { quizIndex += 1 }
         } else {

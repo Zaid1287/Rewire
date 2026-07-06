@@ -3,8 +3,8 @@ import SwiftUI
 /// Superpowers list (IMG_5461 / 5462): every benefit with a progress meter and
 /// a like counter to tap when experienced.
 struct SuperpowersView: View {
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
-    @State private var likes: [UUID: Int] = [:]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,8 +25,8 @@ struct SuperpowersView: View {
                         VStack(spacing: 0) {
                             ForEach(Array(SampleData.benefits.enumerated()), id: \.element.id) { idx, benefit in
                                 BenefitRow(benefit: benefit, showProgress: true, progress: 0.08,
-                                           likeCount: likes[benefit.id] ?? 0) {
-                                    likes[benefit.id, default: 0] += 1
+                                           likeCount: gems.likedSuperpowers.contains(benefit.title) ? 1 : 0) {
+                                    gems.toggleLike(benefit.title)
                                 }
                                 if idx < SampleData.benefits.count - 1 { RowDivider() }
                             }
@@ -44,4 +44,4 @@ struct SuperpowersView: View {
     }
 }
 
-#Preview { NavigationStack { SuperpowersView() } }
+#Preview { NavigationStack { SuperpowersView() }.environment(GemStore()) }

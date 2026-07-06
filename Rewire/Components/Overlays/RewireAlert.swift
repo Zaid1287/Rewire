@@ -6,7 +6,8 @@ import SwiftUI
 struct RewireAlert: View {
     let title: String
     let message: String
-    let cancelTitle: String
+    /// Optional — omit for a single-button (confirm-only) alert.
+    var cancelTitle: String? = nil
     let confirmTitle: String
     var confirmIsDestructive: Bool = true
     let onCancel: () -> Void
@@ -26,13 +27,15 @@ struct RewireAlert: View {
                     .foregroundStyle(Theme.Colors.textSecondary)
 
                 HStack(spacing: Theme.Spacing.sm) {
-                    Button(action: { Haptics.tap(); onCancel() }) {
-                        Text(cancelTitle)
-                            .font(Theme.Typography.button())
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .background(Theme.Colors.surface3, in: Capsule())
+                    if let cancelTitle {
+                        Button(action: { Haptics.tap(); onCancel() }) {
+                            Text(cancelTitle)
+                                .font(Theme.Typography.button())
+                                .foregroundStyle(Theme.Colors.textPrimary)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 52)
+                                .background(Theme.Colors.surface3, in: Capsule())
+                        }
                     }
                     Button(action: { Haptics.warning(); onConfirm() }) {
                         Text(confirmTitle)

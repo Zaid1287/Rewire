@@ -4,9 +4,18 @@ import SwiftUI
 /// rows, and the plan chooser.
 struct SettingsView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(\.openURL) private var openURL
     enum Route: Hashable { case appearance, appIcon }
     @State private var path: [Route] = []
     @State private var selectedPlan: Plan = SampleData.plans[0]
+    @State private var showPaywall = false
+    @State private var showRestoredAlert = false
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "\(version) (\(build))"
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -23,24 +32,17 @@ struct SettingsView: View {
                                        background: Color(hex: 0xB6E8A0), title: "App Icon",
                                        accessory: .chevron) { path.append(.appIcon) }
                         ])
-                        group("Support us", rows: [
-                            SettingRow(symbol: "paperplane.fill", tint: .white,
-                                       background: Color(hex: 0x2C6BE0), title: "Give Feedback",
-                                       accessory: .chevron) {},
-                            SettingRow(symbol: "arrowshape.turn.up.right.fill", tint: .white,
-                                       background: Color(hex: 0x2C6BE0), title: "Invite Friends",
-                                       accessory: .none) {}
-                        ])
+                        supportUsGroup
                         group("About", rows: [
                             SettingRow(symbol: "doc.fill", tint: .white,
                                        background: Color(hex: 0x2C6BE0), title: "Privacy Policy",
-                                       accessory: .chevron) {},
+                                       accessory: .chevron) { openURL(URL(string: "https://rewire.app/privacy")!) },
                             SettingRow(symbol: "arrow.counterclockwise.circle.fill", tint: .white,
                                        background: Color(hex: 0x2C6BE0), title: "Restore Purchase",
-                                       accessory: .none) {},
+                                       accessory: .none) { restorePurchase() },
                             SettingRow(symbol: "info.circle.fill", tint: .white,
                                        background: Color(hex: 0x4B5AD8), title: "Version Number",
-                                       accessory: .value("9.2.0")) {}
+                                       accessory: .value(appVersion)) {}
                         ])
                         planSection
                     }
@@ -57,12 +59,64 @@ struct SettingsView: View {
                 case .appIcon:    AppIconView()
                 }
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallSheet().presentationDetents([.medium, .large])
+            }
+            .overlay {
+                if showRestoredAlert {
+                    RewireAlert(
+                        title: "Purchases Restored",
+                        message: "Your premium access has been restored.",
+                        confirmTitle: "OK",
+                        confirmIsDestructive: false,
+                        onCancel: { showRestoredAlert = false },
+                        onConfirm: { showRestoredAlert = false }
+                    )
+                }
+            }
         }
         .tint(Theme.Colors.green)
     }
 
+    private func restorePurchase() {
+        gems.unlockPremium()
+        Haptics.success()
+        showRestoredAlert = true
+    }
+
+    /// Support group — Feedback opens the mail composer via mailto:, Invite
+    /// shares the app link, so it's a ShareLink rather than a SettingRow action.
+    private var supportUsGroup: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            SectionHeader("Support us")
+            VStack(spacing: 0) {
+                SettingRow(symbol: "paperplane.fill", tint: .white,
+                           background: Color(hex: 0x2C6BE0), title: "Give Feedback",
+                           accessory: .chevron) {
+                    openURL(URL(string: "mailto:support@rewire.app?subject=Rewire%20Feedback")!)
+                }
+                RowDivider(inset: 62)
+                ShareLink(item: URL(string: "https://rewire.app/download")!,
+                          message: Text("Join me on Rewire — take back control. 💪")) {
+                    HStack(spacing: Theme.Spacing.md) {
+                        IconSquare(symbol: "arrowshape.turn.up.right.fill", tint: .white,
+                                   background: Color(hex: 0x2C6BE0))
+                        Text("Invite Friends")
+                            .font(Theme.Typography.cardTitle())
+                            .foregroundStyle(Theme.Colors.textPrimary)
+                        Spacer()
+                    }
+                    .padding(Theme.Spacing.md)
+                }
+                .buttonStyle(.plain)
+                .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
+            }
+            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+        }
+    }
+
     private var upsellBanner: some View {
-        Button {} label: {
+        Button { showPaywall = true } label: {
             HStack(spacing: Theme.Spacing.md) {
                 IconSquare(symbol: "arrow.up.right", tint: Color(hex: 0x2E7D32),
                            background: Color(hex: 0xB6E8A0))
@@ -112,7 +166,7 @@ struct SettingsView: View {
             }
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg).stroke(Theme.Colors.divider, lineWidth: 1))
 
-            PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") {}
+            PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") { showPaywall = true }
         }
     }
 }

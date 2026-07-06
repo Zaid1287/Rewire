@@ -3,6 +3,7 @@ import SwiftUI
 /// Weekly challenge (IMG_5457): "Week 27 of this year / 7-day event", a Join
 /// Challenge CTA, and the 7 day rows with pending/failed markers.
 struct WeeklyChallengeView: View {
+    @Environment(StreakStore.self) private var streak
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -30,19 +31,23 @@ struct WeeklyChallengeView: View {
                     .padding(.top, Theme.Spacing.lg)
 
                     Button {
+                        guard !streak.challengeJoined else { return }
                         Haptics.success()
+                        streak.joinChallenge()
                     } label: {
-                        Text("Join Challenge")
+                        Text(streak.challengeJoined ? "Joined" : "Join Challenge")
                             .font(Theme.Typography.button())
                             .foregroundStyle(.white)
                             .padding(.horizontal, Theme.Spacing.xxl)
                             .frame(height: 56)
                             .background(Theme.Colors.primaryGradient, in: Capsule())
+                            .opacity(streak.challengeJoined ? 0.5 : 1)
                     }
                     .buttonStyle(PressableButtonStyle())
+                    .disabled(streak.challengeJoined)
 
                     VStack(spacing: Theme.Spacing.md) {
-                        ForEach(SampleData.challengeDays) { day in
+                        ForEach(streak.challengeDays) { day in
                             challengeRow(day)
                         }
                     }
@@ -69,6 +74,12 @@ struct WeeklyChallengeView: View {
         }
         .padding(Theme.Spacing.md)
         .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard streak.challengeJoined else { return }
+            Haptics.select()
+            streak.setChallengeDay(day.number, to: day.state == .pending ? .done : .pending)
+        }
     }
 
     @ViewBuilder
@@ -88,4 +99,4 @@ struct WeeklyChallengeView: View {
     }
 }
 
-#Preview { WeeklyChallengeView() }
+#Preview { WeeklyChallengeView().environment(StreakStore()) }

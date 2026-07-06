@@ -42,7 +42,7 @@ struct AddDaysView: View {
 
                     PrimaryButton(title: "Add \(days) day\(days == 1 ? "" : "s")") {
                         // Shift the streak start earlier by the chosen days.
-                        streak.setGoal(streak.goal)
+                        streak.addDays(days)
                         dismiss()
                     }
                 }

@@ -3,8 +3,8 @@ import SwiftUI
 /// My Badges (IMG_5463 / 5464): claimable badges up top, then the long
 /// "badges you must collect" list.
 struct BadgesView: View {
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
-    @State private var claimed: Set<UUID> = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,10 +33,11 @@ struct BadgesView: View {
     private func badgeGroup(_ badges: [Badge]) -> some View {
         VStack(spacing: 0) {
             ForEach(Array(badges.enumerated()), id: \.element.id) { idx, badge in
-                BadgeRow(badge: claimed.contains(badge.id)
+                BadgeRow(badge: gems.claimedBadges.contains(badge.title)
                          ? Badge(title: badge.title, requirement: badge.requirement, state: .locked)
                          : badge) {
-                    claimed.insert(badge.id)
+                    gems.claimBadge(badge.title)
+                    gems.award(50)
                 }
                 .padding(.horizontal, Theme.Spacing.md)
                 if idx < badges.count - 1 { RowDivider(inset: 64) }
@@ -46,4 +47,4 @@ struct BadgesView: View {
     }
 }
 
-#Preview { NavigationStack { BadgesView() } }
+#Preview { NavigationStack { BadgesView() }.environment(GemStore()) }

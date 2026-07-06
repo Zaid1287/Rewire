@@ -4,6 +4,7 @@ import SwiftUI
 /// "Unlock Premium Features" CTA.
 struct PanicSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var showPaywall = false
 
     private let points: [(String, String)] = [
         ("Saves your streak", "Stay safe with the panic button."),
@@ -44,13 +45,16 @@ struct PanicSheet: View {
             }
             .screenPadding()
 
-            PrimaryButton(title: "Unlock Premium Features") { dismiss() }
+            PrimaryButton(title: "Unlock Premium Features") { showPaywall = true }
                 .screenPadding()
 
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.Colors.background)
+        .sheet(isPresented: $showPaywall) {
+            PaywallSheet().presentationDetents([.medium, .large])
+        }
     }
 }
 
@@ -73,4 +77,4 @@ struct SirenIcon: View {
     }
 }
 
-#Preview { PanicSheet() }
+#Preview { PanicSheet().environment(GemStore()) }
