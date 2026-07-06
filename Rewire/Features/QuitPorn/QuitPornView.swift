@@ -7,14 +7,16 @@ import SwiftUI
 /// market a premium feature with no dedicated screen ("Power up your shield",
 /// "Porn Blocker", "Private Support") present the shared PaywallSheet, which
 /// already shows a "You're Premium" state once unlocked. Everything else
-/// (21-day Personal Plan, Rewire Community, Reminder Notifications, Breathing
-/// Exercise, My Motivations, Appearance Tracker, Face ID, Apple Watch, Data
-/// Backup) has no matching screen and isn't clearly premium-only, so those
-/// rows are left as static list items for now.
+/// "Breathing Exercise" presents the shared PanicModeView breathing screen.
+/// Everything else (21-day Personal Plan, Rewire Community, Reminder
+/// Notifications, My Motivations, Appearance Tracker, Face ID, Apple Watch,
+/// Data Backup) has no matching screen and isn't clearly premium-only, so
+/// those rows are left as static list items for now.
 struct QuitPornView: View {
     @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
     @State private var showPaywall = false
+    @State private var showBreathing = false
 
     enum Route: Hashable { case challenge }
 
@@ -49,6 +51,11 @@ struct QuitPornView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallSheet().presentationDetents([.medium, .large])
             }
+            .sheet(isPresented: $showBreathing) {
+                PanicModeView()
+                    .background(Theme.Colors.background)
+                    .presentationDetents([.large])
+            }
         }
         .tint(Theme.Colors.green)
     }
@@ -73,6 +80,8 @@ struct QuitPornView: View {
     private func rowTapped(_ item: FeatureItem) {
         if item.title == "Challenges" {
             path.append(.challenge)
+        } else if item.title == "Breathing Exercise" {
+            showBreathing = true
         } else if premiumGatedTitles.contains(item.title) {
             showPaywall = true
         }

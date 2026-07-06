@@ -4,6 +4,9 @@ import SwiftUI
 /// pill; others are white/secondary. Recovery carries a red "1" badge.
 struct RewireTabBar: View {
     @Binding var selection: AppState.Tab
+    /// Live unclaimed-badge count for the Recovery tab; overrides the static
+    /// sample badge. nil keeps `Tab.badgeCount`, 0 hides the badge.
+    var recoveryBadgeCount: Int? = nil
 
     var body: some View {
         HStack(spacing: 0) {
@@ -21,6 +24,11 @@ struct RewireTabBar: View {
         .padding(.horizontal, Theme.Spacing.md)
     }
 
+    private func badgeCount(for tab: AppState.Tab) -> Int? {
+        if tab == .recovery, let recoveryBadgeCount { return recoveryBadgeCount }
+        return tab.badgeCount
+    }
+
     private func tabButton(_ tab: AppState.Tab) -> some View {
         let active = tab == selection
         return Button {
@@ -32,7 +40,7 @@ struct RewireTabBar: View {
                     Image(systemName: tab.symbol)
                         .font(.system(size: 20, weight: .regular))
                         .frame(height: 24)
-                    if let count = tab.badgeCount {
+                    if let count = badgeCount(for: tab), count > 0 {
                         CountBadge(count: count)
                             .scaleEffect(0.72)
                             .offset(x: 14, y: -8)

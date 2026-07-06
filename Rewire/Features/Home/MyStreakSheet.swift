@@ -122,7 +122,7 @@ struct MyStreakSheet: View {
                 LabeledStatCard(symbol: "checkmark", iconBackground: Theme.Colors.green,
                                 value: "\(cleanDaysCount)", label: "clean days")
                 LabeledStatCard(symbol: "exclamationmark", iconBackground: Theme.Colors.red,
-                                value: "0", label: "times watched")
+                                value: "\(streak.reports.filter(\.watchedPorn).count)", label: "times watched")
             }
 
             Card(padding: Theme.Spacing.md) {
@@ -133,14 +133,18 @@ struct MyStreakSheet: View {
         }
     }
 
+    /// Wet dream / edging come from logged history events (History → Add Event),
+    /// which store the option label in `note`.
+    private func eventCount(_ label: String) -> Int {
+        streak.events.filter { $0.note == label }.count
+    }
+
     private var bottomStats: some View {
-        // ponytail: DailyReport has no wet-dream/edging flags, only P/M/O — these
-        // stay at 0 until the model grows dedicated fields.
         HStack(spacing: Theme.Spacing.md) {
             LabeledStatCard(emoji: "💧", iconBackground: Color(hex: 0x2C6BE0),
-                            value: "0", label: "wet dream")
+                            value: "\(eventCount("Wet dream"))", label: "wet dream")
             LabeledStatCard(emoji: "✋", iconBackground: Color(hex: 0xE8A317),
-                            value: "0", label: "edging")
+                            value: "\(eventCount("Edging"))", label: "edging")
         }
     }
 }

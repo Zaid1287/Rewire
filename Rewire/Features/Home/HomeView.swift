@@ -21,6 +21,20 @@ struct HomeView: View {
 
     enum HomeRoute: Hashable { case setGoal, addDays, challenge }
 
+    /// Top streak unit for the header pill: "2d", "18h", "44m" — never just
+    /// the minute component of a multi-day streak.
+    private var compactStreakText: String {
+        let c = streak.components
+        if c.year > 0 || c.month > 0 || c.day > 0 {
+            return "\(c.year * 365 + c.month * 30 + c.day)d"
+        }
+        if c.hour > 0 { return "\(c.hour)h" }
+        return "\(c.minute)m"
+    }
+
+    /// Rough "time not spent watching" heuristic: one hour per full day clean.
+    private var savedHours: Int { Int(streak.elapsed / 86_400) }
+
     var body: some View {
         NavigationStack(path: $path) {
             ZStack(alignment: .topTrailing) {
@@ -46,8 +60,8 @@ struct HomeView: View {
                 }
             }
             .safeAreaInset(edge: .top) {
-                HomeStatHeader(shieldPercent: 5,
-                               streakText: "\(streak.components.minute)m",
+                HomeStatHeader(shieldPercent: max(1, min(100, Int(streak.progress * 100))),
+                               streakText: compactStreakText,
                                gems: gems.gems,
                                onGiftTap: { showRewardBox = true })
                     .background(Theme.Colors.background)
@@ -180,7 +194,7 @@ struct HomeView: View {
             VStack(spacing: Theme.Spacing.md) {
                 HStack(spacing: Theme.Spacing.md) {
                     ShortcutCard(symbol: "clock", title: "Saved Time", tint: Theme.Colors.green,
-                                 value: "0", unit: "hours") { showStreakSheet = true }
+                                 value: "\(savedHours)", unit: "hours") { showStreakSheet = true }
                     ShortcutCard(symbol: "flame.fill", title: "Streak", tint: Theme.Colors.flame,
                                  value: "\(streak.components.minute)", unit: "minutes") { showStreakSheet = true }
                 }

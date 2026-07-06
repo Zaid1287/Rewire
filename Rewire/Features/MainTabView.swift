@@ -4,6 +4,12 @@ import SwiftUI
 /// bar overlaid at the bottom. Each tab hosts its own NavigationStack.
 struct MainTabView: View {
     @Environment(AppState.self) private var appState
+    @Environment(GemStore.self) private var gems
+
+    /// Claimable badges the user hasn't claimed yet — drives the Recovery tab badge.
+    private var unclaimedBadges: Int {
+        SampleData.claimableBadges.filter { !gems.claimedBadges.contains($0.title) }.count
+    }
 
     var body: some View {
         @Bindable var appState = appState
@@ -21,7 +27,7 @@ struct MainTabView: View {
                 }
             }
 
-            RewireTabBar(selection: $appState.selectedTab)
+            RewireTabBar(selection: $appState.selectedTab, recoveryBadgeCount: unclaimedBadges)
                 .padding(.bottom, Theme.Spacing.xs)
         }
     }
