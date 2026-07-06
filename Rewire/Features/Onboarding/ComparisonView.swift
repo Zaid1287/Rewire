@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// "Porn ruins your life" comparison (IMG_5434): two overlapping cards —
-/// without No Nut (cons) behind, with No Nut (pros) in front.
+/// without Rewire (cons) behind, with Rewire (pros) in front.
 struct ComparisonView: View {
     var onContinue: () -> Void
 
@@ -27,12 +27,12 @@ struct ComparisonView: View {
 
                     // Overlapping cards
                     ZStack(alignment: .topTrailing) {
-                        ComparisonCard(title: "without No Nut",
+                        ComparisonCard(title: "without Rewire",
                                        titleColor: Theme.Colors.textSecondary,
                                        points: SampleData.withoutPoints, positive: false)
                             .padding(.trailing, Theme.Spacing.xxl)
                             .padding(.top, Theme.Spacing.xxl)
-                        ComparisonCard(title: "with No Nut",
+                        ComparisonCard(title: "with Rewire",
                                        titleColor: Theme.Colors.greenMint,
                                        points: SampleData.withPoints, positive: true)
                             .padding(.leading, Theme.Spacing.xxl)

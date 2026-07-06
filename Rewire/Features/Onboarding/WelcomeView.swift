@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Final splash (IMG_5439): app logo, "Welcome to No Nut", spinner. Auto-enters
+/// Final splash (IMG_5439): app logo, "Welcome to Rewire", spinner. Auto-enters
 /// the main app after a short beat.
 struct WelcomeView: View {
     var onFinish: () -> Void
@@ -10,7 +10,7 @@ struct WelcomeView: View {
         VStack(spacing: Theme.Spacing.lg) {
             Spacer()
             AppLogo(size: 130)
-            Text("Welcome to No Nut")
+            Text("Welcome to Rewire")
                 .font(Theme.Typography.title())
                 .foregroundStyle(Theme.Colors.textPrimary)
 

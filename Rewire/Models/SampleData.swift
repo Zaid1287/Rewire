@@ -26,7 +26,7 @@ enum SampleData {
         ChatTestimonial(text: "I started to enjoy my life.",
                         boldPrefix: "\"I feel that I am completely free now.\"",
                         name: "Robert", isRight: true),
-        ChatTestimonial(text: "Before No Nut, my streaks lasted a maximum of 5 days. ",
+        ChatTestimonial(text: "Before Rewire, my streaks lasted a maximum of 5 days. ",
                         boldPrefix: nil,
                         name: "Anonymous", isRight: false),
         ChatTestimonial(text: " Thanks to everyone in this community.",
@@ -43,7 +43,7 @@ enum SampleData {
                          body: "Women hold eye contact, smile, move closer, and touch me for no reason. It's crazy and proof that I've changed.",
                          name: "Eric", daysClean: 41),
         QuoteTestimonial(title: "Fully cured sexual health 🔥",
-                         body: "After 30 days No Nut streak, I feel fully cured. Sex is incredible, erections stronger than ever, and my control is on another level. The sensation is unreal. Thank you so much 🙏",
+                         body: "After 30 days Rewire streak, I feel fully cured. Sex is incredible, erections stronger than ever, and my control is on another level. The sensation is unreal. Thank you so much 🙏",
                          name: "Louis", daysClean: 30),
         QuoteTestimonial(title: "My social skills are back 🤝",
                          body: "Since quitting porn, every smile feels genuine and full of life. People, especially women feel it too.",
@@ -140,7 +140,7 @@ enum SampleData {
     static let quitBoost: [FeatureItem] = [
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
                     subtitle: "Block porn websites. Avoid unexpected relapses.", badge: .popular),
-        FeatureItem(symbol: "person.2.fill", title: "No Nut Community",
+        FeatureItem(symbol: "person.2.fill", title: "Rewire Community",
                     subtitle: "Join the private Telegram group. Get amazing support."),
         FeatureItem(symbol: "app.badge", title: "Reminder Notifications",
                     subtitle: "Set your daily reminders to easily keep your streak.", warning: true),
@@ -178,13 +178,13 @@ enum SampleData {
     // MARK: Badges (IMG_5463/5464)
     static let claimableBadges: [Badge] = [
         Badge(title: "Daily Reporter", requirement: "You must save your daily report.", state: .claimable),
-        Badge(title: "Determined", requirement: "You started to use No Nut to quit porn.", state: .claimable)
+        Badge(title: "Determined", requirement: "You started to use Rewire to quit porn.", state: .claimable)
     ]
     static let lockedBadges: [Badge] = [
         Badge(title: "Goal Setter", requirement: "You must set your new goal.", state: .locked),
         Badge(title: "Panic Breaker", requirement: "You must use the Panic Button.", state: .locked),
         Badge(title: "Content Blocker", requirement: "You must enable the porn blocker.", state: .locked),
-        Badge(title: "Community Member", requirement: "You must join the No Nut Community.", state: .locked),
+        Badge(title: "Community Member", requirement: "You must join the Rewire Community.", state: .locked),
         Badge(title: "Streak Guard", requirement: "You must enable notifications.", state: .locked),
         Badge(title: "Mentor Owner", requirement: "You must get private support.", state: .locked),
         Badge(title: "Breathing Champ", requirement: "You must do a breathing exercise.", state: .locked),
@@ -195,9 +195,9 @@ enum SampleData {
         Badge(title: "Researcher", requirement: "You must unlock a video playlist.", state: .locked),
         Badge(title: "Loyal Member", requirement: "You must add a new event.", state: .locked),
         Badge(title: "Feedback Master", requirement: "You must give feedback.", state: .locked),
-        Badge(title: "No Nut Supporter", requirement: "You must write a review for No Nut.", state: .locked),
+        Badge(title: "Rewire Supporter", requirement: "You must write a review for Rewire.", state: .locked),
         Badge(title: "Premium Member", requirement: "You must become a premium member.", state: .locked),
-        Badge(title: "Share Supporter", requirement: "You must share No Nut with your friends.", state: .locked),
+        Badge(title: "Share Supporter", requirement: "You must share Rewire with your friends.", state: .locked),
         Badge(title: "Appearance Booster", requirement: "You must take your photos for tracking.", state: .locked),
         Badge(title: "Personal Plan Level 1", requirement: "You must complete first day in your plan.", state: .locked),
         Badge(title: "Personal Plan Level 2", requirement: "You must complete 3 days in your plan.", state: .locked),

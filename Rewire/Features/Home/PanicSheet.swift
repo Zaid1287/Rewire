@@ -1,8 +1,11 @@
 import SwiftUI
 
-/// Panic Button premium sheet (IMG_5456): siren, three benefit rows, and an
-/// "Unlock Premium Features" CTA.
+/// Panic Button sheet. Free users see the premium upsell (IMG_5456): siren,
+/// three benefit rows, and an "Unlock Premium Features" CTA. Premium users get
+/// the real tool: a guided breathing exercise, an urge timer, and rotating
+/// encouragement, ending in an "I'm Safe Now" gem reward.
 struct PanicSheet: View {
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
     @State private var showPaywall = false
 
@@ -13,6 +16,21 @@ struct PanicSheet: View {
     ]
 
     var body: some View {
+        Group {
+            if gems.isPremium {
+                PanicModeView()
+            } else {
+                upsell
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Theme.Colors.background)
+        .sheet(isPresented: $showPaywall) {
+            PaywallSheet().presentationDetents([.medium, .large])
+        }
+    }
+
+    private var upsell: some View {
         VStack(spacing: Theme.Spacing.lg) {
             Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
                 .padding(.top, Theme.Spacing.sm)
@@ -50,10 +68,124 @@ struct PanicSheet: View {
 
             Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
-        .sheet(isPresented: $showPaywall) {
-            PaywallSheet().presentationDetents([.medium, .large])
+    }
+}
+
+/// The premium panic tool: 4-4 breathing circle, urge timer, and rotating
+/// encouragement. Surviving the urge pays a small gem reward.
+struct PanicModeView: View {
+    @Environment(GemStore.self) private var gems
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var elapsed = 0
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    /// 4-4-4 breathing: inhale, hold full, exhale.
+    private enum BreathPhase: Int, CaseIterable {
+        case breatheIn, hold, breatheOut
+
+        var label: String {
+            switch self {
+            case .breatheIn:  "Breathe in"
+            case .hold:       "Hold"
+            case .breatheOut: "Breathe out"
+            }
+        }
+        /// Lungs full while inhaling and holding; empty on the exhale.
+        var lungsFull: Bool { self != .breatheOut }
+    }
+
+    private var phase: BreathPhase {
+        BreathPhase.allCases[(elapsed / 4) % BreathPhase.allCases.count]
+    }
+
+    /// Urge-focused lines, rotated every 8 seconds.
+    private let encouragements = [
+        "The urge is temporary. Your streak isn't.",
+        "Urges peak and pass within minutes. Outlast this one.",
+        "You've beaten this before. You'll beat it now.",
+        "Picture yourself one hour from now, proud you held on.",
+        "Breathe. This feeling is your brain rewiring itself."
+    ]
+
+    private var timerText: String {
+        String(format: "%d:%02d", elapsed / 60, elapsed % 60)
+    }
+
+    var body: some View {
+        VStack(spacing: Theme.Spacing.lg) {
+            Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
+                .padding(.top, Theme.Spacing.sm)
+
+            Text("Panic Mode")
+                .font(Theme.Typography.title())
+                .foregroundStyle(Theme.Colors.textPrimary)
+
+            Text("You're resisting for \(timerText)")
+                .font(Theme.Typography.body())
+                .foregroundStyle(Theme.Colors.textSecondary)
+                .monospacedDigit()
+
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(Theme.Colors.primary.opacity(0.15))
+                    .frame(width: 180, height: 180)
+                    .scaleEffect(phase.lungsFull ? 1.35 : 1.0)
+                // Gradient ring hugging the halo — soft glow copy underneath.
+                Circle()
+                    .stroke(
+                        AngularGradient(
+                            colors: [Theme.Colors.primary, Theme.Colors.green,
+                                     Color(hex: 0x8B7BF0), Theme.Colors.primary],
+                            center: .center),
+                        lineWidth: 6
+                    )
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 8)
+                    .scaleEffect(phase.lungsFull ? 1.35 : 1.0)
+                Circle()
+                    .stroke(
+                        AngularGradient(
+                            colors: [Theme.Colors.primary, Theme.Colors.green,
+                                     Color(hex: 0x8B7BF0), Theme.Colors.primary],
+                            center: .center),
+                        lineWidth: 2.5
+                    )
+                    .frame(width: 180, height: 180)
+                    .scaleEffect(phase.lungsFull ? 1.35 : 1.0)
+                Circle()
+                    .fill(Theme.Colors.primaryGradient)
+                    .frame(width: 120, height: 120)
+                    .scaleEffect(phase.lungsFull ? 1.25 : 0.9)
+                Text(phase.label)
+                    .font(Theme.Typography.headline())
+                    .foregroundStyle(.white)
+                    .transaction { $0.animation = nil }   // label swaps instantly; only the circle breathes
+            }
+            .animation(.easeInOut(duration: 4), value: phase.lungsFull)
+            .frame(height: 250)
+
+            Text(encouragements[(elapsed / 8) % encouragements.count])
+                .font(Theme.Typography.cardTitle())
+                .foregroundStyle(Theme.Colors.textPrimary)
+                .multilineTextAlignment(.center)
+                .screenPadding()
+                .animation(.easeInOut(duration: 0.3), value: elapsed / 8)
+
+            Spacer()
+
+            PrimaryButton(title: "I'm Safe Now", trailingEmoji: "💪") {
+                gems.award(25)
+                Haptics.success()
+                dismiss()
+            }
+            .screenPadding()
+            .padding(.bottom, Theme.Spacing.lg)
+        }
+        .onReceive(timer) { _ in
+            elapsed += 1
         }
     }
 }

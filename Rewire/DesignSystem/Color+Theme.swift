@@ -27,7 +27,7 @@ extension Theme {
 
         // Accents
         static let green        = Color(hex: 0x22C55E)   // success / active
-        static let greenMint    = Color(hex: 0x3DDC97)   // progress fill / "with No Nut"
+        static let greenMint    = Color(hex: 0x3DDC97)   // progress fill / "with Rewire"
         static let flame        = Color(hex: 0xF15A29)   // streak flame / offer
         static let red          = Color(hex: 0xFF3B30)   // quiz letters / streak break
         static let redSoft      = Color(hex: 0xEF4444)

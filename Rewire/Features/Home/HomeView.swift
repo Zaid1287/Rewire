@@ -37,10 +37,13 @@ struct HomeView: View {
                     .padding(.bottom, 120)
                 }
 
-                // Floating special-offer countdown
-                OfferBanner(minutes: offer.minutes, seconds: offer.seconds)
-                    .offset(x: Theme.Spacing.md, y: 300)
-                    .allowsHitTesting(false)
+                // Floating special-offer countdown — an upsell, so premium users
+                // never see it and it leaves once the offer runs out.
+                if !gems.isPremium && !offer.expired {
+                    OfferBanner(minutes: offer.minutes, seconds: offer.seconds)
+                        .offset(x: Theme.Spacing.md, y: 300)
+                        .allowsHitTesting(false)
+                }
             }
             .safeAreaInset(edge: .top) {
                 HomeStatHeader(shieldPercent: 5,
@@ -109,7 +112,7 @@ struct HomeView: View {
                     .foregroundStyle(.black)
                     .frame(width: 300, height: 56)
             }
-            Text("You're almost there to achieve your first victory in your No Nut challenge.")
+            Text("You're almost there to achieve your first victory in your Rewire challenge.")
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
@@ -253,6 +256,8 @@ final class OfferClock {
     var minutes = 5
     var seconds = 56
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var expired: Bool { minutes == 0 && seconds == 0 }
 
     func tick() {
         if seconds > 0 { seconds -= 1 }

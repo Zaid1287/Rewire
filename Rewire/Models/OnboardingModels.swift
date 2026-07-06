@@ -37,7 +37,7 @@ struct Benefit: Identifiable {
     let subtitle: String
 }
 
-/// The pros/cons rows on the "without / with No Nut" comparison screen.
+/// The pros/cons rows on the "without / with Rewire" comparison screen.
 struct ComparisonPoint: Identifiable {
     let id = UUID()
     let text: String

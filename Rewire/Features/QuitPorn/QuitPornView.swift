@@ -7,7 +7,7 @@ import SwiftUI
 /// market a premium feature with no dedicated screen ("Power up your shield",
 /// "Porn Blocker", "Private Support") present the shared PaywallSheet, which
 /// already shows a "You're Premium" state once unlocked. Everything else
-/// (21-day Personal Plan, No Nut Community, Reminder Notifications, Breathing
+/// (21-day Personal Plan, Rewire Community, Reminder Notifications, Breathing
 /// Exercise, My Motivations, Appearance Tracker, Face ID, Apple Watch, Data
 /// Backup) has no matching screen and isn't clearly premium-only, so those
 /// rows are left as static list items for now.

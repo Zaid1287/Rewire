@@ -140,7 +140,9 @@ struct HistoryView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "clock").font(.system(size: 14))
                             .foregroundStyle(Theme.Colors.textSecondary)
-                        Text(s.duration.humanShort())
+                        // Ongoing streak IS the live one — its stored duration is a
+                        // stale sample value; read the ticking timer instead.
+                        Text((s.isOngoing ? streak.elapsed : s.duration).humanShort())
                             .font(Theme.Typography.body())
                             .foregroundStyle(Theme.Colors.textSecondary)
                     }

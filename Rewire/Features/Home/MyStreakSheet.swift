@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// My Streak (IMG_5448 / 5449): a full-screen sheet with the streak headline,
-/// the No Nut challenge milestone rail, a month calendar, and stat cards.
+/// the Rewire challenge milestone rail, a month calendar, and stat cards.
 struct MyStreakSheet: View {
     @Environment(StreakStore.self) private var streak
     @Environment(GemStore.self) private var gems
@@ -77,7 +77,7 @@ struct MyStreakSheet: View {
     private var challengeSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             HStack {
-                Text("No Nut Challenge")
+                Text("Rewire Challenge")
                     .font(Theme.Typography.cardTitle())
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Spacer()

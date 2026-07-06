@@ -45,12 +45,18 @@ struct LabeledStatCard: View {
             .frame(width: 40, height: 40)
 
             VStack(alignment: .leading, spacing: 0) {
+                // Values like "12.91%" or "1 minute" must never wrap mid-word;
+                // shrink to fit so every card keeps the same two-line height.
                 Text(value)
                     .font(Theme.Typography.statNumber())
                     .foregroundStyle(Theme.Colors.textPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.55)
                 Text(label)
                     .font(Theme.Typography.subtitle())
                     .foregroundStyle(Theme.Colors.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
             }
             Spacer(minLength: 0)
         }

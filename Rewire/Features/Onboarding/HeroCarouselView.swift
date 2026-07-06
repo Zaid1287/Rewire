@@ -6,6 +6,10 @@ struct HeroCarouselView: View {
     var onContinue: () -> Void
     @State private var page = 0
     private let totalPages = 6
+    /// The original app cycles 6 hero photos; only one is recreatable (see
+    /// PLACEHOLDERS.md), so the dots auto-advance for carousel feel while
+    /// Continue always moves on — no dead taps on identical content.
+    private let autoAdvance = Timer.publish(every: 2.5, on: .main, in: .common).autoconnect()
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -59,16 +63,13 @@ struct HeroCarouselView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.vertical, Theme.Spacing.md)
 
-                PrimaryButton(title: "Continue") {
-                    if page < totalPages - 1 {
-                        withAnimation { page += 1 }
-                    } else {
-                        onContinue()
-                    }
-                }
+                PrimaryButton(title: "Continue", action: onContinue)
             }
             .screenPadding()
             .padding(.bottom, Theme.Spacing.xl)
+        }
+        .onReceive(autoAdvance) { _ in
+            withAnimation { page = (page + 1) % totalPages }
         }
     }
 }

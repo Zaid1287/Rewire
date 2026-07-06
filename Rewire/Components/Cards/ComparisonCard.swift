@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// "without / with No Nut" comparison card. Negative variant uses grey minus
+/// "without / with Rewire" comparison card. Negative variant uses grey minus
 /// bullets; positive uses green checks. Both carry an illustration avatar.
 struct ComparisonCard: View {
     let title: String
