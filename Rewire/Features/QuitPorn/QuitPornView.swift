@@ -9,17 +9,19 @@ import SwiftUI
 /// already shows a "You're Premium" state once unlocked.
 /// "Breathing Exercise" presents the shared PanicModeView breathing screen.
 /// "My Motivations" presents MotivationsView. "21-day Personal Plan" pushes
-/// PersonalPlanView, a day-by-day checklist backed by StreakStore. Everything
-/// else (Rewire Community, Reminder Notifications, Appearance Tracker, Face
-/// ID, Apple Watch, Data Backup) has no matching screen yet — those rows
-/// carry `.soon` badges (dimmed, no chevron, no haptic) so they never read as
-/// working controls.
+/// PersonalPlanView, a day-by-day checklist backed by StreakStore.
+/// "Reminder Notifications" presents ReminderSettingsView, wired to real
+/// `UNUserNotificationCenter` scheduling. Everything else (Rewire Community,
+/// Appearance Tracker, Face ID, Apple Watch, Data Backup) has no matching
+/// screen yet — those rows carry `.soon` badges (dimmed, no chevron, no
+/// haptic) so they never read as working controls.
 struct QuitPornView: View {
     @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
     @State private var showPaywall = false
     @State private var showBreathing = false
     @State private var showMotivations = false
+    @State private var showReminders = false
 
     enum Route: Hashable { case challenge, personalPlan }
 
@@ -63,6 +65,9 @@ struct QuitPornView: View {
             .sheet(isPresented: $showMotivations) {
                 MotivationsView().presentationDetents([.large])
             }
+            .sheet(isPresented: $showReminders) {
+                ReminderSettingsView().presentationDetents([.medium])
+            }
         }
         .tint(Theme.Colors.green)
     }
@@ -94,6 +99,8 @@ struct QuitPornView: View {
             showBreathing = true
         } else if item.title == "My Motivations" {
             showMotivations = true
+        } else if item.title == "Reminder Notifications" {
+            showReminders = true
         } else if premiumGatedTitles.contains(item.title) {
             showPaywall = true
         }

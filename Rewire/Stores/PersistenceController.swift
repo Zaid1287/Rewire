@@ -11,6 +11,11 @@ struct AppSnapshot: Codable {
     /// Optional with a default so snapshots written before this field existed
     /// still decode.
     var motivations: [Motivation]? = nil
+    /// Daily reminder settings. Optional with a default so snapshots written
+    /// before this field existed still decode.
+    var reminderEnabled: Bool? = nil
+    var reminderHour: Int? = nil
+    var reminderMinute: Int? = nil
 
     // StreakStore
     var startDate: Date
@@ -87,6 +92,9 @@ final class PersistenceController {
             phase: appState.phase,
             quizAnswers: appState.quizAnswers,
             motivations: appState.motivations,
+            reminderEnabled: appState.reminderEnabled,
+            reminderHour: appState.reminderHour,
+            reminderMinute: appState.reminderMinute,
             startDate: streak.startDate,
             goal: streak.goal,
             recordSeconds: streak.recordSeconds,

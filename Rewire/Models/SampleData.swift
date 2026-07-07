@@ -145,7 +145,7 @@ enum SampleData {
                     badge: .soon, showsChevron: false),
         FeatureItem(symbol: "app.badge", title: "Reminder Notifications",
                     subtitle: "Set your daily reminders to easily keep your streak.",
-                    badge: .soon, showsChevron: false, warning: true),
+                    warning: true),
         FeatureItem(symbol: "bubble.left.and.bubble.right.fill", title: "Private Support",
                     subtitle: "Get private support from the mentors.", badge: .popular),
         FeatureItem(symbol: "lungs.fill", title: "Breathing Exercise",

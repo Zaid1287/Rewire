@@ -15,6 +15,13 @@ final class AppState {
     /// Personal "why I quit" notes (Quit Porn → My Motivations), newest first.
     private(set) var motivations: [Motivation] = [] { didSet { persist?() } }
 
+    /// Daily reminder settings (Quit Porn → Reminder Notifications). The
+    /// actual `UNUserNotificationCenter` scheduling happens in the view layer
+    /// (ReminderScheduler) — this store is just the persisted data holder.
+    private(set) var reminderEnabled: Bool = false { didSet { persist?() } }
+    private(set) var reminderHour: Int = 21 { didSet { persist?() } }
+    private(set) var reminderMinute: Int = 0 { didSet { persist?() } }
+
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
@@ -66,6 +73,15 @@ final class AppState {
         motivations.removeAll { $0.id == m.id }
     }
 
+    /// Updates the daily reminder settings. Only overwrites `hour`/`minute`
+    /// when provided. Callers are responsible for the matching
+    /// `ReminderScheduler` call (permission request + schedule/cancel).
+    func setReminder(enabled: Bool, hour: Int? = nil, minute: Int? = nil) {
+        reminderEnabled = enabled
+        if let hour { reminderHour = hour }
+        if let minute { reminderMinute = minute }
+    }
+
     /// Maps quiz answers to a 0–100 addiction score. Higher option index = worse.
     /// Scales the answer sum over the max possible, clamped to a plausible band.
     var addictionScore: Int {
@@ -83,5 +99,8 @@ final class AppState {
         phase = s.phase
         quizAnswers = s.quizAnswers
         motivations = s.motivations ?? []
+        reminderEnabled = s.reminderEnabled ?? false
+        reminderHour = s.reminderHour ?? 21
+        reminderMinute = s.reminderMinute ?? 0
     }
 }
