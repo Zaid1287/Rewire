@@ -22,6 +22,14 @@ final class AppState {
     private(set) var reminderHour: Int = 21 { didSet { persist?() } }
     private(set) var reminderMinute: Int = 0 { didSet { persist?() } }
 
+    /// Face ID app-lock (Quit Porn → Privacy). Persisted.
+    private(set) var faceIDEnabled: Bool = false { didSet { persist?() } }
+
+    /// Whether the lock screen is currently dismissed. Runtime-only — never
+    /// persisted, always starts `true` so enabling Face ID doesn't immediately
+    /// re-lock the same launch. RootView flips it to `false` on backgrounding.
+    var isUnlocked: Bool = true
+
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
@@ -82,6 +90,10 @@ final class AppState {
         if let minute { reminderMinute = minute }
     }
 
+    func setFaceIDEnabled(_ enabled: Bool) {
+        faceIDEnabled = enabled
+    }
+
     /// Maps quiz answers to a 0–100 addiction score. Higher option index = worse.
     /// Scales the answer sum over the max possible, clamped to a plausible band.
     var addictionScore: Int {
@@ -102,5 +114,6 @@ final class AppState {
         reminderEnabled = s.reminderEnabled ?? false
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0
+        faceIDEnabled = s.faceIDEnabled ?? false
     }
 }

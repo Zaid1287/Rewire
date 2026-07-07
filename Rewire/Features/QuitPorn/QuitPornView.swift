@@ -11,10 +11,11 @@ import SwiftUI
 /// "My Motivations" presents MotivationsView. "21-day Personal Plan" pushes
 /// PersonalPlanView, a day-by-day checklist backed by StreakStore.
 /// "Reminder Notifications" presents ReminderSettingsView, wired to real
-/// `UNUserNotificationCenter` scheduling. Everything else (Rewire Community,
-/// Appearance Tracker, Face ID, Apple Watch, Data Backup) has no matching
-/// screen yet — those rows carry `.soon` badges (dimmed, no chevron, no
-/// haptic) so they never read as working controls.
+/// `UNUserNotificationCenter` scheduling. "Login via Face ID" presents
+/// FaceIDSettingsView, wired to real `LocalAuthentication`. Everything else
+/// (Rewire Community, Appearance Tracker, Apple Watch, Data Backup) has no
+/// matching screen yet — those rows carry `.soon` badges (dimmed, no
+/// chevron, no haptic) so they never read as working controls.
 struct QuitPornView: View {
     @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
@@ -22,6 +23,7 @@ struct QuitPornView: View {
     @State private var showBreathing = false
     @State private var showMotivations = false
     @State private var showReminders = false
+    @State private var showFaceIDSettings = false
 
     enum Route: Hashable { case challenge, personalPlan }
 
@@ -68,6 +70,9 @@ struct QuitPornView: View {
             .sheet(isPresented: $showReminders) {
                 ReminderSettingsView().presentationDetents([.medium])
             }
+            .sheet(isPresented: $showFaceIDSettings) {
+                FaceIDSettingsView().presentationDetents([.medium])
+            }
         }
         .tint(Theme.Colors.green)
     }
@@ -101,6 +106,8 @@ struct QuitPornView: View {
             showMotivations = true
         } else if item.title == "Reminder Notifications" {
             showReminders = true
+        } else if item.title == "Login via Face ID" {
+            showFaceIDSettings = true
         } else if premiumGatedTitles.contains(item.title) {
             showPaywall = true
         }

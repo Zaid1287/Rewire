@@ -16,6 +16,9 @@ struct AppSnapshot: Codable {
     var reminderEnabled: Bool? = nil
     var reminderHour: Int? = nil
     var reminderMinute: Int? = nil
+    /// Face ID app-lock. Optional with a default so snapshots written before
+    /// this field existed still decode.
+    var faceIDEnabled: Bool? = nil
 
     // StreakStore
     var startDate: Date
@@ -95,6 +98,7 @@ final class PersistenceController {
             reminderEnabled: appState.reminderEnabled,
             reminderHour: appState.reminderHour,
             reminderMinute: appState.reminderMinute,
+            faceIDEnabled: appState.faceIDEnabled,
             startDate: streak.startDate,
             goal: streak.goal,
             recordSeconds: streak.recordSeconds,

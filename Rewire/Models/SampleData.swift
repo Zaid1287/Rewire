@@ -163,8 +163,7 @@ enum SampleData {
     ]
     static let quitPrivacy: [FeatureItem] = [
         FeatureItem(symbol: "faceid", title: "Login via Face ID",
-                    subtitle: "Use Face ID to unlock this app.",
-                    badge: .soon, showsChevron: false),
+                    subtitle: "Use Face ID to unlock this app."),
         FeatureItem(symbol: "applewatch", title: "Sync with your Apple Watch",
                     subtitle: "Track your streaks on your watch.",
                     badge: .soon, showsChevron: false),
