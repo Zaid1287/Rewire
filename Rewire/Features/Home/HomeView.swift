@@ -17,7 +17,9 @@ struct HomeView: View {
     @State private var showRewardBox = false
     @State private var showPaywall = false
     @State private var selectedPlan: Plan = SampleData.plans[1]
-    @State private var offer = OfferClock()
+    /// Drives the offer countdown re-render; the deadline itself lives in GemStore.
+    @State private var now = Date()
+    private let offerTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     enum HomeRoute: Hashable { case setGoal, addDays, challenge }
 
@@ -34,6 +36,12 @@ struct HomeView: View {
 
     /// Rough "time not spent watching" heuristic: one hour per full day clean.
     private var savedHours: Int { Int(streak.elapsed / 86_400) }
+
+    /// Seconds left on the one-time special offer (0 once expired or never started).
+    private var offerRemaining: Int {
+        guard let deadline = gems.offerDeadline else { return 0 }
+        return max(0, Int(deadline.timeIntervalSince(now)))
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -52,9 +60,10 @@ struct HomeView: View {
                 }
 
                 // Floating special-offer countdown — an upsell, so premium users
-                // never see it and it leaves once the offer runs out.
-                if !gems.isPremium && !offer.expired {
-                    OfferBanner(minutes: offer.minutes, seconds: offer.seconds)
+                // never see it. Deadline is persisted: the offer runs once per
+                // install and never comes back after expiring.
+                if !gems.isPremium && offerRemaining > 0 {
+                    OfferBanner(minutes: offerRemaining / 60, seconds: offerRemaining % 60)
                         .offset(x: Theme.Spacing.md, y: 300)
                         .allowsHitTesting(false)
                 }
@@ -100,7 +109,8 @@ struct HomeView: View {
                     )
                 }
             }
-            .onReceive(offer.timer) { _ in offer.tick() }
+            .onReceive(offerTimer) { now = $0 }
+            .onAppear { if !gems.isPremium { gems.startOfferIfNeeded() } }
         }
         .tint(Theme.Colors.green)
     }
@@ -261,21 +271,6 @@ struct HomeView: View {
             PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") { showPaywall = true }
         }
         .screenPadding()
-    }
-}
-
-/// Lightweight countdown model for the special-offer banner.
-@Observable
-final class OfferClock {
-    var minutes = 5
-    var seconds = 56
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-
-    var expired: Bool { minutes == 0 && seconds == 0 }
-
-    func tick() {
-        if seconds > 0 { seconds -= 1 }
-        else if minutes > 0 { minutes -= 1; seconds = 59 }
     }
 }
 

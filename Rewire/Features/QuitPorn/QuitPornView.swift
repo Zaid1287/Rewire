@@ -10,8 +10,8 @@ import SwiftUI
 /// "Breathing Exercise" presents the shared PanicModeView breathing screen.
 /// Everything else (21-day Personal Plan, Rewire Community, Reminder
 /// Notifications, My Motivations, Appearance Tracker, Face ID, Apple Watch,
-/// Data Backup) has no matching screen and isn't clearly premium-only, so
-/// those rows are left as static list items for now.
+/// Data Backup) has no matching screen yet — those rows carry `.soon` badges
+/// (dimmed, no chevron, no haptic) so they never read as working controls.
 struct QuitPornView: View {
     @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
@@ -78,6 +78,7 @@ struct QuitPornView: View {
     }
 
     private func rowTapped(_ item: FeatureItem) {
+        if case .soon? = item.badge { return }
         if item.title == "Challenges" {
             path.append(.challenge)
         } else if item.title == "Breathing Exercise" {

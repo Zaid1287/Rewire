@@ -32,6 +32,9 @@ struct FeatureItem: Identifiable {
 enum FeatureBadge {
     case popular
     case count(Int)
+    /// Coming-soon row: no destination yet — rendered dimmed with a "Soon"
+    /// capsule so it never reads as a working control.
+    case soon
 }
 
 /// A subscription plan row.

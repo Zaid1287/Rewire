@@ -112,6 +112,14 @@ struct PanicModeView: View {
         String(format: "%d:%02d", elapsed / 60, elapsed % 60)
     }
 
+    /// Two full 12s breath cycles before the reward unlocks.
+    private let minimumSeconds = 24
+    private var canFinish: Bool { elapsed >= minimumSeconds }
+    private var safeButtonTitle: String {
+        canFinish ? "I'm Safe Now"
+                  : String(format: "I'm Safe Now · 0:%02d", minimumSeconds - elapsed)
+    }
+
     var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
             Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
@@ -176,11 +184,16 @@ struct PanicModeView: View {
 
             Spacer()
 
-            PrimaryButton(title: "I'm Safe Now", trailingEmoji: "💪") {
+            // Reward tracks actually riding out the urge — locked for the first
+            // two full breath cycles. Swipe-to-dismiss always works; never trap
+            // a user in panic mode.
+            PrimaryButton(title: safeButtonTitle, trailingEmoji: canFinish ? "💪" : nil) {
                 gems.award(25)
                 Haptics.success()
                 dismiss()
             }
+            .opacity(canFinish ? 1 : 0.5)
+            .disabled(!canFinish)
             .screenPadding()
             .padding(.bottom, Theme.Spacing.lg)
         }

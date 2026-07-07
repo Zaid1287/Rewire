@@ -135,15 +135,18 @@ enum SampleData {
         FeatureItem(symbol: "shield.righthalf.filled", title: "Power up your shield",
                     subtitle: "Level up your shield and keep your streak unbreakable."),
         FeatureItem(symbol: "21.circle", title: "21-day Personal Plan",
-                    subtitle: "Overcome your addiction by following your personal plan.")
+                    subtitle: "Overcome your addiction by following your personal plan.",
+                    badge: .soon, showsChevron: false)
     ]
     static let quitBoost: [FeatureItem] = [
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
                     subtitle: "Block porn websites. Avoid unexpected relapses.", badge: .popular),
         FeatureItem(symbol: "person.2.fill", title: "Rewire Community",
-                    subtitle: "Join the private Telegram group. Get amazing support."),
+                    subtitle: "Join the private Telegram group. Get amazing support.",
+                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "app.badge", title: "Reminder Notifications",
-                    subtitle: "Set your daily reminders to easily keep your streak.", warning: true),
+                    subtitle: "Set your daily reminders to easily keep your streak.",
+                    badge: .soon, showsChevron: false, warning: true),
         FeatureItem(symbol: "bubble.left.and.bubble.right.fill", title: "Private Support",
                     subtitle: "Get private support from the mentors.", badge: .popular),
         FeatureItem(symbol: "lungs.fill", title: "Breathing Exercise",
@@ -153,17 +156,22 @@ enum SampleData {
         FeatureItem(symbol: "rosette", title: "Challenges",
                     subtitle: "Join weekly and monthly challenges. Track your success."),
         FeatureItem(symbol: "bolt.fill", title: "My Motivations",
-                    subtitle: "Never forget why you want to quit your addiction."),
+                    subtitle: "Never forget why you want to quit your addiction.",
+                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "camera.fill", title: "Appearance Tracker",
-                    subtitle: "Take your photo every day and track your appearance.")
+                    subtitle: "Take your photo every day and track your appearance.",
+                    badge: .soon, showsChevron: false)
     ]
     static let quitPrivacy: [FeatureItem] = [
         FeatureItem(symbol: "faceid", title: "Login via Face ID",
-                    subtitle: "Use Face ID to unlock this app."),
+                    subtitle: "Use Face ID to unlock this app.",
+                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "applewatch", title: "Sync with your Apple Watch",
-                    subtitle: "Track your streaks on your watch."),
+                    subtitle: "Track your streaks on your watch.",
+                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "arrow.counterclockwise.circle", title: "Data Backup",
-                    subtitle: "Backup your data or restore it easily.")
+                    subtitle: "Backup your data or restore it easily.",
+                    badge: .soon, showsChevron: false)
     ]
 
     // MARK: Recovery "make streaks easier" (IMG_5460)

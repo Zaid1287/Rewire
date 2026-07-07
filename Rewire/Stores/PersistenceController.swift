@@ -26,6 +26,9 @@ struct AppSnapshot: Codable {
     var claimedBadges: Set<String>
     var likedSuperpowers: Set<String>
     var currentLevel: Int
+    /// One-time special-offer deadline. Optional with a default so snapshots
+    /// written before this field existed still decode.
+    var offerDeadline: Date? = nil
 }
 
 /// Lightweight synchronous JSON persistence. `PersistenceController.shared`
@@ -90,7 +93,8 @@ final class PersistenceController {
             isPremium: gems.isPremium,
             claimedBadges: gems.claimedBadges,
             likedSuperpowers: gems.likedSuperpowers,
-            currentLevel: gems.currentLevel
+            currentLevel: gems.currentLevel,
+            offerDeadline: gems.offerDeadline
         )
     }
 

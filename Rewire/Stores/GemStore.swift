@@ -17,6 +17,10 @@ final class GemStore {
     /// Current level rank (see SampleData.levels — stable Int, never regenerated).
     private(set) var currentLevel: Int = 1 { didSet { persist?() } }
 
+    /// One-time special-offer deadline — set on first Home visit, never reset.
+    /// The Home banner shows while `Date() < offerDeadline`.
+    private(set) var offerDeadline: Date? = nil { didSet { persist?() } }
+
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
@@ -55,6 +59,12 @@ final class GemStore {
 
     func unlockPremium() { isPremium = true }
 
+    /// Start the one-time special offer (6 minutes) if it never ran.
+    func startOfferIfNeeded() {
+        guard offerDeadline == nil else { return }
+        offerDeadline = Date().addingTimeInterval(6 * 60)
+    }
+
     // MARK: Recovery progress
 
     func claimBadge(_ key: String) { claimedBadges.insert(key) }
@@ -75,5 +85,6 @@ final class GemStore {
         claimedBadges = s.claimedBadges
         likedSuperpowers = s.likedSuperpowers
         currentLevel = s.currentLevel
+        offerDeadline = s.offerDeadline
     }
 }
