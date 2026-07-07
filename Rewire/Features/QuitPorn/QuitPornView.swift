@@ -6,17 +6,19 @@ import SwiftUI
 /// Row wiring: "Challenges" pushes the existing WeeklyChallengeView. Rows that
 /// market a premium feature with no dedicated screen ("Power up your shield",
 /// "Porn Blocker", "Private Support") present the shared PaywallSheet, which
-/// already shows a "You're Premium" state once unlocked. Everything else
+/// already shows a "You're Premium" state once unlocked.
 /// "Breathing Exercise" presents the shared PanicModeView breathing screen.
-/// Everything else (21-day Personal Plan, Rewire Community, Reminder
-/// Notifications, My Motivations, Appearance Tracker, Face ID, Apple Watch,
-/// Data Backup) has no matching screen yet — those rows carry `.soon` badges
-/// (dimmed, no chevron, no haptic) so they never read as working controls.
+/// "My Motivations" presents MotivationsView. Everything else (21-day
+/// Personal Plan, Rewire Community, Reminder Notifications, Appearance
+/// Tracker, Face ID, Apple Watch, Data Backup) has no matching screen yet —
+/// those rows carry `.soon` badges (dimmed, no chevron, no haptic) so they
+/// never read as working controls.
 struct QuitPornView: View {
     @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
     @State private var showPaywall = false
     @State private var showBreathing = false
+    @State private var showMotivations = false
 
     enum Route: Hashable { case challenge }
 
@@ -56,6 +58,9 @@ struct QuitPornView: View {
                     .background(Theme.Colors.background)
                     .presentationDetents([.large])
             }
+            .sheet(isPresented: $showMotivations) {
+                MotivationsView().presentationDetents([.large])
+            }
         }
         .tint(Theme.Colors.green)
     }
@@ -83,6 +88,8 @@ struct QuitPornView: View {
             path.append(.challenge)
         } else if item.title == "Breathing Exercise" {
             showBreathing = true
+        } else if item.title == "My Motivations" {
+            showMotivations = true
         } else if premiumGatedTitles.contains(item.title) {
             showPaywall = true
         }

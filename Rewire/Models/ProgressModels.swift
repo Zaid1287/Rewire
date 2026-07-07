@@ -8,6 +8,14 @@ struct Streak: Identifiable, Codable {
     let isOngoing: Bool
 }
 
+/// A personal "why I quit" note (Quit Porn → My Motivations), surfaced again
+/// in Panic Mode as a reminder of the user's own reasons.
+struct Motivation: Identifiable, Codable {
+    var id = UUID()
+    var text: String
+    var date: Date = Date()
+}
+
 /// A saved daily report entry (History → streak detail).
 struct DailyReport: Identifiable, Codable {
     var id = UUID()

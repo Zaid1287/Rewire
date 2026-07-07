@@ -12,6 +12,9 @@ final class AppState {
     /// Onboarding quiz answers — one option index per question.
     private(set) var quizAnswers: [Int] = [] { didSet { persist?() } }
 
+    /// Personal "why I quit" notes (Quit Porn → My Motivations), newest first.
+    private(set) var motivations: [Motivation] = [] { didSet { persist?() } }
+
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
@@ -52,6 +55,17 @@ final class AppState {
         quizAnswers[questionIndex] = optionIndex
     }
 
+    /// Adds a trimmed, non-empty motivation to the top of the list.
+    func addMotivation(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        motivations.insert(Motivation(text: trimmed), at: 0)
+    }
+
+    func deleteMotivation(_ m: Motivation) {
+        motivations.removeAll { $0.id == m.id }
+    }
+
     /// Maps quiz answers to a 0–100 addiction score. Higher option index = worse.
     /// Scales the answer sum over the max possible, clamped to a plausible band.
     var addictionScore: Int {
@@ -68,5 +82,6 @@ final class AppState {
     func restore(from s: AppSnapshot) {
         phase = s.phase
         quizAnswers = s.quizAnswers
+        motivations = s.motivations ?? []
     }
 }

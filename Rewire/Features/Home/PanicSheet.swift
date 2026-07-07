@@ -75,6 +75,7 @@ struct PanicSheet: View {
 /// encouragement. Surviving the urge pays a small gem reward.
 struct PanicModeView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
     @State private var elapsed = 0
@@ -107,6 +108,13 @@ struct PanicModeView: View {
         "Picture yourself one hour from now, proud you held on.",
         "Breathe. This feeling is your brain rewiring itself."
     ]
+
+    /// If the user has written their own motivations, lead with those —
+    /// otherwise fall back to the default encouragement lines.
+    private var lines: [String] {
+        guard !appState.motivations.isEmpty else { return encouragements }
+        return appState.motivations.map { "Your why: \($0.text)" } + encouragements.prefix(2)
+    }
 
     private var timerText: String {
         String(format: "%d:%02d", elapsed / 60, elapsed % 60)
@@ -175,7 +183,7 @@ struct PanicModeView: View {
             .animation(.easeInOut(duration: 4), value: phase.lungsFull)
             .frame(height: 250)
 
-            Text(encouragements[(elapsed / 8) % encouragements.count])
+            Text(lines[(elapsed / 8) % lines.count])
                 .font(Theme.Typography.cardTitle())
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .multilineTextAlignment(.center)
@@ -222,4 +230,4 @@ struct SirenIcon: View {
     }
 }
 
-#Preview { PanicSheet().environment(GemStore()) }
+#Preview { PanicSheet().environment(GemStore()).environment(AppState()) }

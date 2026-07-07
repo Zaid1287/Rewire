@@ -8,6 +8,9 @@ struct AppSnapshot: Codable {
     // AppState
     var phase: AppState.Phase
     var quizAnswers: [Int]
+    /// Optional with a default so snapshots written before this field existed
+    /// still decode.
+    var motivations: [Motivation]? = nil
 
     // StreakStore
     var startDate: Date
@@ -80,6 +83,7 @@ final class PersistenceController {
         return AppSnapshot(
             phase: appState.phase,
             quizAnswers: appState.quizAnswers,
+            motivations: appState.motivations,
             startDate: streak.startDate,
             goal: streak.goal,
             recordSeconds: streak.recordSeconds,
