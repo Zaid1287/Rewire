@@ -26,6 +26,9 @@ final class StreakStore {
     private(set) var challengeJoined: Bool = false { didSet { persist?() } }
     private(set) var challengeDays: [ChallengeDay] = SampleData.challengeDays { didSet { persist?() } }
 
+    /// 21-day Personal Plan — set of completed day numbers.
+    private(set) var completedPlanDays: Set<Int> = [] { didSet { persist?() } }
+
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
@@ -99,6 +102,17 @@ final class StreakStore {
         challengeDays[i].state = state
     }
 
+    // MARK: 21-day Personal Plan
+
+    /// Toggle a plan day's completion. Any day can be toggled in any order.
+    func togglePlanDay(_ day: Int) {
+        if completedPlanDays.contains(day) {
+            completedPlanDays.remove(day)
+        } else {
+            completedPlanDays.insert(day)
+        }
+    }
+
     // MARK: Persistence
 
     func restore(from s: AppSnapshot) {
@@ -113,5 +127,6 @@ final class StreakStore {
         events = s.events
         challengeJoined = s.challengeJoined
         challengeDays = s.challengeDays
+        completedPlanDays = s.completedPlanDays ?? []
     }
 }

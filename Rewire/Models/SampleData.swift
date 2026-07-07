@@ -135,8 +135,7 @@ enum SampleData {
         FeatureItem(symbol: "shield.righthalf.filled", title: "Power up your shield",
                     subtitle: "Level up your shield and keep your streak unbreakable."),
         FeatureItem(symbol: "21.circle", title: "21-day Personal Plan",
-                    subtitle: "Overcome your addiction by following your personal plan.",
-                    badge: .soon, showsChevron: false)
+                    subtitle: "Overcome your addiction by following your personal plan.")
     ]
     static let quitBoost: [FeatureItem] = [
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
@@ -240,6 +239,31 @@ enum SampleData {
         ChallengeDay(number: 5, dateLabel: "Thursday, Jul 2", state: .pending),
         ChallengeDay(number: 6, dateLabel: "Friday, Jul 3", state: .failed),
         ChallengeDay(number: 7, dateLabel: "Saturday, Jul 4", state: .pending)
+    ]
+
+    // MARK: 21-day Personal Plan (Quit Porn → "21-day Personal Plan")
+    static let personalPlan: [PlanDay] = [
+        PlanDay(day: 1, title: "Delete your triggers", detail: "Unfollow, block, and uninstall anything that leads you back to porn."),
+        PlanDay(day: 2, title: "Take a cold shower", detail: "End your shower with 30 seconds of cold water to reset your urge response."),
+        PlanDay(day: 3, title: "Move your body", detail: "Get 20 minutes of exercise — a walk, a run, or a workout, anything that raises your heart rate."),
+        PlanDay(day: 4, title: "Write down your why", detail: "Journal three reasons you're doing this, and keep them somewhere you'll see them."),
+        PlanDay(day: 5, title: "Swap the habit", detail: "Pick your usual relapse trigger time and replace it with a walk, a call, or a book."),
+        PlanDay(day: 6, title: "Reach out to someone", detail: "Tell a friend or family member you're working on this — accountability keeps you honest."),
+        PlanDay(day: 7, title: "Review your first week", detail: "Look back at days 1-6 and write down what worked and what didn't."),
+        PlanDay(day: 8, title: "Try the Breathing Exercise", detail: "Open Breathing Exercise in this app and use it the next time an urge hits."),
+        PlanDay(day: 9, title: "Clean your space", detail: "Tidy the room where you spend the most idle time — clutter feeds bad habits."),
+        PlanDay(day: 10, title: "Practice gratitude", detail: "List three things going right in your life since you started this streak."),
+        PlanDay(day: 11, title: "Cold shower, round two", detail: "Repeat the cold-water finish — it gets easier and the reset still works."),
+        PlanDay(day: 12, title: "Digital detox for an hour", detail: "Put your phone away for one full hour today and notice how it feels."),
+        PlanDay(day: 13, title: "Get outside", detail: "Spend at least 15 minutes in daylight — sunlight helps mood and sleep."),
+        PlanDay(day: 14, title: "Halfway check-in", detail: "You're two weeks in. Re-read your Day 4 journal entry and see how far you've come."),
+        PlanDay(day: 15, title: "Sleep before 11pm", detail: "Late nights are prime relapse hours — get ahead of it with an earlier bedtime."),
+        PlanDay(day: 16, title: "Learn something new", detail: "Spend 20 minutes on a skill or hobby that has nothing to do with a screen."),
+        PlanDay(day: 17, title: "Move your body again", detail: "Another workout or long walk — momentum compounds."),
+        PlanDay(day: 18, title: "Plan for your next urge", detail: "Write a one-line plan for what you'll do the moment an urge hits."),
+        PlanDay(day: 19, title: "Say thank you", detail: "Message the friend from Day 6 and tell them how the last two weeks went."),
+        PlanDay(day: 20, title: "Reflect on the streak", detail: "Write down the biggest change you've noticed in your energy, mood, or focus."),
+        PlanDay(day: 21, title: "Celebrate day 21", detail: "You finished the plan — treat yourself to something small and set your next goal.")
     ]
 
     // MARK: History streaks (IMG_5466)

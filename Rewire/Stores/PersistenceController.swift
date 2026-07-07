@@ -21,6 +21,9 @@ struct AppSnapshot: Codable {
     var events: [StreakEvent]
     var challengeJoined: Bool
     var challengeDays: [ChallengeDay]
+    /// 21-day Personal Plan completion. Optional with a default so snapshots
+    /// written before this field existed still decode.
+    var completedPlanDays: Set<Int>? = nil
 
     // GemStore
     var gems: Int
@@ -92,6 +95,7 @@ final class PersistenceController {
             events: streak.events,
             challengeJoined: streak.challengeJoined,
             challengeDays: streak.challengeDays,
+            completedPlanDays: streak.completedPlanDays,
             gems: gems.gems,
             coins: gems.coins,
             isPremium: gems.isPremium,

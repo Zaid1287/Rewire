@@ -8,11 +8,12 @@ import SwiftUI
 /// "Porn Blocker", "Private Support") present the shared PaywallSheet, which
 /// already shows a "You're Premium" state once unlocked.
 /// "Breathing Exercise" presents the shared PanicModeView breathing screen.
-/// "My Motivations" presents MotivationsView. Everything else (21-day
-/// Personal Plan, Rewire Community, Reminder Notifications, Appearance
-/// Tracker, Face ID, Apple Watch, Data Backup) has no matching screen yet —
-/// those rows carry `.soon` badges (dimmed, no chevron, no haptic) so they
-/// never read as working controls.
+/// "My Motivations" presents MotivationsView. "21-day Personal Plan" pushes
+/// PersonalPlanView, a day-by-day checklist backed by StreakStore. Everything
+/// else (Rewire Community, Reminder Notifications, Appearance Tracker, Face
+/// ID, Apple Watch, Data Backup) has no matching screen yet — those rows
+/// carry `.soon` badges (dimmed, no chevron, no haptic) so they never read as
+/// working controls.
 struct QuitPornView: View {
     @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
@@ -20,7 +21,7 @@ struct QuitPornView: View {
     @State private var showBreathing = false
     @State private var showMotivations = false
 
-    enum Route: Hashable { case challenge }
+    enum Route: Hashable { case challenge, personalPlan }
 
     /// Row titles that market a premium feature with no dedicated screen yet.
     private let premiumGatedTitles: Set<String> = [
@@ -48,6 +49,7 @@ struct QuitPornView: View {
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .challenge: WeeklyChallengeView()
+                case .personalPlan: PersonalPlanView()
                 }
             }
             .sheet(isPresented: $showPaywall) {
@@ -86,6 +88,8 @@ struct QuitPornView: View {
         if case .soon? = item.badge { return }
         if item.title == "Challenges" {
             path.append(.challenge)
+        } else if item.title == "21-day Personal Plan" {
+            path.append(.personalPlan)
         } else if item.title == "Breathing Exercise" {
             showBreathing = true
         } else if item.title == "My Motivations" {

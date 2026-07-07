@@ -37,6 +37,14 @@ enum FeatureBadge {
     case soon
 }
 
+/// A single day in the 21-day Personal Plan checklist.
+struct PlanDay: Identifiable {
+    let day: Int
+    let title: String
+    let detail: String
+    var id: Int { day }
+}
+
 /// A subscription plan row.
 struct Plan: Identifiable, Equatable {
     let id = UUID()
