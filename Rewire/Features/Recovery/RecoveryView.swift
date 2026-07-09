@@ -5,7 +5,13 @@ import SwiftUI
 struct RecoveryView: View {
     enum Route: Hashable { case superpowers, badges, levels }
     @Environment(GemStore.self) private var gems
+    @Environment(StreakStore.self) private var streak
     @State private var path: [Route] = []
+
+    /// Recovery % — current streak against the standard 90-day rewire window.
+    private var recoveryPercent: Int {
+        min(100, Int(streak.elapsed / 86_400 / 90 * 100))
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -38,7 +44,7 @@ struct RecoveryView: View {
 
     private var recoveryHeader: some View {
         HStack(spacing: Theme.Spacing.lg) {
-            RecoveryRing(percent: 1)
+            RecoveryRing(percent: recoveryPercent)
                 .frame(width: 92, height: 92)
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 HStack(spacing: Theme.Spacing.xs) {
@@ -154,4 +160,4 @@ struct RecoveryRing: View {
     }
 }
 
-#Preview { RecoveryView().environment(GemStore()) }
+#Preview { RecoveryView().environment(GemStore()).environment(StreakStore()) }
