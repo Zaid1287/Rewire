@@ -9,10 +9,7 @@ struct MainTabView: View {
 
     /// Earned-but-unclaimed badges — drives the Recovery tab badge count.
     private var unclaimedBadges: Int {
-        (SampleData.claimableBadges + SampleData.lockedBadges).filter {
-            !gems.claimedBadges.contains($0.title)
-                && BadgeProgress.isEarned($0, appState: appState, streak: streak, gems: gems)
-        }.count
+        BadgeProgress.unclaimedCount(appState: appState, streak: streak, gems: gems)
     }
 
     var body: some View {

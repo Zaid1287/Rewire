@@ -4,6 +4,7 @@ import SwiftUI
 /// levels collection, and "make your streaks easier" feature rows.
 struct RecoveryView: View {
     enum Route: Hashable { case superpowers, badges, levels }
+    @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
     @Environment(StreakStore.self) private var streak
     @State private var path: [Route] = []
@@ -11,6 +12,11 @@ struct RecoveryView: View {
     /// Recovery % — current streak against the standard 90-day rewire window.
     private var recoveryPercent: Int {
         min(100, Int(streak.elapsed / 86_400 / 90 * 100))
+    }
+
+    /// Earned-but-unclaimed badges — the red bubble on the Badges card.
+    private var unclaimedBadges: Int {
+        BadgeProgress.unclaimedCount(appState: appState, streak: streak, gems: gems)
     }
 
     var body: some View {
@@ -83,7 +89,9 @@ struct RecoveryView: View {
             SectionHeader("My Collection")
             HStack(spacing: Theme.Spacing.md) {
                 collectionCard(icon: "rosette", iconColor: Theme.Colors.purple,
-                               title: "Badges", badge: 2, value: "\(gems.claimedBadges.count)", unit: "badges") {
+                               title: "Badges",
+                               badge: unclaimedBadges == 0 ? nil : unclaimedBadges,
+                               value: "\(gems.claimedBadges.count)", unit: "badges") {
                     path.append(.badges)
                 }
                 collectionCard(icon: "trophy.fill", iconColor: Theme.Colors.gold,

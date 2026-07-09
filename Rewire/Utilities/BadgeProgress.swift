@@ -4,6 +4,15 @@ import Foundation
 /// Keeps badges from being free-claimable — `BadgesView` and `MainTabView`
 /// both gate the Claim button / unclaimed count through this.
 enum BadgeProgress {
+    /// Earned-but-unclaimed count across the full badge catalog — drives the
+    /// Recovery tab badge and the My Collection bubble.
+    static func unclaimedCount(appState: AppState, streak: StreakStore, gems: GemStore) -> Int {
+        (SampleData.claimableBadges + SampleData.lockedBadges).filter {
+            !gems.claimedBadges.contains($0.title)
+                && isEarned($0, appState: appState, streak: streak, gems: gems)
+        }.count
+    }
+
     static func isEarned(_ badge: Badge, appState: AppState, streak: StreakStore, gems: GemStore) -> Bool {
         switch badge.title {
         case "Determined":              return true

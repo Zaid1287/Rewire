@@ -72,6 +72,7 @@ struct HomeView: View {
                 HomeStatHeader(shieldPercent: max(1, min(100, Int(streak.progress * 100))),
                                streakText: compactStreakText,
                                gems: gems.gems,
+                               showsWarning: streak.progress < 1,
                                onGiftTap: { showRewardBox = true })
                     .background(Theme.Colors.background)
             }

@@ -7,6 +7,8 @@ struct HomeStatHeader: View {
     let streakText: String
     let gems: Int
     var gemDelta: String? = nil
+    /// Warning mark next to the shield % — shown while the goal isn't reached.
+    var showsWarning: Bool = true
     var onGiftTap: () -> Void = {}
 
     var body: some View {
@@ -18,7 +20,7 @@ struct HomeStatHeader: View {
                 Text("\(shieldPercent)%")
                     .foregroundStyle(Theme.Colors.green)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                Text("❗️").font(.system(size: 13))
+                if showsWarning { Text("❗️").font(.system(size: 13)) }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
