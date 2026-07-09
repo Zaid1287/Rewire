@@ -10,6 +10,8 @@ struct RelapseFlow: View {
     @State private var step: Step = .reasons
     @State private var selectedReasons: Set<String> = []
     @State private var regretful: Bool? = nil
+    /// Guards against onAppear firing more than once and logging duplicate events.
+    @State private var didRecordEvent = false
 
     enum Step { case reasons, regret, saved }
 
@@ -24,7 +26,10 @@ struct RelapseFlow: View {
         }
         .animation(.easeInOut(duration: 0.3), value: step)
         .onAppear {
+            guard !didRecordEvent else { return }
+            didRecordEvent = true
             streak.relapse()
+            streak.addEvent(StreakEvent(type: .relapse))
             // Costs 500 coins per the copy, but a relapse report is never blocked
             // on affordability — spend if possible, proceed regardless.
             gems.spendCoins(500)

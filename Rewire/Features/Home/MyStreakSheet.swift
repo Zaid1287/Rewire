@@ -126,9 +126,9 @@ struct MyStreakSheet: View {
             }
 
             Card(padding: Theme.Spacing.md) {
-                // July 2026 starts on a Wednesday (leadingBlanks = 3).
-                MonthCalendar(leadingBlanks: 3, dayCount: 31, today: 3,
-                              flaggedDays: [6, 10, 13, 17, 24])
+                let info = monthCalendarInfo
+                MonthCalendar(leadingBlanks: info.leadingBlanks, dayCount: info.dayCount,
+                              today: info.today, flaggedDays: info.flaggedDays)
             }
         }
     }
@@ -137,6 +137,22 @@ struct MyStreakSheet: View {
     /// which store the option label in `note`.
     private func eventCount(_ label: String) -> Int {
         streak.events.filter { $0.note == label }.count
+    }
+
+    /// Current-month geometry for the calendar grid, plus day numbers that
+    /// have a saved report (flag marker). MonthCalendar has no relapse-style
+    /// marker of its own, so relapse days aren't fed in separately.
+    private var monthCalendarInfo: (leadingBlanks: Int, dayCount: Int, today: Int, flaggedDays: Set<Int>) {
+        let cal = Calendar.current
+        let today = Date()
+        let dayCount = cal.range(of: .day, in: .month, for: today)?.count ?? 30
+        let firstOfMonth = cal.date(from: cal.dateComponents([.year, .month], from: today)) ?? today
+        let leadingBlanks = cal.component(.weekday, from: firstOfMonth) - 1   // Sun-first
+        let flaggedDays = Set(streak.reports.compactMap { report -> Int? in
+            guard cal.isDate(report.date, equalTo: today, toGranularity: .month) else { return nil }
+            return cal.component(.day, from: report.date)
+        })
+        return (leadingBlanks, dayCount, cal.component(.day, from: today), flaggedDays)
     }
 
     private var bottomStats: some View {

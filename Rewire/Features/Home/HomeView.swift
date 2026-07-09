@@ -235,6 +235,31 @@ struct HomeView: View {
         .screenPadding()
     }
 
+    /// This week's Sun–Sat state, derived from real report/relapse dates.
+    /// Relapse wins over report; a plain "today" dot only shows when today
+    /// has neither.
+    private var weekStates: [WeekStrip.DayState] {
+        let cal = Calendar.current
+        let today = Date()
+        // Sun-first week start, independent of the calendar's locale firstWeekday
+        // (WeekStrip's headers are always Sun…Sat).
+        let weekday = cal.component(.weekday, from: today)   // 1 = Sun … 7 = Sat
+        guard let weekStart = cal.date(byAdding: .day, value: -(weekday - 1), to: cal.startOfDay(for: today)) else {
+            return Array(repeating: .none, count: 7)
+        }
+        let reportDays = Set(streak.reports.map { cal.startOfDay(for: $0.date) })
+        let relapseDays = Set(streak.events.filter { $0.type == .relapse }.map { cal.startOfDay(for: $0.date) })
+
+        return (0..<7).map { offset in
+            guard let day = cal.date(byAdding: .day, value: offset, to: weekStart) else { return .none }
+            let start = cal.startOfDay(for: day)
+            if relapseDays.contains(start) { return .relapse }
+            if reportDays.contains(start) { return .report }
+            if cal.isDate(start, inSameDayAs: cal.startOfDay(for: today)) { return .today }
+            return .none
+        }
+    }
+
     private var weekSection: some View {
         VStack(spacing: Theme.Spacing.md) {
             SectionHeader(title: "This Week") {
@@ -242,7 +267,7 @@ struct HomeView: View {
             }
             Button { Haptics.tap(); path.append(.challenge) } label: {
                 Card {
-                    WeekStrip(filledIndex: 5)   // Friday highlighted in the shots
+                    WeekStrip(states: weekStates)
                 }
             }
             .buttonStyle(PressableButtonStyle())

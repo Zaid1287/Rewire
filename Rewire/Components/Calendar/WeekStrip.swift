@@ -2,8 +2,10 @@ import SwiftUI
 
 /// Home "This Week" strip: Sun–Sat headers over dashed/filled day circles.
 struct WeekStrip: View {
-    /// index 0 = Sun … 6 = Sat. `filledIndex` marks the current day (blue dot).
-    var filledIndex: Int? = nil
+    enum DayState { case none, today, report, relapse }
+
+    /// index 0 = Sun … 6 = Sat.
+    var states: [DayState] = Array(repeating: .none, count: 7)
     private let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
     var body: some View {
@@ -13,17 +15,33 @@ struct WeekStrip: View {
                     Text(day)
                         .font(Theme.Typography.body())
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    if idx == filledIndex {
-                        Circle().fill(Color(hex: 0x2C6BE0)).frame(width: 22, height: 22)
-                    } else {
-                        Circle()
-                            .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
-                            .foregroundStyle(Theme.Colors.textTertiary)
-                            .frame(width: 22, height: 22)
-                    }
+                    dayMark(for: idx < states.count ? states[idx] : .none)
                 }
                 .frame(maxWidth: .infinity)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func dayMark(for state: DayState) -> some View {
+        switch state {
+        case .none:
+            Circle()
+                .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [3, 3]))
+                .foregroundStyle(Theme.Colors.textTertiary)
+                .frame(width: 22, height: 22)
+        case .today:
+            Circle().fill(Color(hex: 0x2C6BE0)).frame(width: 22, height: 22)
+        case .report:
+            ZStack {
+                Circle().fill(Theme.Colors.green)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            .frame(width: 22, height: 22)
+        case .relapse:
+            Circle().fill(Theme.Colors.red).frame(width: 22, height: 22)
         }
     }
 }
