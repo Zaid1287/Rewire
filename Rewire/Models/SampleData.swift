@@ -141,8 +141,7 @@ enum SampleData {
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
                     subtitle: "Block porn websites. Avoid unexpected relapses.", badge: .popular),
         FeatureItem(symbol: "person.2.fill", title: "Rewire Community",
-                    subtitle: "Join the private Telegram group. Get amazing support.",
-                    badge: .soon, showsChevron: false),
+                    subtitle: "Join the private Telegram group. Get amazing support."),
         FeatureItem(symbol: "app.badge", title: "Reminder Notifications",
                     subtitle: "Set your daily reminders to easily keep your streak.",
                     warning: true),
@@ -168,8 +167,7 @@ enum SampleData {
                     subtitle: "Track your streaks on your watch.",
                     badge: .soon, showsChevron: false),
         FeatureItem(symbol: "arrow.counterclockwise.circle", title: "Data Backup",
-                    subtitle: "Backup your data or restore it easily.",
-                    badge: .soon, showsChevron: false)
+                    subtitle: "Backup your data or restore it easily.")
     ]
 
     // MARK: Recovery "make streaks easier" (IMG_5460)

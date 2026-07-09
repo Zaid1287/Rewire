@@ -21,6 +21,11 @@ final class GemStore {
     /// The Home banner shows while `Date() < offerDeadline`.
     private(set) var offerDeadline: Date? = nil { didSet { persist?() } }
 
+    /// Misc one-off unlocks (e.g. "community") — stable string keys, checked
+    /// with `contains`. Separate from badges/superpowers since not every
+    /// achievement maps to a Recovery tile.
+    private(set) var achievements: Set<String> = [] { didSet { persist?() } }
+
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
@@ -76,6 +81,9 @@ final class GemStore {
 
     func advanceLevel() { currentLevel += 1 }
 
+    /// Record a one-off achievement. No-op if already recorded.
+    func recordAchievement(_ key: String) { achievements.insert(key) }
+
     // MARK: Persistence
 
     func restore(from s: AppSnapshot) {
@@ -86,5 +94,6 @@ final class GemStore {
         likedSuperpowers = s.likedSuperpowers
         currentLevel = s.currentLevel
         offerDeadline = s.offerDeadline
+        achievements = s.achievements ?? []
     }
 }

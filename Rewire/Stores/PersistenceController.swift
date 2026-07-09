@@ -43,6 +43,9 @@ struct AppSnapshot: Codable {
     /// One-time special-offer deadline. Optional with a default so snapshots
     /// written before this field existed still decode.
     var offerDeadline: Date? = nil
+    /// Misc one-off unlocks. Optional with a default so snapshots written
+    /// before this field existed still decode.
+    var achievements: Set<String>? = nil
 }
 
 /// Lightweight synchronous JSON persistence. `PersistenceController.shared`
@@ -114,8 +117,25 @@ final class PersistenceController {
             claimedBadges: gems.claimedBadges,
             likedSuperpowers: gems.likedSuperpowers,
             currentLevel: gems.currentLevel,
-            offerDeadline: gems.offerDeadline
+            offerDeadline: gems.offerDeadline,
+            achievements: gems.achievements
         )
+    }
+
+    /// Documents/rewire-state.json — exposed for the Data Backup export sheet.
+    var backupURL: URL { url }
+
+    /// Force an immediate (non-debounced) save. Used before sharing the backup
+    /// file so the export reflects the latest state.
+    func flush() { saveNow() }
+
+    /// Restore all stores from an imported snapshot (Data Backup import), then
+    /// persist immediately so it survives a relaunch.
+    func restoreAll(from snapshot: AppSnapshot) {
+        appState?.restore(from: snapshot)
+        streak?.restore(from: snapshot)
+        gems?.restore(from: snapshot)
+        saveNow()
     }
 
     private func saveNow() {
@@ -134,8 +154,13 @@ final class PersistenceController {
 
     private static func load(from url: URL) -> AppSnapshot? {
         guard let data = try? Data(contentsOf: url) else { return nil }
+        return try? decode(data)
+    }
+
+    /// Shared decoder settings, also used by the Data Backup import flow.
+    static func decode(_ data: Data) throws -> AppSnapshot {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return try? decoder.decode(AppSnapshot.self, from: data)
+        return try decoder.decode(AppSnapshot.self, from: data)
     }
 }

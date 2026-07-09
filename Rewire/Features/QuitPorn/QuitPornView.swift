@@ -12,18 +12,22 @@ import SwiftUI
 /// PersonalPlanView, a day-by-day checklist backed by StreakStore.
 /// "Reminder Notifications" presents ReminderSettingsView, wired to real
 /// `UNUserNotificationCenter` scheduling. "Login via Face ID" presents
-/// FaceIDSettingsView, wired to real `LocalAuthentication`. Everything else
-/// (Rewire Community, Appearance Tracker, Apple Watch, Data Backup) has no
-/// matching screen yet — those rows carry `.soon` badges (dimmed, no
-/// chevron, no haptic) so they never read as working controls.
+/// FaceIDSettingsView, wired to real `LocalAuthentication`. "Rewire Community"
+/// opens the public Telegram group via `openURL`. "Data Backup" presents
+/// DataBackupView (export/import the local snapshot). Everything else
+/// (Appearance Tracker, Apple Watch) has no matching screen yet — those rows
+/// carry `.soon` badges (dimmed, no chevron, no haptic) so they never read as
+/// working controls.
 struct QuitPornView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(\.openURL) private var openURL
     @State private var path: [Route] = []
     @State private var showPaywall = false
     @State private var showBreathing = false
     @State private var showMotivations = false
     @State private var showReminders = false
     @State private var showFaceIDSettings = false
+    @State private var showDataBackup = false
 
     enum Route: Hashable { case challenge, personalPlan }
 
@@ -73,6 +77,9 @@ struct QuitPornView: View {
             .sheet(isPresented: $showFaceIDSettings) {
                 FaceIDSettingsView().presentationDetents([.medium])
             }
+            .sheet(isPresented: $showDataBackup) {
+                DataBackupView().presentationDetents([.medium])
+            }
         }
         .tint(Theme.Colors.green)
     }
@@ -108,6 +115,11 @@ struct QuitPornView: View {
             showReminders = true
         } else if item.title == "Login via Face ID" {
             showFaceIDSettings = true
+        } else if item.title == "Rewire Community" {
+            gems.recordAchievement("community")
+            openURL(URL(string: "https://t.me/rewire_community")!)
+        } else if item.title == "Data Backup" {
+            showDataBackup = true
         } else if premiumGatedTitles.contains(item.title) {
             showPaywall = true
         }
