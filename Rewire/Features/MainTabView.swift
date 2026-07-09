@@ -4,11 +4,15 @@ import SwiftUI
 /// bar overlaid at the bottom. Each tab hosts its own NavigationStack.
 struct MainTabView: View {
     @Environment(AppState.self) private var appState
+    @Environment(StreakStore.self) private var streak
     @Environment(GemStore.self) private var gems
 
-    /// Claimable badges the user hasn't claimed yet — drives the Recovery tab badge.
+    /// Earned-but-unclaimed badges — drives the Recovery tab badge count.
     private var unclaimedBadges: Int {
-        SampleData.claimableBadges.filter { !gems.claimedBadges.contains($0.title) }.count
+        (SampleData.claimableBadges + SampleData.lockedBadges).filter {
+            !gems.claimedBadges.contains($0.title)
+                && BadgeProgress.isEarned($0, appState: appState, streak: streak, gems: gems)
+        }.count
     }
 
     var body: some View {

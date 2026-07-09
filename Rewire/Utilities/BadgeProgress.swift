@@ -1,0 +1,30 @@
+import Foundation
+
+/// Whether a Recovery badge has actually been earned, based on real app state.
+/// Keeps badges from being free-claimable — `BadgesView` and `MainTabView`
+/// both gate the Claim button / unclaimed count through this.
+enum BadgeProgress {
+    static func isEarned(_ badge: Badge, appState: AppState, streak: StreakStore, gems: GemStore) -> Bool {
+        switch badge.title {
+        case "Determined":              return true
+        case "Daily Reporter":          return !streak.reports.isEmpty
+        case "Goal Setter":             return gems.achievements.contains("setGoal")
+        case "Panic Breaker":           return gems.achievements.contains("panic")
+        case "Streak Guard":            return appState.reminderEnabled
+        case "Breathing Champ":         return gems.achievements.contains("breathing")
+        case "Challenger":              return streak.challengeJoined
+        case "Motivation Master":       return !appState.motivations.isEmpty
+        case "Responsible":             return true
+        case "Loyal Member":            return !streak.events.isEmpty
+        case "Feedback Master":         return gems.achievements.contains("feedback")
+        case "Share Supporter":         return gems.achievements.contains("share")
+        case "Community Member":        return gems.achievements.contains("community")
+        case "Premium Member", "Mentor Owner": return gems.isPremium
+        case "Personal Plan Level 1":   return streak.completedPlanDays.count >= 1
+        case "Personal Plan Level 2":   return streak.completedPlanDays.count >= 3
+        case "Personal Plan Level 3":   return streak.completedPlanDays.count >= 7
+        case "Appearance Booster":      return gems.achievements.contains("appearance")
+        default:                        return false   // Content Blocker, Penalty Locker, Researcher, Rewire Supporter
+        }
+    }
+}

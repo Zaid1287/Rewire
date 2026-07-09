@@ -93,6 +93,7 @@ struct SettingsView: View {
                 SettingRow(symbol: "paperplane.fill", tint: .white,
                            background: Color(hex: 0x2C6BE0), title: "Give Feedback",
                            accessory: .chevron) {
+                    gems.recordAchievement("feedback")
                     openURL(URL(string: "mailto:support@rewire.app?subject=Rewire%20Feedback")!)
                 }
                 RowDivider(inset: 62)
@@ -109,7 +110,10 @@ struct SettingsView: View {
                     .padding(Theme.Spacing.md)
                 }
                 .buttonStyle(.plain)
-                .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
+                .simultaneousGesture(TapGesture().onEnded {
+                    Haptics.tap()
+                    gems.recordAchievement("share")
+                })
             }
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
         }

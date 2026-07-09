@@ -25,6 +25,7 @@ struct PanicSheet: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.Colors.background)
+        .onAppear { gems.recordAchievement("panic") }
         .sheet(isPresented: $showPaywall) {
             PaywallSheet().presentationDetents([.medium, .large])
         }
@@ -197,6 +198,7 @@ struct PanicModeView: View {
             // a user in panic mode.
             PrimaryButton(title: safeButtonTitle, trailingEmoji: canFinish ? "💪" : nil) {
                 gems.award(25)
+                gems.recordAchievement("breathing")
                 Haptics.success()
                 dismiss()
             }

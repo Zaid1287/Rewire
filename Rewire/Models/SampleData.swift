@@ -174,9 +174,10 @@ enum SampleData {
     static let recoveryEasier: [FeatureItem] = [
         FeatureItem(symbol: "arrow.down.circle", title: "Relapse Penalty",
                     subtitle: "Relapsing will cost you 500 coins. Keep your streak alive! 🔥",
-                    badge: .popular),
+                    badge: .popular, showsChevron: false),
         FeatureItem(symbol: "play.circle", title: "Must-Watch Videos",
-                    subtitle: "Watch the playlists that we curated the best video content for you.")
+                    subtitle: "Watch the playlists that we curated the best video content for you.",
+                    badge: .soon, showsChevron: false)
     ]
 
     // MARK: Badges (IMG_5463/5464)

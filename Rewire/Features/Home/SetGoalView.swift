@@ -4,6 +4,7 @@ import SwiftUI
 /// with the current goal check-marked.
 struct SetGoalView: View {
     @Environment(StreakStore.self) private var streak
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -47,6 +48,7 @@ struct SetGoalView: View {
         return Button {
             Haptics.select()
             streak.setGoal(goal)
+            gems.recordAchievement("setGoal")
         } label: {
             HStack {
                 Text(goal.label)
