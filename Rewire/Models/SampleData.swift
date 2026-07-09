@@ -157,8 +157,7 @@ enum SampleData {
                     subtitle: "Never forget why you want to quit your addiction.",
                     badge: .soon, showsChevron: false),
         FeatureItem(symbol: "camera.fill", title: "Appearance Tracker",
-                    subtitle: "Take your photo every day and track your appearance.",
-                    badge: .soon, showsChevron: false)
+                    subtitle: "Take your photo every day and track your appearance.")
     ]
     static let quitPrivacy: [FeatureItem] = [
         FeatureItem(symbol: "faceid", title: "Login via Face ID",

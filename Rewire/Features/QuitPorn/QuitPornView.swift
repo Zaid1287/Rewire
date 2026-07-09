@@ -14,8 +14,9 @@ import SwiftUI
 /// `UNUserNotificationCenter` scheduling. "Login via Face ID" presents
 /// FaceIDSettingsView, wired to real `LocalAuthentication`. "Rewire Community"
 /// opens the public Telegram group via `openURL`. "Data Backup" presents
-/// DataBackupView (export/import the local snapshot). Everything else
-/// (Appearance Tracker, Apple Watch) has no matching screen yet — those rows
+/// DataBackupView (export/import the local snapshot). "Appearance Tracker"
+/// pushes AppearanceTrackerView, a daily photo journal backed by AppState.
+/// Everything else (Apple Watch) has no matching screen yet — those rows
 /// carry `.soon` badges (dimmed, no chevron, no haptic) so they never read as
 /// working controls.
 struct QuitPornView: View {
@@ -29,7 +30,7 @@ struct QuitPornView: View {
     @State private var showFaceIDSettings = false
     @State private var showDataBackup = false
 
-    enum Route: Hashable { case challenge, personalPlan }
+    enum Route: Hashable { case challenge, personalPlan, appearance }
 
     /// Row titles that market a premium feature with no dedicated screen yet.
     private let premiumGatedTitles: Set<String> = [
@@ -58,6 +59,7 @@ struct QuitPornView: View {
                 switch route {
                 case .challenge: WeeklyChallengeView()
                 case .personalPlan: PersonalPlanView()
+                case .appearance: AppearanceTrackerView()
                 }
             }
             .sheet(isPresented: $showPaywall) {
@@ -107,6 +109,8 @@ struct QuitPornView: View {
             path.append(.challenge)
         } else if item.title == "21-day Personal Plan" {
             path.append(.personalPlan)
+        } else if item.title == "Appearance Tracker" {
+            path.append(.appearance)
         } else if item.title == "Breathing Exercise" {
             showBreathing = true
         } else if item.title == "My Motivations" {

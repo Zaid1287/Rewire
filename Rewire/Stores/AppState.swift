@@ -15,6 +15,11 @@ final class AppState {
     /// Personal "why I quit" notes (Quit Porn → My Motivations), newest first.
     private(set) var motivations: [Motivation] = [] { didSet { persist?() } }
 
+    /// Daily photo journal (Quit Porn → Appearance Tracker), newest first.
+    /// Images live at Documents/appearance/<filename>; only the entries are
+    /// persisted in the snapshot.
+    private(set) var appearancePhotos: [AppearancePhoto] = [] { didSet { persist?() } }
+
     /// Daily reminder settings (Quit Porn → Reminder Notifications). The
     /// actual `UNUserNotificationCenter` scheduling happens in the view layer
     /// (ReminderScheduler) — this store is just the persisted data holder.
@@ -81,6 +86,37 @@ final class AppState {
         motivations.removeAll { $0.id == m.id }
     }
 
+    /// Directory the appearance photos are stored in, created on first use.
+    private static var appearanceDir: URL {
+        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let dir = docs.appendingPathComponent("appearance", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    /// Full file URL for a stored appearance photo's filename.
+    static func appearancePhotoURL(_ filename: String) -> URL {
+        appearanceDir.appendingPathComponent(filename)
+    }
+
+    /// Saves `image` as a new appearance-photo entry, newest first.
+    func addAppearancePhoto(_ image: UIImage) {
+        guard let data = image.jpegData(compressionQuality: 0.7) else { return }
+        let filename = "\(UUID().uuidString).jpg"
+        do {
+            try data.write(to: Self.appearancePhotoURL(filename), options: .atomic)
+        } catch {
+            // ponytail: best-effort local write; failure just drops this entry.
+            return
+        }
+        appearancePhotos.insert(AppearancePhoto(filename: filename), at: 0)
+    }
+
+    func deleteAppearancePhoto(_ photo: AppearancePhoto) {
+        try? FileManager.default.removeItem(at: Self.appearancePhotoURL(photo.filename))
+        appearancePhotos.removeAll { $0.id == photo.id }
+    }
+
     /// Updates the daily reminder settings. Only overwrites `hour`/`minute`
     /// when provided. Callers are responsible for the matching
     /// `ReminderScheduler` call (permission request + schedule/cancel).
@@ -111,6 +147,7 @@ final class AppState {
         phase = s.phase
         quizAnswers = s.quizAnswers
         motivations = s.motivations ?? []
+        appearancePhotos = s.appearancePhotos ?? []
         reminderEnabled = s.reminderEnabled ?? false
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0

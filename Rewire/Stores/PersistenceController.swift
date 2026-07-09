@@ -11,6 +11,9 @@ struct AppSnapshot: Codable {
     /// Optional with a default so snapshots written before this field existed
     /// still decode.
     var motivations: [Motivation]? = nil
+    /// Appearance Tracker photo journal. Optional with a default so snapshots
+    /// written before this field existed still decode.
+    var appearancePhotos: [AppearancePhoto]? = nil
     /// Daily reminder settings. Optional with a default so snapshots written
     /// before this field existed still decode.
     var reminderEnabled: Bool? = nil
@@ -98,6 +101,7 @@ final class PersistenceController {
             phase: appState.phase,
             quizAnswers: appState.quizAnswers,
             motivations: appState.motivations,
+            appearancePhotos: appState.appearancePhotos,
             reminderEnabled: appState.reminderEnabled,
             reminderHour: appState.reminderHour,
             reminderMinute: appState.reminderMinute,

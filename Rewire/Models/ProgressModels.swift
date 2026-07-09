@@ -35,6 +35,14 @@ struct Goal: Identifiable, Equatable, Codable {
     let seconds: TimeInterval
 }
 
+/// A daily photo journal entry (Quit Porn → Appearance Tracker). The image
+/// lives at Documents/appearance/<filename> — only the filename is persisted.
+struct AppearancePhoto: Identifiable, Codable {
+    var id = UUID()
+    var date = Date()
+    var filename: String
+}
+
 /// A logged history event (History → Add Event).
 struct StreakEvent: Identifiable, Codable {
     var id = UUID()
