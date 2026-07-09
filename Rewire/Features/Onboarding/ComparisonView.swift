@@ -25,18 +25,19 @@ struct ComparisonView: View {
                     .multilineTextAlignment(.center)
                     .padding(.top, Theme.Spacing.huge)
 
-                    // Overlapping cards
-                    ZStack(alignment: .topTrailing) {
+                    // Side-by-side cards bleeding off both screen edges, the
+                    // "with" card slightly in front and higher (IMG_5434).
+                    HStack(alignment: .top, spacing: -36) {
                         ComparisonCard(title: "without Rewire",
                                        titleColor: Theme.Colors.textSecondary,
                                        points: SampleData.withoutPoints, positive: false)
-                            .padding(.trailing, Theme.Spacing.xxl)
-                            .padding(.top, Theme.Spacing.xxl)
+                            .padding(.top, 56)
                         ComparisonCard(title: "with Rewire",
                                        titleColor: Theme.Colors.greenMint,
                                        points: SampleData.withPoints, positive: true)
-                            .padding(.leading, Theme.Spacing.xxl)
+                            .zIndex(1)
                     }
+                    .padding(.horizontal, -(Theme.Spacing.screen + 12))
                 }
                 .screenPadding()
                 .padding(.bottom, Theme.Spacing.xl)

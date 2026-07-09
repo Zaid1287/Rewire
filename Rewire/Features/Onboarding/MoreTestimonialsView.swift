@@ -18,8 +18,11 @@ struct MoreTestimonialsView: View {
                     }
                     .screenPadding()
                     .padding(.top, Theme.Spacing.md)
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 140)
                 }
+
+                BottomFadeScrim()
+                    .ignoresSafeArea(edges: .bottom)
 
                 PrimaryButton(title: "Continue", action: onContinue)
                     .screenPadding()

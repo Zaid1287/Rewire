@@ -14,6 +14,22 @@ struct ScoreResultView: View {
         return (raw + 5) / 10 * 10
     }
 
+    /// Warning copy tiered by score — a 35% answer set shouldn't read the
+    /// same as an 80% one. The >=70 tier matches the reference screenshot.
+    private var warningCopy: String {
+        switch appState.addictionScore {
+        case ..<40: "Your porn addiction level is mild. Now is the perfect time to take control.*"
+        case ..<70: "Your porn addiction level is moderate. Please take action soon.*"
+        default:    "Your porn addiction level is serious. Please take action immediately.*"
+        }
+    }
+
+    /// "You" bar height scaled by score — 80 renders 150pt, matching the
+    /// reference shot; lower scores shrink toward the 60pt average bar.
+    private var yourBarHeight: CGFloat {
+        60 + CGFloat(appState.addictionScore) * 1.125
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: Theme.Spacing.huge)
@@ -26,7 +42,7 @@ struct ScoreResultView: View {
                 .background(.white.opacity(0.15), in: Capsule())
 
             VStack(spacing: Theme.Spacing.xs) {
-                Text("Your porn addiction level is serious. Please take action immediately.*")
+                Text(warningCopy)
                     .font(Theme.Typography.cardTitle())
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
@@ -43,7 +59,7 @@ struct ScoreResultView: View {
             // Bar comparison
             HStack(alignment: .bottom, spacing: Theme.Spacing.huge) {
                 barColumn(title: "Average", height: 60, happy: true)
-                barColumn(title: "You", height: 150, happy: false)
+                barColumn(title: "You", height: yourBarHeight, happy: false)
             }
 
             Spacer()

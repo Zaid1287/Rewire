@@ -20,8 +20,11 @@ struct BenefitsView: View {
                     }
                     .screenPadding()
                     .padding(.top, Theme.Spacing.md)
-                    .padding(.bottom, 100)
+                    .padding(.bottom, 140)
                 }
+
+                BottomFadeScrim()
+                    .ignoresSafeArea(edges: .bottom)
 
                 PrimaryButton(title: "How have others changed their lives?",
                               action: onContinue)

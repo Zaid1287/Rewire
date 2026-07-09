@@ -13,10 +13,6 @@ struct HeroCarouselView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Hero image placeholder (real photo not recreatable — see PLACEHOLDERS.md)
-            HeroImagePlaceholder()
-                .ignoresSafeArea()
-
             LinearGradient(
                 colors: [.clear, .black.opacity(0.35), Theme.Colors.background],
                 startPoint: .center, endPoint: .bottom
@@ -40,12 +36,16 @@ struct HeroCarouselView: View {
                     }
                 }
 
-                // Headline
+                // Headline — scale down slightly rather than overflow the
+                // screen edge on narrower devices.
                 (Text("This will be the best\n")
                     .foregroundStyle(.white)
                  + Text("decision in your life")
                     .foregroundStyle(Theme.Colors.green))
                     .font(Theme.Typography.hero())
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Text("Quit porn addiction. Start to change your life. Boost your success everywhere.")
                     .font(Theme.Typography.body())
@@ -67,6 +67,13 @@ struct HeroCarouselView: View {
             }
             .screenPadding()
             .padding(.bottom, Theme.Spacing.xl)
+        }
+        // Hero image lives in .background so its scaledToFill overflow can't
+        // inflate the layout width and push content off-screen.
+        // (Real photo not recreatable — see PLACEHOLDERS.md.)
+        .background {
+            HeroImagePlaceholder()
+                .ignoresSafeArea()
         }
         .onReceive(autoAdvance) { _ in
             withAnimation { page = (page + 1) % totalPages }
