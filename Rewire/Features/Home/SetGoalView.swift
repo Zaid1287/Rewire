@@ -35,7 +35,7 @@ struct SetGoalView: View {
                     .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
                 }
                 .screenPadding()
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)

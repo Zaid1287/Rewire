@@ -24,7 +24,7 @@ struct RelapseFlow: View {
             case .saved:   savedView
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: step)
+        .animation(Theme.Motion.standard, value: step)
         .onAppear {
             guard !didRecordEvent else { return }
             didRecordEvent = true

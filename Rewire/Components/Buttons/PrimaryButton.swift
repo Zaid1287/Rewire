@@ -1,5 +1,28 @@
 import SwiftUI
 
+/// Full-width gradient capsule label — the shared look behind PrimaryButton
+/// and any other full-width 60pt CTA (ShareLink, PhotosPicker, etc.) that
+/// needs the identical style without a Button wrapper.
+struct PrimaryButtonLabel: View {
+    let title: String
+    var trailingEmoji: String? = nil
+    var background: AnyShapeStyle = AnyShapeStyle(Theme.Colors.primaryGradient)
+    var foreground: Color = .white
+
+    var body: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            Text(title)
+            if let trailingEmoji { Text(trailingEmoji) }
+        }
+        .font(Theme.Typography.button())
+        .foregroundStyle(foreground)
+        .frame(maxWidth: .infinity)
+        .frame(height: 60)
+        .background(background)
+        .clipShape(Capsule())
+    }
+}
+
 /// Full-width indigo pill CTA — "Continue", "Enable Reminders", "Done",
 /// "Unlock Premium". The dominant action button across the app.
 struct PrimaryButton: View {
@@ -14,16 +37,7 @@ struct PrimaryButton: View {
             Haptics.tap()
             action()
         } label: {
-            HStack(spacing: Theme.Spacing.xs) {
-                Text(title)
-                if let trailingEmoji { Text(trailingEmoji) }
-            }
-            .font(Theme.Typography.button())
-            .foregroundStyle(foreground)
-            .frame(maxWidth: .infinity)
-            .frame(height: 60)
-            .background(background)
-            .clipShape(Capsule())
+            PrimaryButtonLabel(title: title, trailingEmoji: trailingEmoji, background: background, foreground: foreground)
         }
         .buttonStyle(PressableButtonStyle())
     }
@@ -59,7 +73,7 @@ struct PressableButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .opacity(configuration.isPressed ? 0.9 : 1)
-            .animation(.easeOut(duration: 0.15), value: configuration.isPressed)
+            .animation(Theme.Motion.quick, value: configuration.isPressed)
     }
 }
 

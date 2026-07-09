@@ -20,7 +20,7 @@ struct RecoveryView: View {
                     }
                     .screenPadding()
                     .padding(.top, Theme.Spacing.lg)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, Theme.Spacing.tabBarClearance)
                 }
             }
             .background(Theme.Colors.background)
@@ -76,7 +76,7 @@ struct RecoveryView: View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             SectionHeader("My Collection")
             HStack(spacing: Theme.Spacing.md) {
-                collectionCard(icon: "rosette", iconColor: Color(hex: 0x8B7BF0),
+                collectionCard(icon: "rosette", iconColor: Theme.Colors.purple,
                                title: "Badges", badge: 2, value: "\(gems.claimedBadges.count)", unit: "badges") {
                     path.append(.badges)
                 }
@@ -108,6 +108,8 @@ struct RecoveryView: View {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(value).font(Theme.Typography.statNumber())
                         .foregroundStyle(Theme.Colors.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
                     if let unit {
                         Text(unit).font(Theme.Typography.body())
                             .foregroundStyle(Theme.Colors.textSecondary)

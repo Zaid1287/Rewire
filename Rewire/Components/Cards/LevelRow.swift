@@ -18,7 +18,7 @@ struct LevelRow: View {
             if level.isCurrent {
                 HStack(spacing: Theme.Spacing.xs) {
                     Circle()
-                        .fill(Color(hex: 0x2C6BE0))
+                        .fill(Theme.Colors.blue)
                         .frame(width: 20, height: 20)
                         .overlay(Circle().stroke(.white, lineWidth: 2))
                     Text("You are here")
@@ -30,7 +30,7 @@ struct LevelRow: View {
                     GemIcon(size: 20)
                     Text("\(cost)")
                         .font(.system(size: 18, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color(hex: 0x6FB2FF))
+                        .foregroundStyle(Theme.Colors.blueLight)
                 }
             }
         }

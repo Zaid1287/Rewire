@@ -7,7 +7,7 @@ struct AppIconView: View {
     @AppStorage("selectedAppIcon") private var selected = 0
 
     private let icons: [(String, Color, Color)] = [
-        ("checkmark.shield.fill", Color(hex: 0x2E7D32), Color(hex: 0xB6E8A0)),
+        ("checkmark.shield.fill", Theme.Colors.greenDark, Theme.Colors.pastelLime),
         ("flame.fill", .white, Theme.Colors.flame),
         ("drop.fill", .white, Theme.Colors.primary),
         ("bolt.fill", .black, Theme.Colors.noteYellow)

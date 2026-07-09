@@ -88,11 +88,11 @@ struct HeroImagePlaceholder: View {
 struct AppLogoSmall: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 7, style: .continuous)
-            .fill(Color(hex: 0xB6E8A0))
+            .fill(Theme.Colors.pastelLime)
             .frame(width: 26, height: 26)
             .overlay(Image(systemName: "checkmark.shield.fill")
                 .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Color(hex: 0x2E7D32)))
+                .foregroundStyle(Theme.Colors.greenDark))
     }
 }
 

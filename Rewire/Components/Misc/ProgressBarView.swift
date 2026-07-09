@@ -18,7 +18,7 @@ struct ProgressBarView: View {
             }
         }
         .frame(height: height)
-        .animation(.easeInOut(duration: 0.3), value: value)
+        .animation(Theme.Motion.standard, value: value)
     }
 }
 

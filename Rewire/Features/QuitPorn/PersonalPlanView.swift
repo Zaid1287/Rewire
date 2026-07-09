@@ -30,7 +30,7 @@ struct PersonalPlanView: View {
                 }
                 .screenPadding()
                 .padding(.top, Theme.Spacing.lg)
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)

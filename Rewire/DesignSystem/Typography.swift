@@ -14,7 +14,7 @@ extension Theme {
         static func subtitle()    -> Font { .system(size: 15, weight: .regular) }
         static func caption()     -> Font { .system(size: 13, weight: .regular) }
         static func button()      -> Font { .system(size: 18, weight: .semibold) }
-        static func tab()         -> Font { .system(size: 11, weight: .medium) }
+        static func tab()         -> Font { .system(size: 12, weight: .medium) }
 
         /// UPPERCASE tracked section headers (SHORTCUTS, GOALS, PREFERENCES…).
         static func sectionHeader() -> Font { .system(size: 13, weight: .semibold) }

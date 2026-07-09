@@ -54,7 +54,7 @@ struct WeeklyChallengeView: View {
                     .padding(.top, Theme.Spacing.sm)
                 }
                 .screenPadding()
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)

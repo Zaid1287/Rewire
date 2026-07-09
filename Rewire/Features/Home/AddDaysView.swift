@@ -47,7 +47,7 @@ struct AddDaysView: View {
                     }
                 }
                 .screenPadding()
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)

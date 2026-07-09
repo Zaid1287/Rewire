@@ -47,6 +47,13 @@ extension Theme {
         static let textTertiary  = Color(hex: 0x6E6E73)
         static let textOnColor   = Color.white
 
+        // Repeated non-palette accents (promoted from inline hex call sites)
+        static let blue        = Color(hex: 0x2C6BE0)   // today marker, water stat, feedback icon
+        static let greenDark   = Color(hex: 0x2E7D32)   // dark green icon backgrounds
+        static let purple      = Color(hex: 0x8B7BF0)   // badges / levels accents
+        static let pastelLime  = Color(hex: 0xB6E8A0)   // pastel icon bg
+        static let blueLight   = Color(hex: 0x6FB2FF)   // gem tint
+
         // Pastel superpower-icon backgrounds
         static let pastelGreen   = Color(hex: 0xBFE8A6)
         static let pastelTan     = Color(hex: 0xE7D3AE)

@@ -4,7 +4,7 @@ import SwiftUI
 struct TagBadge: View {
     enum Kind { case popular, plus
         var text: String { self == .popular ? "POPULAR" : "PLUS" }
-        var color: Color { self == .popular ? Theme.Colors.primary : Color(hex: 0x2E7D32) }
+        var color: Color { self == .popular ? Theme.Colors.primary : Theme.Colors.greenDark }
     }
     let kind: Kind
 

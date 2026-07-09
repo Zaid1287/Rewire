@@ -31,7 +31,7 @@ struct WeekStrip: View {
                 .foregroundStyle(Theme.Colors.textTertiary)
                 .frame(width: 22, height: 22)
         case .today:
-            Circle().fill(Color(hex: 0x2C6BE0)).frame(width: 22, height: 22)
+            Circle().fill(Theme.Colors.blue).frame(width: 22, height: 22)
         case .report:
             ZStack {
                 Circle().fill(Theme.Colors.green)

@@ -12,12 +12,7 @@ struct ReminderSettingsView: View {
 
     var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
-                .padding(.top, Theme.Spacing.sm)
-
-            Text("Daily Reminder")
-                .font(Theme.Typography.title())
-                .foregroundStyle(Theme.Colors.textPrimary)
+            SheetChrome(title: "Daily Reminder")
 
             VStack(spacing: Theme.Spacing.sm) {
                 HStack {

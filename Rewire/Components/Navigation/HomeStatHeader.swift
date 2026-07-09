@@ -35,7 +35,7 @@ struct HomeStatHeader: View {
             HStack(spacing: 4) {
                 GemIcon(size: 20)
                 Text(gemDelta ?? "\(gems)")
-                    .foregroundStyle(gemDelta != nil ? Theme.Colors.green : Color(hex: 0x6FB2FF))
+                    .foregroundStyle(gemDelta != nil ? Theme.Colors.green : Theme.Colors.blueLight)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .contentTransition(.numericText())
             }

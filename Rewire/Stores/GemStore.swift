@@ -32,7 +32,7 @@ final class GemStore {
     // MARK: Gems
 
     func award(_ amount: Int) {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+        withAnimation(Theme.Motion.emphasized) {
             gems += amount
         }
     }
@@ -48,7 +48,7 @@ final class GemStore {
     // MARK: Coins
 
     func awardCoins(_ amount: Int) {
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+        withAnimation(Theme.Motion.emphasized) {
             coins += amount
         }
     }

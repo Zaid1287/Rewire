@@ -56,7 +56,7 @@ struct HomeView: View {
                         planSection
                     }
                     .padding(.top, Theme.Spacing.md)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, Theme.Spacing.tabBarClearance)
                 }
 
                 // Floating special-offer countdown — an upsell, so premium users

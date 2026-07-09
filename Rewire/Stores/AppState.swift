@@ -51,6 +51,15 @@ final class AppState {
         }
         var symbol: String {
             switch self {
+            case .home: "house"
+            case .quitPorn: "shield"
+            case .recovery: "drop"
+            case .history: "clock.arrow.circlepath"
+            case .settings: "gearshape"
+            }
+        }
+        var activeSymbol: String {
+            switch self {
             case .home: "house.fill"
             case .quitPorn: "shield.fill"
             case .recovery: "drop.fill"
@@ -63,7 +72,7 @@ final class AppState {
     }
 
     func finishOnboarding() {
-        withAnimation(.easeInOut(duration: 0.4)) { phase = .main }
+        withAnimation(Theme.Motion.standard) { phase = .main }
     }
 
     /// Record (or overwrite) the chosen option for a quiz question.

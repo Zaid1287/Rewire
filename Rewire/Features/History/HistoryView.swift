@@ -60,7 +60,7 @@ struct HistoryView: View {
                         }
                         .screenPadding()
                         .padding(.top, Theme.Spacing.lg)
-                        .padding(.bottom, 140)
+                        .padding(.bottom, Theme.Spacing.tabBarClearance + 20)
                     }
 
                     Button {

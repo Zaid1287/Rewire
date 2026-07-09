@@ -17,11 +17,7 @@ struct AddEventView: View {
 
     var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
-                .padding(.top, Theme.Spacing.sm)
-            Text("Add Event")
-                .font(Theme.Typography.cardTitle())
-                .foregroundStyle(Theme.Colors.textPrimary)
+            SheetChrome(title: "Add Event", titleFont: Theme.Typography.cardTitle())
 
             VStack(spacing: Theme.Spacing.sm) {
                 ForEach(events, id: \.self) { event in

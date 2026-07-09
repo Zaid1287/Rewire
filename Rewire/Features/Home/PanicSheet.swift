@@ -131,12 +131,7 @@ struct PanicModeView: View {
 
     var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
-                .padding(.top, Theme.Spacing.sm)
-
-            Text("Panic Mode")
-                .font(Theme.Typography.title())
-                .foregroundStyle(Theme.Colors.textPrimary)
+            SheetChrome(title: "Panic Mode")
 
             Text("You're resisting for \(timerText)")
                 .font(Theme.Typography.body())
@@ -155,7 +150,7 @@ struct PanicModeView: View {
                     .stroke(
                         AngularGradient(
                             colors: [Theme.Colors.primary, Theme.Colors.green,
-                                     Color(hex: 0x8B7BF0), Theme.Colors.primary],
+                                     Theme.Colors.purple, Theme.Colors.primary],
                             center: .center),
                         lineWidth: 6
                     )
@@ -166,7 +161,7 @@ struct PanicModeView: View {
                     .stroke(
                         AngularGradient(
                             colors: [Theme.Colors.primary, Theme.Colors.green,
-                                     Color(hex: 0x8B7BF0), Theme.Colors.primary],
+                                     Theme.Colors.purple, Theme.Colors.primary],
                             center: .center),
                         lineWidth: 2.5
                     )
@@ -189,7 +184,7 @@ struct PanicModeView: View {
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .multilineTextAlignment(.center)
                 .screenPadding()
-                .animation(.easeInOut(duration: 0.3), value: elapsed / 8)
+                .animation(Theme.Motion.standard, value: elapsed / 8)
 
             Spacer()
 

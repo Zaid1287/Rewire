@@ -37,7 +37,7 @@ struct BadgesView: View {
                 }
                 .screenPadding()
                 .padding(.top, Theme.Spacing.md)
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)

@@ -6,12 +6,12 @@ struct AppLogo: View {
     var size: CGFloat = 120
     var body: some View {
         RoundedRectangle(cornerRadius: size * 0.24, style: .continuous)
-            .fill(Color(hex: 0xB6E8A0))
+            .fill(Theme.Colors.pastelLime)
             .frame(width: size, height: size)
             .overlay(
                 Image(systemName: "checkmark.shield.fill")
                     .font(.system(size: size * 0.52, weight: .bold))
-                    .foregroundStyle(Color(hex: 0x2E7D32))
+                    .foregroundStyle(Theme.Colors.greenDark)
             )
     }
 }

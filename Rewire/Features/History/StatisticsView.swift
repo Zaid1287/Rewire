@@ -38,11 +38,11 @@ struct StatisticsView: View {
                     HStack(spacing: Theme.Spacing.md) {
                         LabeledStatCard(emoji: "📈", iconBackground: Theme.Colors.primary,
                                         value: streak.progressPercentText, label: "goal progress")
-                        LabeledStatCard(symbol: "square.and.pencil", iconBackground: Color(hex: 0x8B7BF0),
+                        LabeledStatCard(symbol: "square.and.pencil", iconBackground: Theme.Colors.purple,
                                         value: "\(streak.reports.count)", label: "reports")
                     }
                     HStack(spacing: Theme.Spacing.md) {
-                        LabeledStatCard(symbol: "chart.bar.fill", iconBackground: Color(hex: 0x2C6BE0),
+                        LabeledStatCard(symbol: "chart.bar.fill", iconBackground: Theme.Colors.blue,
                                         value: averageStreak.humanShort(), label: "average streak")
                         LabeledStatCard(symbol: "calendar", iconBackground: Theme.Colors.gold,
                                         value: "\(totalDays)", label: "total days")
@@ -63,7 +63,7 @@ struct StatisticsView: View {
                 }
                 .screenPadding()
                 .padding(.top, Theme.Spacing.lg)
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)
@@ -125,7 +125,7 @@ struct StreakDetailView: View {
                 }
                 .screenPadding()
                 .padding(.top, Theme.Spacing.lg)
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)

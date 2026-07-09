@@ -33,11 +33,11 @@ struct RewireTabBar: View {
         let active = tab == selection
         return Button {
             Haptics.select()
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) { selection = tab }
+            withAnimation(Theme.Motion.emphasized) { selection = tab }
         } label: {
             VStack(spacing: 4) {
                 ZStack(alignment: .topTrailing) {
-                    Image(systemName: tab.symbol)
+                    Image(systemName: active ? tab.activeSymbol : tab.symbol)
                         .font(.system(size: 20, weight: .regular))
                         .frame(height: 24)
                     if let count = badgeCount(for: tab), count > 0 {

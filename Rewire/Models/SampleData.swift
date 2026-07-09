@@ -73,7 +73,7 @@ enum SampleData {
     // Glyphs match the produced asset board ("10 custom pastel glyphs"): crisp
     // vector SF Symbols on pastel circles, saturated tint from the same family.
     static let benefits: [Benefit] = [
-        Benefit(symbol: "bolt.fill", isEmoji: false, iconTint: Color(hex: 0x2E7D32),
+        Benefit(symbol: "bolt.fill", isEmoji: false, iconTint: Theme.Colors.greenDark,
                 iconBackground: Theme.Colors.pastelGreen, title: "Boosted energy levels",
                 subtitle: "Maximize your energy every single day."),
         Benefit(symbol: "star.fill", isEmoji: false, iconTint: Color(hex: 0xC79A2E),
@@ -85,7 +85,7 @@ enum SampleData {
         Benefit(symbol: "lightbulb.fill", isEmoji: false, iconTint: Color(hex: 0xD9A72E),
                 iconBackground: Theme.Colors.pastelAmber, title: "Clearer mind",
                 subtitle: "Think sharper and stay focused all day."),
-        Benefit(symbol: "message.fill", isEmoji: false, iconTint: Color(hex: 0x2E7D32),
+        Benefit(symbol: "message.fill", isEmoji: false, iconTint: Theme.Colors.greenDark,
                 iconBackground: Theme.Colors.pastelMint, title: "More attention from women",
                 subtitle: "Turn heads and attract women effortlessly."),
         Benefit(symbol: "dumbbell.fill", isEmoji: false, iconTint: Color(hex: 0x444444),

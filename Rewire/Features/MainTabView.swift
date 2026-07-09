@@ -31,6 +31,15 @@ struct MainTabView: View {
                 }
             }
 
+            LinearGradient(
+                colors: [Theme.Colors.background.opacity(0), Theme.Colors.background.opacity(0.85), Theme.Colors.background],
+                startPoint: .top, endPoint: .bottom
+            )
+            .frame(height: 140)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+            .ignoresSafeArea(edges: .bottom)
+            .allowsHitTesting(false)
+
             RewireTabBar(selection: $appState.selectedTab, recoveryBadgeCount: unclaimedBadges)
                 .padding(.bottom, Theme.Spacing.xs)
         }

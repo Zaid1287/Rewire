@@ -28,17 +28,17 @@ struct SettingsView: View {
                             SettingRow(symbol: "circle.lefthalf.filled", tint: .white,
                                        background: Theme.Colors.primary, title: "Appearance",
                                        accessory: .chevron) { path.append(.appearance) },
-                            SettingRow(symbol: "checkmark.shield.fill", tint: Color(hex: 0x2E7D32),
-                                       background: Color(hex: 0xB6E8A0), title: "App Icon",
+                            SettingRow(symbol: "checkmark.shield.fill", tint: Theme.Colors.greenDark,
+                                       background: Theme.Colors.pastelLime, title: "App Icon",
                                        accessory: .chevron) { path.append(.appIcon) }
                         ])
                         supportUsGroup
                         group("About", rows: [
                             SettingRow(symbol: "doc.fill", tint: .white,
-                                       background: Color(hex: 0x2C6BE0), title: "Privacy Policy",
+                                       background: Theme.Colors.blue, title: "Privacy Policy",
                                        accessory: .chevron) { openURL(URL(string: "https://rewire.app/privacy")!) },
                             SettingRow(symbol: "arrow.counterclockwise.circle.fill", tint: .white,
-                                       background: Color(hex: 0x2C6BE0), title: "Restore Purchase",
+                                       background: Theme.Colors.blue, title: "Restore Purchase",
                                        accessory: .none) { restorePurchase() },
                             SettingRow(symbol: "info.circle.fill", tint: .white,
                                        background: Color(hex: 0x4B5AD8), title: "Version Number",
@@ -48,7 +48,7 @@ struct SettingsView: View {
                     }
                     .screenPadding()
                     .padding(.top, Theme.Spacing.lg)
-                    .padding(.bottom, 120)
+                    .padding(.bottom, Theme.Spacing.tabBarClearance)
                 }
             }
             .background(Theme.Colors.background)
@@ -91,7 +91,7 @@ struct SettingsView: View {
             SectionHeader("Support us")
             VStack(spacing: 0) {
                 SettingRow(symbol: "paperplane.fill", tint: .white,
-                           background: Color(hex: 0x2C6BE0), title: "Give Feedback",
+                           background: Theme.Colors.blue, title: "Give Feedback",
                            accessory: .chevron) {
                     gems.recordAchievement("feedback")
                     openURL(URL(string: "mailto:support@rewire.app?subject=Rewire%20Feedback")!)
@@ -101,7 +101,7 @@ struct SettingsView: View {
                           message: Text("Join me on Rewire — take back control. 💪")) {
                     HStack(spacing: Theme.Spacing.md) {
                         IconSquare(symbol: "arrowshape.turn.up.right.fill", tint: .white,
-                                   background: Color(hex: 0x2C6BE0))
+                                   background: Theme.Colors.blue)
                         Text("Invite Friends")
                             .font(Theme.Typography.cardTitle())
                             .foregroundStyle(Theme.Colors.textPrimary)
@@ -122,8 +122,8 @@ struct SettingsView: View {
     private var upsellBanner: some View {
         Button { showPaywall = true } label: {
             HStack(spacing: Theme.Spacing.md) {
-                IconSquare(symbol: "arrow.up.right", tint: Color(hex: 0x2E7D32),
-                           background: Color(hex: 0xB6E8A0))
+                IconSquare(symbol: "arrow.up.right", tint: Theme.Colors.greenDark,
+                           background: Theme.Colors.pastelLime)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Get the Full Effect")
                         .font(Theme.Typography.headline())

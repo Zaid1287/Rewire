@@ -28,7 +28,7 @@ struct DailyReportFlow: View {
             default: savedView
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: step)
+        .animation(Theme.Motion.standard, value: step)
     }
 
     private func next() { step += 1 }

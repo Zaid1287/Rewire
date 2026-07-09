@@ -42,7 +42,7 @@ struct GemIcon: View {
         Image(systemName: "diamond.fill")
             .font(.system(size: size))
             .foregroundStyle(
-                LinearGradient(colors: [Color(hex: 0x6FB2FF), Color(hex: 0x2C6BE0)],
+                LinearGradient(colors: [Theme.Colors.blueLight, Theme.Colors.blue],
                                startPoint: .top, endPoint: .bottom)
             )
     }

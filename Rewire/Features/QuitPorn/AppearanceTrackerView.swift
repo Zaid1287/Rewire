@@ -44,7 +44,7 @@ struct AppearanceTrackerView: View {
                 }
                 .screenPadding()
                 .padding(.top, Theme.Spacing.lg)
-                .padding(.bottom, 120)
+                .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
         .background(Theme.Colors.background)
@@ -68,13 +68,7 @@ struct AppearanceTrackerView: View {
 
     private var photosPickerButton: some View {
         PhotosPicker(selection: $pickerItem, matching: .images) {
-            Text("Add Today's Photo")
-                .font(Theme.Typography.button())
-                .foregroundStyle(Color.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 60)
-                .background(Theme.Colors.primaryGradient)
-                .clipShape(Capsule())
+            PrimaryButtonLabel(title: "Add Today's Photo")
         }
         .buttonStyle(PressableButtonStyle())
         .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })

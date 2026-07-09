@@ -53,7 +53,7 @@ struct MyStreakSheet: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: Theme.Spacing.xs) {
-                HStack(spacing: 4) { GemIcon(size: 20); Text("\(gems.gems)").foregroundStyle(Color(hex: 0x6FB2FF)).font(.system(size: 16, weight: .semibold, design: .rounded)) }
+                HStack(spacing: 4) { GemIcon(size: 20); Text("\(gems.gems)").foregroundStyle(Theme.Colors.blueLight).font(.system(size: 16, weight: .semibold, design: .rounded)) }
                 HStack(spacing: 4) { CoinIcon(size: 20); Text("\(gems.coins)").foregroundStyle(Theme.Colors.textPrimary).font(.system(size: 16, weight: .semibold, design: .rounded)) }
             }
         }
@@ -62,7 +62,7 @@ struct MyStreakSheet: View {
     private var recordNote: some View {
         let remaining = streak.recordSeconds - streak.elapsed
         return HStack(spacing: Theme.Spacing.sm) {
-            Image(systemName: "star.fill").foregroundStyle(Color(hex: 0x8B7BF0))
+            Image(systemName: "star.fill").foregroundStyle(Theme.Colors.purple)
             Text(remaining <= 0
                  ? "New record! You've beaten your own streak record."
                  : "\(remaining.humanShort()) left to break your own streak record.")
@@ -157,7 +157,7 @@ struct MyStreakSheet: View {
 
     private var bottomStats: some View {
         HStack(spacing: Theme.Spacing.md) {
-            LabeledStatCard(emoji: "💧", iconBackground: Color(hex: 0x2C6BE0),
+            LabeledStatCard(emoji: "💧", iconBackground: Theme.Colors.blue,
                             value: "\(eventCount("Wet dream"))", label: "wet dream")
             LabeledStatCard(emoji: "✋", iconBackground: Color(hex: 0xE8A317),
                             value: "\(eventCount("Edging"))", label: "edging")

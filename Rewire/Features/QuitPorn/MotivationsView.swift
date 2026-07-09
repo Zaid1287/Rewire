@@ -8,12 +8,7 @@ struct MotivationsView: View {
 
     var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
-                .padding(.top, Theme.Spacing.sm)
-
-            Text("My Motivations")
-                .font(Theme.Typography.title())
-                .foregroundStyle(Theme.Colors.textPrimary)
+            SheetChrome(title: "My Motivations")
 
             VStack(spacing: Theme.Spacing.sm) {
                 TextField("Why are you quitting?", text: $text, axis: .vertical)

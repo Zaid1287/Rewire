@@ -15,5 +15,9 @@ extension Theme {
 
         /// Standard horizontal screen inset.
         static let screen: CGFloat = 20
+
+        /// Bottom content clearance so scrollable screens don't collide with
+        /// the floating tab bar.
+        static let tabBarClearance: CGFloat = 120
     }
 }

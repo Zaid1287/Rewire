@@ -40,7 +40,7 @@ struct RibbonGlyph: View {
     var body: some View {
         Image(systemName: "rosette")
             .font(.system(size: 30))
-            .foregroundStyle(active ? Color(hex: 0x8B7BF0) : Color(hex: 0xB9B3E0).opacity(0.7))
+            .foregroundStyle(active ? Theme.Colors.purple : Color(hex: 0xB9B3E0).opacity(0.7))
             .frame(width: 44, height: 44)
     }
 }

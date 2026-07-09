@@ -55,7 +55,7 @@ struct OnboardingFlow: View {
                 WelcomeView { appState.finishOnboarding() }
             }
         }
-        .animation(.easeInOut(duration: 0.35), value: step)
+        .animation(Theme.Motion.standard, value: step)
     }
 
     private var quizView: some View {

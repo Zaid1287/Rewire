@@ -13,12 +13,7 @@ struct DataBackupView: View {
 
     var body: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
-                .padding(.top, Theme.Spacing.sm)
-
-            Text("Data Backup")
-                .font(Theme.Typography.title())
-                .foregroundStyle(Theme.Colors.textPrimary)
+            SheetChrome(title: "Data Backup")
 
             VStack(spacing: Theme.Spacing.md) {
                 Text("Export your progress to a file you can save or share. Importing a backup replaces everything currently on this device.")
@@ -27,13 +22,7 @@ struct DataBackupView: View {
                     .multilineTextAlignment(.center)
 
                 ShareLink(item: PersistenceController.shared.backupURL) {
-                    Text("Export Backup")
-                        .font(Theme.Typography.button())
-                        .foregroundStyle(Color.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 60)
-                        .background(Theme.Colors.primaryGradient)
-                        .clipShape(Capsule())
+                    PrimaryButtonLabel(title: "Export Backup")
                 }
                 .buttonStyle(PressableButtonStyle())
                 .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
