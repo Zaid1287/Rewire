@@ -4,7 +4,6 @@ import SwiftUI
 /// rows, and the plan chooser.
 struct SettingsView: View {
     @Environment(GemStore.self) private var gems
-    @Environment(\.openURL) private var openURL
     enum Route: Hashable { case appearance, appIcon }
     @State private var path: [Route] = []
     @State private var selectedPlan: Plan = SampleData.plans[0]
@@ -36,7 +35,7 @@ struct SettingsView: View {
                         group("About", rows: [
                             SettingRow(symbol: "doc.fill", tint: .white,
                                        background: Theme.Colors.blue, title: "Privacy Policy",
-                                       accessory: .chevron) { openURL(URL(string: "https://rewire.app/privacy")!) },
+                                       accessory: .chevron, enabled: false),
                             SettingRow(symbol: "arrow.counterclockwise.circle.fill", tint: .white,
                                        background: Theme.Colors.blue, title: "Restore Purchase",
                                        accessory: .none) { restorePurchase() },
@@ -84,18 +83,15 @@ struct SettingsView: View {
         showRestoredAlert = true
     }
 
-    /// Support group — Feedback opens the mail composer via mailto:, Invite
-    /// shares the app link, so it's a ShareLink rather than a SettingRow action.
+    /// Support group — Give Feedback is disabled (no mail composer wired up yet).
+    /// Invite shares the app link, so it's a ShareLink rather than a SettingRow action.
     private var supportUsGroup: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             SectionHeader("Support us")
             VStack(spacing: 0) {
                 SettingRow(symbol: "paperplane.fill", tint: .white,
                            background: Theme.Colors.blue, title: "Give Feedback",
-                           accessory: .chevron) {
-                    gems.recordAchievement("feedback")
-                    openURL(URL(string: "mailto:support@rewire.app?subject=Rewire%20Feedback")!)
-                }
+                           accessory: .chevron, enabled: false)
                 RowDivider(inset: 62)
                 ShareLink(item: URL(string: "https://rewire.app/download")!,
                           message: Text("Join me on Rewire — take back control. 💪")) {
@@ -183,28 +179,33 @@ struct SettingRow: View {
     let title: String
     enum Accessory { case chevron, none, value(String) }
     var accessory: Accessory = .chevron
+    /// When false, the row reads as unavailable: dimmed, no chevron, taps do nothing.
+    var enabled: Bool = true
     var action: () -> Void = {}
 
     var body: some View {
-        Button(action: { Haptics.tap(); action() }) {
+        Button(action: { if enabled { Haptics.tap(); action() } }) {
             HStack(spacing: Theme.Spacing.md) {
                 IconSquare(symbol: symbol, tint: tint, background: background)
                 Text(title)
                     .font(Theme.Typography.cardTitle())
                     .foregroundStyle(Theme.Colors.textPrimary)
                 Spacer()
-                switch accessory {
-                case .chevron:
-                    Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
-                case .value(let v):
-                    Text(v).font(Theme.Typography.body()).foregroundStyle(Theme.Colors.textSecondary)
-                case .none:
-                    EmptyView()
+                if enabled {
+                    switch accessory {
+                    case .chevron:
+                        Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
+                    case .value(let v):
+                        Text(v).font(Theme.Typography.body()).foregroundStyle(Theme.Colors.textSecondary)
+                    case .none:
+                        EmptyView()
+                    }
                 }
             }
             .padding(Theme.Spacing.md)
         }
         .buttonStyle(.plain)
+        .opacity(enabled ? 1 : 0.45)
     }
 }
 

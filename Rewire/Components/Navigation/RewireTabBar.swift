@@ -20,6 +20,21 @@ struct RewireTabBar: View {
             Capsule().fill(Theme.Colors.surface.opacity(0.92))
                 .overlay(Capsule().stroke(Theme.Colors.divider, lineWidth: 1))
         )
+        .gesture(
+            // minimumDistance 20 so ordinary taps on the row buttons aren't swallowed.
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    let tabs = AppState.Tab.allCases
+                    guard let index = tabs.firstIndex(of: selection) else { return }
+                    if value.translation.width < -40, index < tabs.count - 1 {
+                        Haptics.select()
+                        withAnimation(Theme.Motion.emphasized) { selection = tabs[index + 1] }
+                    } else if value.translation.width > 40, index > 0 {
+                        Haptics.select()
+                        withAnimation(Theme.Motion.emphasized) { selection = tabs[index - 1] }
+                    }
+                }
+        )
         .themeShadow(Theme.Shadows.floating)
         .padding(.horizontal, Theme.Spacing.md)
     }

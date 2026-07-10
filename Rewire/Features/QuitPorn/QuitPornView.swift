@@ -3,25 +3,23 @@ import SwiftUI
 /// Quit Porn tab (IMG_5458 / 5459): a hub of feature rows grouped into
 /// Recommended / Boost your progress / Willpower / Privacy.
 ///
-/// Row wiring: "Challenges" pushes the existing WeeklyChallengeView. Rows that
-/// market a premium feature with no dedicated screen ("Power up your shield",
-/// "Porn Blocker", "Private Support") present the shared PaywallSheet, which
-/// already shows a "You're Premium" state once unlocked.
+/// Row wiring: "Challenges" pushes the existing WeeklyChallengeView. The row
+/// that markets a premium feature with no dedicated screen ("Power up your
+/// shield") presents the shared PaywallSheet, which already shows a "You're
+/// Premium" state once unlocked.
 /// "Breathing Exercise" presents the shared PanicModeView breathing screen.
 /// "My Motivations" presents MotivationsView. "21-day Personal Plan" pushes
 /// PersonalPlanView, a day-by-day checklist backed by StreakStore.
 /// "Reminder Notifications" presents ReminderSettingsView, wired to real
 /// `UNUserNotificationCenter` scheduling. "Login via Face ID" presents
-/// FaceIDSettingsView, wired to real `LocalAuthentication`. "Rewire Community"
-/// opens the public Telegram group via `openURL`. "Data Backup" presents
-/// DataBackupView (export/import the local snapshot). "Appearance Tracker"
-/// pushes AppearanceTrackerView, a daily photo journal backed by AppState.
-/// Everything else (Apple Watch) has no matching screen yet — those rows
-/// carry `.soon` badges (dimmed, no chevron, no haptic) so they never read as
+/// FaceIDSettingsView, wired to real `LocalAuthentication`. "Data Backup"
+/// presents DataBackupView (export/import the local snapshot). "Appearance
+/// Tracker" pushes AppearanceTrackerView, a daily photo journal backed by
+/// AppState. Everything else ("Porn Blocker", "Rewire Community", "Private
+/// Support", "Apple Watch") has no matching screen yet — those rows carry
+/// `.soon` badges (dimmed, no chevron, no haptic) so they never read as
 /// working controls.
 struct QuitPornView: View {
-    @Environment(GemStore.self) private var gems
-    @Environment(\.openURL) private var openURL
     @State private var path: [Route] = []
     @State private var showPaywall = false
     @State private var showBreathing = false
@@ -34,7 +32,7 @@ struct QuitPornView: View {
 
     /// Row titles that market a premium feature with no dedicated screen yet.
     private let premiumGatedTitles: Set<String> = [
-        "Power up your shield", "Porn Blocker", "Private Support"
+        "Power up your shield"
     ]
 
     var body: some View {
@@ -119,9 +117,6 @@ struct QuitPornView: View {
             showReminders = true
         } else if item.title == "Login via Face ID" {
             showFaceIDSettings = true
-        } else if item.title == "Rewire Community" {
-            gems.recordAchievement("community")
-            openURL(URL(string: "https://t.me/rewire_community")!)
         } else if item.title == "Data Backup" {
             showDataBackup = true
         } else if premiumGatedTitles.contains(item.title) {

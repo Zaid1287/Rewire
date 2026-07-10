@@ -139,14 +139,17 @@ enum SampleData {
     ]
     static let quitBoost: [FeatureItem] = [
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
-                    subtitle: "Block porn websites. Avoid unexpected relapses.", badge: .popular),
+                    subtitle: "Block porn websites. Avoid unexpected relapses.",
+                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "person.2.fill", title: "Rewire Community",
-                    subtitle: "Join the private Telegram group. Get amazing support."),
+                    subtitle: "Join the private Telegram group. Get amazing support.",
+                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "app.badge", title: "Reminder Notifications",
                     subtitle: "Set your daily reminders to easily keep your streak.",
                     warning: true),
         FeatureItem(symbol: "bubble.left.and.bubble.right.fill", title: "Private Support",
-                    subtitle: "Get private support from the mentors.", badge: .popular),
+                    subtitle: "Get private support from the mentors.",
+                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "lungs.fill", title: "Breathing Exercise",
                     subtitle: "Do your daily breathing exercises.")
     ]

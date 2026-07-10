@@ -1,23 +1,29 @@
 import SwiftUI
 
-/// Daily Reminders permission screen (IMG_5437): a mocked phone + watch
-/// notification collage, "Daily Reminders" pitch, Enable + Do-it-later.
+/// Daily Reminders onboarding step: a lock-screen-style notification preview
+/// that live-updates as the user picks their reminder time, then Enable
+/// schedules at exactly that time. Replaces the old static phone/watch
+/// mockup collage.
 struct RemindersView: View {
-    var onEnable: () -> Void
+    var onEnable: (_ hour: Int, _ minute: Int) -> Void
     var onLater: () -> Void
+
+    /// Defaults to 9:00 PM — the evening hours are when reminders matter most.
+    @State private var time = Calendar.current.date(
+        bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date()
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            ReminderCollage()
-                .frame(height: 360)
-                .padding(.horizontal, Theme.Spacing.lg)
+
+            notificationPreview
+                .screenPadding()
 
             VStack(spacing: Theme.Spacing.sm) {
                 Text("Daily Reminders")
                     .font(Theme.Typography.title())
                     .foregroundStyle(Theme.Colors.textPrimary)
-                Text("Reminder notifications help make quitting your addiction way easier.")
+                Text("One helpful nudge a day, at a time you choose.")
                     .font(Theme.Typography.body())
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
@@ -25,10 +31,20 @@ struct RemindersView: View {
             .padding(.top, Theme.Spacing.xl)
             .screenPadding()
 
+            DatePicker("Reminder time", selection: $time, displayedComponents: .hourAndMinute)
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .frame(height: 140)
+                .clipped()
+                .padding(.top, Theme.Spacing.sm)
+
             Spacer()
 
             VStack(spacing: Theme.Spacing.md) {
-                PrimaryButton(title: "Enable Reminders", action: onEnable)
+                PrimaryButton(title: "Enable Reminders") {
+                    let comps = Calendar.current.dateComponents([.hour, .minute], from: time)
+                    onEnable(comps.hour ?? 21, comps.minute ?? 0)
+                }
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark").foregroundStyle(Theme.Colors.textSecondary)
                     Text("We guarantee: Only helpful notifications.")
@@ -43,28 +59,55 @@ struct RemindersView: View {
             .screenPadding()
             .padding(.bottom, Theme.Spacing.lg)
         }
-        .background(Theme.Colors.background)
-    }
-}
-
-/// Produced device mockups: phone lock-screen with a REWIRE check-in
-/// notification, plus the watch daily check-in, overlapping bottom-right.
-private struct ReminderCollage: View {
-    var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            Image("reminders_phone")
-                .resizable()
-                .scaledToFit()
-                .frame(maxWidth: 230)
-                .frame(maxWidth: .infinity, alignment: .center)
-            Image("reminders_watch")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 128)
-                .offset(x: 6, y: -24)
-                .shadow(color: .black.opacity(0.4), radius: 12, y: 6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            ZStack {
+                Theme.Colors.background
+                // Soft indigo glow behind the notification card.
+                RadialGradient(colors: [Theme.Colors.primary.opacity(0.22), .clear],
+                               center: UnitPoint(x: 0.5, y: 0.28),
+                               startRadius: 20, endRadius: 320)
+            }
+            .ignoresSafeArea()
         }
     }
+
+    /// Drawn lock-screen banner — what the daily reminder will actually look
+    /// like, stamped with the picked time.
+    private var notificationPreview: some View {
+        HStack(alignment: .top, spacing: Theme.Spacing.sm) {
+            AppLogoSmall()
+            VStack(alignment: .leading, spacing: 3) {
+                HStack {
+                    Text("REWIRE")
+                        .font(Theme.Typography.caption().weight(.semibold))
+                        .tracking(0.8)
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                    Spacer()
+                    Text(time.formatted(date: .omitted, time: .shortened))
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                        .contentTransition(.numericText())
+                        .animation(Theme.Motion.standard, value: time)
+                }
+                Text("Time to check in 💪")
+                    .font(Theme.Typography.bodyMedium())
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("Stay on your streak — log today and keep your momentum going.")
+                    .font(Theme.Typography.subtitle())
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(Theme.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.Radius.lg)
+                .fill(Theme.Colors.surface2.opacity(0.92))
+                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg)
+                    .stroke(Theme.Colors.divider, lineWidth: 1))
+        )
+        .themeShadow(Theme.Shadows.floating)
+    }
 }
 
-#Preview { RemindersView(onEnable: {}, onLater: {}) }
+#Preview { RemindersView(onEnable: { _, _ in }, onLater: {}) }

@@ -39,12 +39,12 @@ struct OnboardingFlow: View {
                 MoreTestimonialsView { advance(to: .reminders) }
             case .reminders:
                 RemindersView(
-                    onEnable: {
+                    onEnable: { hour, minute in
                         Task {
                             let granted = await ReminderScheduler.requestPermission()
                             if granted {
-                                appState.setReminder(enabled: true, hour: 21, minute: 0)
-                                ReminderScheduler.scheduleDaily(hour: 21, minute: 0)
+                                appState.setReminder(enabled: true, hour: hour, minute: minute)
+                                ReminderScheduler.scheduleDaily(hour: hour, minute: minute)
                             }
                             advance(to: .welcome)
                         }
