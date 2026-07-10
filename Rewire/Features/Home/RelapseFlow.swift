@@ -30,6 +30,7 @@ struct RelapseFlow: View {
             didRecordEvent = true
             streak.relapse()
             streak.addEvent(StreakEvent(type: .relapse))
+            Analytics.capture("relapse_reported")
             // Costs 500 coins per the copy, but a relapse report is never blocked
             // on affordability — spend if possible, proceed regardless.
             gems.spendCoins(500)

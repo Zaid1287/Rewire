@@ -25,7 +25,10 @@ struct PanicSheet: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.Colors.background)
-        .onAppear { gems.recordAchievement("panic") }
+        .onAppear {
+            gems.recordAchievement("panic")
+            Analytics.capture("panic_opened")
+        }
         .sheet(isPresented: $showPaywall) {
             PaywallSheet().presentationDetents([.medium, .large])
         }

@@ -89,6 +89,7 @@ struct DailyReportFlow: View {
                     dayNumber: 1, date: Date(),
                     watchedPorn: watchedPorn, masturbated: masturbated,
                     relapsed: relapsed, note: note))
+                Analytics.capture("report_filed")   // never the P/M/O flags
                 step += 1
             }
             .screenPadding()

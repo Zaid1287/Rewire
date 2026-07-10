@@ -10,6 +10,7 @@ struct RewireApp: App {
         PersistenceController.shared.configure(
             appState: appState, streak: streakStore, gems: gemStore
         )
+        Analytics.start()
     }
 
     var body: some Scene {

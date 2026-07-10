@@ -51,6 +51,7 @@ struct BadgesView: View {
                 BadgeRow(badge: Badge(title: badge.title, requirement: badge.requirement, state: state(for: badge))) {
                     gems.claimBadge(badge.title)
                     gems.award(50)
+                    Analytics.capture("badge_claimed", ["badge": badge.title])
                 }
                 .padding(.horizontal, Theme.Spacing.md)
                 if idx < badges.count - 1 { RowDivider(inset: 64) }

@@ -6,6 +6,10 @@
 	objectVersion = 70;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1000002000000000000003 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A1000002000000000000002 /* PostHog */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		A1000001000000000000001 /* Rewire */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Rewire; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -15,6 +19,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1000002000000000000003 /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,6 +60,9 @@
 				A1000001000000000000001 /* Rewire */,
 			);
 			name = Rewire;
+			packageProductDependencies = (
+				A1000002000000000000002 /* PostHog */,
+			);
 			productName = Rewire;
 			productType = "com.apple.product-type.application";
 		};
@@ -83,6 +91,9 @@
 			);
 			mainGroup = A1000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A1000002000000000000001 /* XCRemoteSwiftPackageReference "posthog-ios" */,
+			);
 			productRefGroup = A1000000000000000000002 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -255,7 +266,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 9.2.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rewire1287.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -287,7 +298,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 9.2.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rewire1287.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -318,6 +329,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1000002000000000000001 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1000002000000000000002 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1000002000000000000001 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A1000000000000000000000 /* Project object */;
 }

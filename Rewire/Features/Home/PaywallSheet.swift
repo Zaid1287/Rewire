@@ -18,6 +18,7 @@ struct PaywallSheet: View {
                 plansState
             }
         }
+        .onAppear { Analytics.capture("paywall_viewed") }
     }
 
     private var premiumState: some View {

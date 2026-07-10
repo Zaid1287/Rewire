@@ -85,6 +85,8 @@ struct OnboardingFlow: View {
     }
 
     private func advance(to next: Step) {
+        Analytics.capture("onboarding_step", ["step": String(describing: next)])
+        if next == .welcome { Analytics.capture("onboarding_completed") }
         withAnimation { step = next }
     }
 }
