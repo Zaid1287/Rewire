@@ -113,7 +113,8 @@ final class AppState {
         guard let data = image.jpegData(compressionQuality: 0.7) else { return }
         let filename = "\(UUID().uuidString).jpg"
         do {
-            try data.write(to: Self.appearancePhotoURL(filename), options: .atomic)
+            try data.write(to: Self.appearancePhotoURL(filename),
+                           options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
         } catch {
             // ponytail: best-effort local write; failure just drops this entry.
             return
@@ -161,5 +162,9 @@ final class AppState {
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0
         faceIDEnabled = s.faceIDEnabled ?? false
+        // Cold launches must start locked when the lock is on — isUnlocked
+        // defaults true for the no-lock case, so without this a force-kill +
+        // relaunch would bypass Face ID entirely.
+        isUnlocked = !faceIDEnabled
     }
 }

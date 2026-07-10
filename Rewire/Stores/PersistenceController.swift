@@ -149,7 +149,10 @@ final class PersistenceController {
         encoder.outputFormatting = .prettyPrinted
         do {
             let data = try encoder.encode(snap)
-            try data.write(to: url, options: .atomic)
+            // completeUntilFirstUserAuthentication: relapse/report history is
+            // sensitive — encrypted at rest without breaking saves that fire
+            // during background transitions.
+            try data.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
         } catch {
             // ponytail: best-effort local cache; a failed write just replays next mutation.
             print("PersistenceController save failed: \(error)")
@@ -158,7 +161,17 @@ final class PersistenceController {
 
     private static func load(from url: URL) -> AppSnapshot? {
         guard let data = try? Data(contentsOf: url) else { return nil }
-        return try? decode(data)
+        do {
+            return try decode(data)
+        } catch {
+            // Don't let the next save silently overwrite a corrupt-but-maybe-
+            // recoverable state file — move it aside first.
+            let quarantine = url.deletingLastPathComponent()
+                .appendingPathComponent("rewire-state.corrupt.json")
+            try? FileManager.default.removeItem(at: quarantine)
+            try? FileManager.default.moveItem(at: url, to: quarantine)
+            return nil
+        }
     }
 
     /// Shared decoder settings, also used by the Data Backup import flow.

@@ -19,7 +19,7 @@ enum Analytics {
     /// Call once at launch. No-op while `apiKey` is empty.
     static func start() {
         guard !apiKey.isEmpty else { return }
-        let config = PostHogConfig(apiKey: apiKey, host: host)
+        let config = PostHogConfig(projectToken: apiKey, host: host)
         PostHogSDK.shared.setup(config)
         enabled = true
     }
