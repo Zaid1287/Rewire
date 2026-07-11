@@ -127,7 +127,8 @@ enum SampleData {
     // MARK: Plans (IMG_5441, 5467)
     static let plans: [Plan] = [
         Plan(title: "1 month", subtitle: "A good start for you", price: "₹ 249", isPopular: false),
-        Plan(title: "1 year", subtitle: "only ₹58.25/month", price: "₹ 699", isPopular: true)
+        Plan(title: "1 year", subtitle: "only ₹58.25/month", price: "₹ 699", isPopular: true),
+        Plan(title: "Lifetime", subtitle: "Pay once, keep it forever", price: "₹ 1,999", isPopular: false)
     ]
 
     // MARK: Quit Porn feature hub (IMG_5458/5459)

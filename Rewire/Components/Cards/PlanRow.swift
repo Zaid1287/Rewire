@@ -46,6 +46,7 @@ struct PlanRow: View {
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
             .padding(Theme.Spacing.md)
+            .contentShape(Rectangle())   // whole tile tappable, not just text/icon
         }
         .buttonStyle(.plain)
     }

@@ -10,15 +10,36 @@ struct PaywallSheet: View {
     @State private var selectedPlan: Plan = SampleData.plans[1]
     @State private var didSubscribe = false
 
+    /// Plans still worth offering: everything for free users, only strictly
+    /// better plans for premium users (monthly → yearly/lifetime, etc.).
+    private var availablePlans: [Plan] {
+        guard gems.isPremium else { return SampleData.plans }
+        let order = SampleData.plans.map(\.title)
+        guard let current = order.firstIndex(of: gems.premiumPlan ?? "") else { return [] }
+        return SampleData.plans.filter { order.firstIndex(of: $0.title) ?? 0 > current }
+    }
+
+    private var isUpgrade: Bool { gems.isPremium && !didSubscribe && !availablePlans.isEmpty }
+
+    private var title: String {
+        if didSubscribe || (gems.isPremium && availablePlans.isEmpty) { return "You're Premium" }
+        return isUpgrade ? "Upgrade Your Plan" : "Unlock Premium"
+    }
+
     var body: some View {
-        SheetScaffold(topIcon: "crown.fill", title: gems.isPremium || didSubscribe ? "You're Premium" : "Unlock Premium") {
-            if gems.isPremium || didSubscribe {
+        SheetScaffold(topIcon: "crown.fill", title: title) {
+            if didSubscribe || (gems.isPremium && availablePlans.isEmpty) {
                 premiumState
             } else {
                 plansState
             }
         }
-        .onAppear { Analytics.capture("paywall_viewed") }
+        .onAppear {
+            Analytics.capture("paywall_viewed")
+            if !availablePlans.isEmpty, !availablePlans.contains(selectedPlan) {
+                selectedPlan = availablePlans.first!
+            }
+        }
     }
 
     private var premiumState: some View {
@@ -34,24 +55,24 @@ struct PaywallSheet: View {
     private var plansState: some View {
         VStack(spacing: Theme.Spacing.lg) {
             VStack(spacing: 0) {
-                ForEach(Array(SampleData.plans.enumerated()), id: \.element.id) { idx, plan in
+                ForEach(Array(availablePlans.enumerated()), id: \.element.id) { idx, plan in
                     PlanRow(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
-                    if idx < SampleData.plans.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
+                    if idx < availablePlans.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
                 }
             }
             .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg).stroke(Theme.Colors.divider, lineWidth: 1))
             .screenPadding()
 
-            PrimaryButton(title: "Subscribe", trailingEmoji: "🙌") {
+            PrimaryButton(title: isUpgrade ? "Upgrade" : "Subscribe", trailingEmoji: "🙌") {
                 Haptics.success()
-                gems.unlockPremium()
+                gems.unlockPremium(plan: selectedPlan.title)
                 didSubscribe = true
             }
             .screenPadding()
 
             Button {
                 Haptics.success()
-                gems.unlockPremium()
+                gems.unlockPremium(plan: "1 year")
                 didSubscribe = true
             } label: {
                 Text("Restore Purchase")

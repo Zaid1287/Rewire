@@ -36,8 +36,21 @@ struct PanicSheet: View {
 
     private var upsell: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            Capsule().fill(Theme.Colors.textTertiary).frame(width: 40, height: 5)
-                .padding(.top, Theme.Spacing.sm)
+            // Presented full screen (no swipe-to-dismiss), so the upsell needs
+            // an explicit way out.
+            HStack {
+                Spacer()
+                Button {
+                    Haptics.tap()
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(Theme.Colors.textTertiary)
+                }
+            }
+            .padding(.top, Theme.Spacing.md)
+            .screenPadding()
 
             Spacer()
 
@@ -191,9 +204,9 @@ struct PanicModeView: View {
 
             Spacer()
 
-            // Reward tracks actually riding out the urge — locked for the first
-            // two full breath cycles. Swipe-to-dismiss always works; never trap
-            // a user in panic mode.
+            // Reward tracks actually riding out the urge — locked for the
+            // first two full breath cycles. In panic mode (full screen,
+            // no swipe-to-dismiss) this button is the only way out, by design.
             PrimaryButton(title: safeButtonTitle, trailingEmoji: canFinish ? "💪" : nil) {
                 gems.award(25)
                 gems.recordAchievement("breathing")

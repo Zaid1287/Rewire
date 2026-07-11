@@ -49,6 +49,9 @@ struct AppSnapshot: Codable {
     /// Misc one-off unlocks. Optional with a default so snapshots written
     /// before this field existed still decode.
     var achievements: Set<String>? = nil
+    /// Purchased plan title. Optional with a default so snapshots written
+    /// before this field existed still decode.
+    var premiumPlan: String? = nil
 }
 
 /// Lightweight synchronous JSON persistence. `PersistenceController.shared`
@@ -122,7 +125,8 @@ final class PersistenceController {
             likedSuperpowers: gems.likedSuperpowers,
             currentLevel: gems.currentLevel,
             offerDeadline: gems.offerDeadline,
-            achievements: gems.achievements
+            achievements: gems.achievements,
+            premiumPlan: gems.premiumPlan
         )
     }
 

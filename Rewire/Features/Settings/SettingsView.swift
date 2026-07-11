@@ -22,7 +22,8 @@ struct SettingsView: View {
                 NavHeader(title: "Settings") { CoinPill(count: gems.coins) }
                 ScrollView {
                     VStack(spacing: Theme.Spacing.xl) {
-                        upsellBanner
+                        // Lifetime owners have nothing left to buy.
+                        if gems.canUpgrade { upsellBanner }
                         group("Preferences", rows: [
                             SettingRow(symbol: "circle.lefthalf.filled", tint: .white,
                                        background: Theme.Colors.primary, title: "Appearance",
@@ -43,7 +44,8 @@ struct SettingsView: View {
                                        background: Color(hex: 0x4B5AD8), title: "Version Number",
                                        accessory: .value(appVersion)) {}
                         ])
-                        planSection
+                        // Premium users have nothing to buy — hide the chooser.
+                        if !gems.isPremium { planSection }
                     }
                     .screenPadding()
                     .padding(.top, Theme.Spacing.lg)
@@ -78,7 +80,7 @@ struct SettingsView: View {
     }
 
     private func restorePurchase() {
-        gems.unlockPremium()
+        gems.unlockPremium(plan: "1 year")   // mock restore — real plan comes with StoreKit
         Haptics.success()
         showRestoredAlert = true
     }
@@ -121,10 +123,11 @@ struct SettingsView: View {
                 IconSquare(symbol: "arrow.up.right", tint: Theme.Colors.greenDark,
                            background: Theme.Colors.pastelLime)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Get the Full Effect")
+                    Text(gems.isPremium ? "Upgrade" : "Get the Full Effect")
                         .font(Theme.Typography.headline())
                         .foregroundStyle(Theme.Colors.green)
-                    Text("Reach your goals faster 🔥")
+                    Text(gems.isPremium ? "Go Lifetime — pay once, keep it forever"
+                                        : "Reach your goals faster 🔥")
                         .font(Theme.Typography.body())
                         .foregroundStyle(Theme.Colors.textPrimary)
                 }
@@ -203,6 +206,7 @@ struct SettingRow: View {
                 }
             }
             .padding(Theme.Spacing.md)
+            .contentShape(Rectangle())   // whole tile tappable, not just text/icon
         }
         .buttonStyle(.plain)
         .opacity(enabled ? 1 : 0.45)

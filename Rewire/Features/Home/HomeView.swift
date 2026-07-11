@@ -86,8 +86,10 @@ struct HomeView: View {
                 }
             }
             .fullScreenCover(isPresented: $showStreakSheet) { MyStreakSheet() }
-            .sheet(isPresented: $showPanicSheet) {
-                PanicSheet().presentationDetents([.medium, .large])
+            // Full screen with no swipe-to-dismiss: mid-urge, the only exits
+            // are "I'm Safe Now" (premium tool) or the close button (upsell).
+            .fullScreenCover(isPresented: $showPanicSheet) {
+                PanicSheet()
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallSheet().presentationDetents([.medium, .large])

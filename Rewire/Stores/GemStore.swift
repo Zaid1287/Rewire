@@ -11,6 +11,13 @@ final class GemStore {
     /// Whether the premium subscription is unlocked.
     private(set) var isPremium: Bool = false { didSet { persist?() } }
 
+    /// Which plan was purchased ("1 month" / "1 year" / "Lifetime") — drives
+    /// whether upgrade entry points still show. nil on pre-plan snapshots.
+    private(set) var premiumPlan: String? = nil { didSet { persist?() } }
+
+    /// Lifetime owners have nothing left to buy.
+    var canUpgrade: Bool { !isPremium || premiumPlan != "Lifetime" }
+
     /// Recovery progress. Stable keys: badge `title`, superpower `title`.
     private(set) var claimedBadges: Set<String> = [] { didSet { persist?() } }
     private(set) var likedSuperpowers: Set<String> = [] { didSet { persist?() } }
@@ -62,7 +69,12 @@ final class GemStore {
 
     // MARK: Premium
 
-    func unlockPremium() { isPremium = true }
+    /// plan is nil when we can't know which plan was bought (Restore Purchase) —
+    /// premium unlocks but the upgrade banner stays until a Lifetime purchase.
+    func unlockPremium(plan: String? = nil) {
+        isPremium = true
+        if let plan { premiumPlan = plan }
+    }
 
     /// Start the one-time special offer (6 minutes) if it never ran.
     func startOfferIfNeeded() {
@@ -95,5 +107,6 @@ final class GemStore {
         currentLevel = s.currentLevel
         offerDeadline = s.offerDeadline
         achievements = s.achievements ?? []
+        premiumPlan = s.premiumPlan
     }
 }

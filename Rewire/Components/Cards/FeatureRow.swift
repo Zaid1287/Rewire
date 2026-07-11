@@ -51,6 +51,7 @@ struct FeatureRow: View {
                 }
             }
             .padding(.vertical, Theme.Spacing.md)
+            .contentShape(Rectangle())   // whole tile tappable, not just text/icon
         }
         .buttonStyle(.plain)
     }
