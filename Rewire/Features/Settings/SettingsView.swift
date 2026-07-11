@@ -4,6 +4,7 @@ import SwiftUI
 /// rows, and the plan chooser.
 struct SettingsView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(\.openURL) private var openURL
     enum Route: Hashable { case appearance, appIcon }
     @State private var path: [Route] = []
     @State private var selectedPlan: Plan = SampleData.plans[0]
@@ -36,7 +37,10 @@ struct SettingsView: View {
                         group("About", rows: [
                             SettingRow(symbol: "doc.fill", tint: .white,
                                        background: Theme.Colors.blue, title: "Privacy Policy",
-                                       accessory: .chevron, enabled: false),
+                                       accessory: .chevron) { openURL(Legal.privacyURL) },
+                            SettingRow(symbol: "doc.text.fill", tint: .white,
+                                       background: Theme.Colors.blue, title: "Terms of Service",
+                                       accessory: .chevron) { openURL(Legal.termsURL) },
                             SettingRow(symbol: "arrow.counterclockwise.circle.fill", tint: .white,
                                        background: Theme.Colors.blue, title: "Restore Purchase",
                                        accessory: .none) { restorePurchase() },
