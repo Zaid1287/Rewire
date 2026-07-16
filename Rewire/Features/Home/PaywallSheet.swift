@@ -54,13 +54,11 @@ struct PaywallSheet: View {
 
     private var plansState: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            VStack(spacing: 0) {
-                ForEach(Array(availablePlans.enumerated()), id: \.element.id) { idx, plan in
-                    PlanRow(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
-                    if idx < availablePlans.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
+            VStack(spacing: Theme.Spacing.sm) {
+                ForEach(availablePlans) { plan in
+                    PlanCard(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
                 }
             }
-            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg).stroke(Theme.Colors.divider, lineWidth: 1))
             .screenPadding()
 
             PrimaryButton(title: isUpgrade ? "Upgrade" : "Subscribe", trailingEmoji: "🙌") {

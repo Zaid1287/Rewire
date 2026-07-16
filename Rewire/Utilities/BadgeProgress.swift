@@ -23,7 +23,9 @@ enum BadgeProgress {
         case "Breathing Champ":         return gems.achievements.contains("breathing")
         case "Challenger":              return streak.challengeJoined
         case "Motivation Master":       return !appState.motivations.isEmpty
-        case "Responsible":             return true
+        // Slip-log era (Phase 2): honesty is the badge, not a penalty toggle.
+        case "Responsible":             return streak.events.contains { $0.type == .relapse }
+        case "Pattern Finder":          return streak.events.filter { $0.type == .relapse }.count >= 3
         case "Loyal Member":            return !streak.events.isEmpty
         case "Feedback Master":         return gems.achievements.contains("feedback")
         case "Share Supporter":         return gems.achievements.contains("share")
@@ -33,7 +35,7 @@ enum BadgeProgress {
         case "Personal Plan Level 2":   return streak.completedPlanDays.count >= 3
         case "Personal Plan Level 3":   return streak.completedPlanDays.count >= 7
         case "Appearance Booster":      return gems.achievements.contains("appearance")
-        default:                        return false   // Content Blocker, Penalty Locker, Researcher, Rewire Supporter
+        default:                        return false   // Content Blocker, Researcher, Rewire Supporter
         }
     }
 }

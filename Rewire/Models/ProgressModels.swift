@@ -43,7 +43,7 @@ struct AppearancePhoto: Identifiable, Codable {
     var filename: String
 }
 
-/// A logged history event (History → Add Event).
+/// A logged history event (History → Add Event, and the Slip Log).
 struct StreakEvent: Identifiable, Codable {
     var id = UUID()
     var date: Date = Date()
@@ -51,6 +51,23 @@ struct StreakEvent: Identifiable, Codable {
     enum Kind: String, Codable, CaseIterable { case relapse, milestone, note }
     let type: Kind
     var note: String? = nil
+
+    // MARK: Slip-log pattern data (flow-redesign Phase 2)
+    // Recorded on a `.relapse` event by the Slip Log. All optional so events
+    // written before these fields existed (and non-slip events) still decode.
+    /// When the slip happened — "Morning" / "Afternoon" / "Evening" / "Late night".
+    var timeOfDay: String? = nil
+    var trigger: String? = nil
+    var feeling: String? = nil
+
+    // MARK: Undo bookkeeping (flow-redesign Phase 2)
+    // Enough state to reverse the streak reset a slip caused, until midnight.
+    /// The `Streak` row this slip banked, so undo can remove exactly it.
+    var bankedStreakID: UUID? = nil
+    /// `startDate` before the reset — undo restores it so the run continues.
+    var preStartDate: Date? = nil
+    /// `recordSeconds` before the slip possibly bumped it — undo restores it.
+    var preRecordSeconds: TimeInterval? = nil
 }
 
 /// One day cell in the weekly-challenge list (Home → challenge).

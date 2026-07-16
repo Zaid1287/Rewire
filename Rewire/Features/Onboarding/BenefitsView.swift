@@ -26,10 +26,22 @@ struct BenefitsView: View {
                 BottomFadeScrim()
                     .ignoresSafeArea(edges: .bottom)
 
-                PrimaryButton(title: "How have others changed their lives?",
-                              action: onContinue)
-                    .screenPadding()
-                    .padding(.bottom, Theme.Spacing.md)
+                // Commit moment + privacy beat (Phase 5, plan §7): QUITTR's
+                // data-leak scandal made on-device privacy the free
+                // differentiator — say it where the user commits.
+                VStack(spacing: Theme.Spacing.sm) {
+                    PrimaryButton(title: "I'm ready to quit my addiction",
+                                  action: onContinue)
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 11))
+                        Text("Everything stays on your phone. No account, no server, no leak.")
+                    }
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                }
+                .screenPadding()
+                .padding(.bottom, Theme.Spacing.md)
             }
         }
         .background(Theme.Colors.background)

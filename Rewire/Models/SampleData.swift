@@ -109,6 +109,13 @@ enum SampleData {
     static let relapseReasons = ["Boredom", "Stress", "Feeling alone", "Not being busy",
                                  "Nude photos", "Feeling horny", "Other reasons"]
 
+    // Slip Log chip options (flow-redesign Phase 2). Single-select per group;
+    // `timeOfDay` feeds the pattern insight ("3 of your last 4 slips were …").
+    static let slipTimesOfDay = ["Morning", "Afternoon", "Evening", "Late night"]
+    static let slipTriggers   = ["Stress", "Boredom", "Social media", "Loneliness",
+                                 "Feeling horny", "Other"]
+    static let slipFeelings   = ["Anxious", "Tired", "Numb", "Lonely", "Stressed"]
+
     // MARK: Set-goal options (IMG_5442)
     static let goals: [Goal] = {
         var g: [Goal] = [
@@ -132,51 +139,38 @@ enum SampleData {
     ]
 
     // MARK: Quit Porn feature hub (IMG_5458/5459)
-    static let quitRecommended: [FeatureItem] = [
+    static let toolkitRecommended: [FeatureItem] = [
         FeatureItem(symbol: "shield.righthalf.filled", title: "Power up your shield",
                     subtitle: "Level up your shield and keep your streak unbreakable."),
         FeatureItem(symbol: "21.circle", title: "21-day Personal Plan",
                     subtitle: "Overcome your addiction by following your personal plan.")
     ]
-    static let quitBoost: [FeatureItem] = [
+    static let toolkitBoost: [FeatureItem] = [
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
                     subtitle: "Block porn websites. Avoid unexpected relapses.",
                     badge: .soon, showsChevron: false),
         FeatureItem(symbol: "person.2.fill", title: "Rewire Community",
                     subtitle: "Join the private Telegram group. Get amazing support.",
                     badge: .soon, showsChevron: false),
-        FeatureItem(symbol: "app.badge", title: "Reminder Notifications",
-                    subtitle: "Set your daily reminders to easily keep your streak.",
-                    warning: true),
         FeatureItem(symbol: "bubble.left.and.bubble.right.fill", title: "Private Support",
                     subtitle: "Get private support from the mentors.",
                     badge: .soon, showsChevron: false),
         FeatureItem(symbol: "lungs.fill", title: "Breathing Exercise",
                     subtitle: "Do your daily breathing exercises.")
     ]
-    static let quitWillpower: [FeatureItem] = [
+    static let toolkitWillpower: [FeatureItem] = [
         FeatureItem(symbol: "rosette", title: "Challenges",
                     subtitle: "Join weekly and monthly challenges. Track your success."),
         FeatureItem(symbol: "bolt.fill", title: "My Motivations",
-                    subtitle: "Never forget why you want to quit your addiction.",
-                    badge: .soon, showsChevron: false),
+                    subtitle: "Never forget why you want to quit your addiction."),
         FeatureItem(symbol: "camera.fill", title: "Appearance Tracker",
                     subtitle: "Take your photo every day and track your appearance.")
-    ]
-    static let quitPrivacy: [FeatureItem] = [
-        FeatureItem(symbol: "faceid", title: "Login via Face ID",
-                    subtitle: "Use Face ID to unlock this app."),
-        FeatureItem(symbol: "applewatch", title: "Sync with your Apple Watch",
-                    subtitle: "Track your streaks on your watch.",
-                    badge: .soon, showsChevron: false),
-        FeatureItem(symbol: "arrow.counterclockwise.circle", title: "Data Backup",
-                    subtitle: "Backup your data or restore it easily.")
     ]
 
     // MARK: Recovery "make streaks easier" (IMG_5460)
     static let recoveryEasier: [FeatureItem] = [
-        FeatureItem(symbol: "arrow.down.circle", title: "Relapse Penalty",
-                    subtitle: "Relapsing will cost you 500 coins. Keep your streak alive! 🔥",
+        FeatureItem(symbol: "sparkles", title: "Slip Patterns",
+                    subtitle: "Every slip you log builds your pattern insight. No penalties.",
                     badge: .popular, showsChevron: false),
         FeatureItem(symbol: "play.circle", title: "Must-Watch Videos",
                     subtitle: "Watch the playlists that we curated the best video content for you.",
@@ -198,8 +192,8 @@ enum SampleData {
         Badge(title: "Breathing Champ", requirement: "You must do a breathing exercise.", state: .locked),
         Badge(title: "Challenger", requirement: "You must accept a challenge.", state: .locked),
         Badge(title: "Motivation Master", requirement: "You must add your motivation.", state: .locked),
-        Badge(title: "Responsible", requirement: "You must enable relapse penalty.", state: .locked),
-        Badge(title: "Penalty Locker", requirement: "You must lock your relapse penalty.", state: .locked),
+        Badge(title: "Responsible", requirement: "You must log a slip honestly.", state: .locked),
+        Badge(title: "Pattern Finder", requirement: "Log 3 slips and unlock your pattern insight.", state: .locked),
         Badge(title: "Researcher", requirement: "You must unlock a video playlist.", state: .locked),
         Badge(title: "Loyal Member", requirement: "You must add a new event.", state: .locked),
         Badge(title: "Feedback Master", requirement: "You must give feedback.", state: .locked),

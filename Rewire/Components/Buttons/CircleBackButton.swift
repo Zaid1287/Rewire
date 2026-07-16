@@ -15,9 +15,8 @@ struct CircleBackButton: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(Theme.Colors.textPrimary)
                 .frame(width: 44, height: 44)
-                .background(
-                    Circle().stroke(Theme.Colors.divider, lineWidth: 1)
-                )
+                // Standalone floating glass circle — detached from any bar.
+                .liquidGlass(in: Circle())
         }
         .buttonStyle(PressableButtonStyle())
     }

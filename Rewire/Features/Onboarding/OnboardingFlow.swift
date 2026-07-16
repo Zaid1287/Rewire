@@ -11,58 +11,56 @@ struct OnboardingFlow: View {
     /// Gem totals shown in the quiz header per question (IMG_5428–5431).
     private let quizGems = [100, 150, 250, 350]
 
+    /// Funnel (flow-redesign Phase 5 + paywall, Jul 16): hero → social proof →
+    /// quiz → score → PAYWALL (soft, multipage, skippable) → comparison →
+    /// commit → welcome. The paywall fires at peak motivation (right after the
+    /// personalized score) but skipping routes back into the normal sell —
+    /// nothing is gated. Cut from the original 10: fake loader, second
+    /// testimonials, in-onboarding reminders ask (now contextual post-check-in).
     enum Step: Equatable {
-        case hero, socialProof, quiz, preparing, score, comparison, benefits,
-             moreTestimonials, reminders, welcome
+        case hero, socialProof, quiz, score, paywall, comparison, benefits, welcome
     }
 
     var body: some View {
         ZStack {
             Theme.Colors.background.ignoresSafeArea()
 
-            switch step {
-            case .hero:
-                HeroCarouselView { advance(to: .socialProof) }
-            case .socialProof:
-                SocialProofView { advance(to: .quiz) }
-            case .quiz:
-                quizView
-            case .preparing:
-                TestCompletedView { advance(to: .score) }
-            case .score:
-                ScoreResultView { advance(to: .comparison) }
-            case .comparison:
-                ComparisonView { advance(to: .benefits) }
-            case .benefits:
-                BenefitsView { advance(to: .moreTestimonials) }
-            case .moreTestimonials:
-                MoreTestimonialsView { advance(to: .reminders) }
-            case .reminders:
-                RemindersView(
-                    onEnable: { hour, minute in
-                        Task {
-                            let granted = await ReminderScheduler.requestPermission()
-                            if granted {
-                                appState.setReminder(enabled: true, hour: hour, minute: minute)
-                                ReminderScheduler.scheduleDaily(hour: hour, minute: minute)
-                            }
-                            advance(to: .welcome)
-                        }
-                    },
-                    onLater: { advance(to: .welcome) }
-                )
-            case .welcome:
-                WelcomeView { appState.finishOnboarding() }
+            Group {
+                switch step {
+                case .hero:
+                    HeroCarouselView { advance(to: .socialProof) }
+                case .socialProof:
+                    SocialProofView { advance(to: .quiz) }
+                case .quiz:
+                    quizView
+                case .score:
+                    ScoreResultView { advance(to: .paywall) }
+                case .paywall:
+                    OnboardingPaywallView(
+                        onSkip: { advance(to: .comparison) },
+                        // Already sold — skip the remaining sell, go straight in.
+                        onPurchased: { advance(to: .welcome) }
+                    )
+                case .comparison:
+                    ComparisonView { advance(to: .benefits) }
+                case .benefits:
+                    BenefitsView { advance(to: .welcome) }
+                case .welcome:
+                    WelcomeView { appState.finishOnboarding() }
+                }
             }
+            // Funnel only moves forward at the step level (quiz back is
+            // internal to the quiz step), so the push direction is constant.
+            .transition(.push(forward: true))
         }
-        .animation(Theme.Motion.standard, value: step)
+        .animation(Theme.Motion.enter, value: step)
     }
 
     private var quizView: some View {
         let q = SampleData.quizQuestions[quizIndex]
         return QuestionScaffold(
             showsBack: quizIndex > 0,
-            onBack: { withAnimation { quizIndex -= 1 } },
+            onBack: { withAnimation(Theme.Motion.standard) { quizIndex -= 1 } },
             gemCount: quizGems[min(quizIndex, quizGems.count - 1)],
             progress: quizIndex == 0 ? nil : Double(quizIndex) / Double(SampleData.quizQuestions.count),
             question: q.prompt
@@ -78,15 +76,15 @@ struct OnboardingFlow: View {
     private func answerQuiz(optionIndex: Int) {
         appState.recordAnswer(questionIndex: quizIndex, optionIndex: optionIndex)
         if quizIndex < SampleData.quizQuestions.count - 1 {
-            withAnimation { quizIndex += 1 }
+            withAnimation(Theme.Motion.standard) { quizIndex += 1 }
         } else {
-            advance(to: .preparing)
+            advance(to: .score)
         }
     }
 
     private func advance(to next: Step) {
         Analytics.capture("onboarding_step", ["step": String(describing: next)])
         if next == .welcome { Analytics.capture("onboarding_completed") }
-        withAnimation { step = next }
+        withAnimation(Theme.Motion.enter) { step = next }
     }
 }

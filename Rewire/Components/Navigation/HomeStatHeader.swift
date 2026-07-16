@@ -49,8 +49,13 @@ struct HomeStatHeader: View {
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .padding(.horizontal, Theme.Spacing.screen)
-        .padding(.vertical, Theme.Spacing.sm)
+        // Floating Liquid Glass capsule — content scrolls underneath it.
+        .padding(.horizontal, Theme.Spacing.lg)
+        .padding(.vertical, Theme.Spacing.sm + 2)
+        .liquidGlass(in: Capsule())
+        .themeShadow(Theme.Shadows.floating)
+        .padding(.horizontal, Theme.Spacing.md)
+        .padding(.top, Theme.Spacing.xs)
     }
 }
 

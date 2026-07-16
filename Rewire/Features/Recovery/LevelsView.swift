@@ -45,17 +45,15 @@ struct LevelsView: View {
         .background(Theme.Colors.background)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
-        .overlay {
-            if showInsufficientGemsAlert {
-                RewireAlert(
-                    title: "Not enough gems",
-                    message: "Keep earning gems to unlock the next level.",
-                    confirmTitle: "OK",
-                    confirmIsDestructive: false,
-                    onCancel: { showInsufficientGemsAlert = false },
-                    onConfirm: { showInsufficientGemsAlert = false }
-                )
-            }
+        .rewireAlert(isPresented: showInsufficientGemsAlert) {
+            RewireAlert(
+                title: "Not enough gems",
+                message: "Keep earning gems to unlock the next level.",
+                confirmTitle: "OK",
+                confirmIsDestructive: false,
+                onCancel: { showInsufficientGemsAlert = false },
+                onConfirm: { showInsufficientGemsAlert = false }
+            )
         }
     }
 

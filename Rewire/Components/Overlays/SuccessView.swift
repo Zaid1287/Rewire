@@ -22,7 +22,7 @@ struct SuccessView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 92))
                 .foregroundStyle(.white, checkColor)
-                .transition(.scale.combined(with: .opacity))
+                .transition(.scale(scale: 0.92).combined(with: .opacity))
 
             VStack(spacing: Theme.Spacing.sm) {
                 Text(title)

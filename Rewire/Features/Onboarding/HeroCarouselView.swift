@@ -90,7 +90,7 @@ struct HeroCarouselView: View {
             .ignoresSafeArea()
         }
         .onReceive(autoAdvance) { _ in
-            withAnimation { page = (page + 1) % totalPages }
+            withAnimation(Theme.Motion.standard) { page = (page + 1) % totalPages }
         }
     }
 

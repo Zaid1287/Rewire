@@ -7,7 +7,7 @@ struct MainTabView: View {
     @Environment(StreakStore.self) private var streak
     @Environment(GemStore.self) private var gems
 
-    /// Earned-but-unclaimed badges — drives the Recovery tab badge count.
+    /// Earned-but-unclaimed badges — drives the Progress tab badge count.
     private var unclaimedBadges: Int {
         BadgeProgress.unclaimedCount(appState: appState, streak: streak, gems: gems)
     }
@@ -20,11 +20,10 @@ struct MainTabView: View {
 
             Group {
                 switch appState.selectedTab {
-                case .home:      HomeView()
-                case .quitPorn:  QuitPornView()
-                case .recovery:  RecoveryView()
-                case .history:   HistoryView()
-                case .settings:  SettingsView()
+                case .today:    HomeView()
+                case .progress: ProgressTabView()
+                case .toolkit:  ToolkitView()
+                case .settings: SettingsView()
                 }
             }
 
@@ -32,7 +31,9 @@ struct MainTabView: View {
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 .ignoresSafeArea(edges: .bottom)
 
-            RewireTabBar(selection: $appState.selectedTab, recoveryBadgeCount: unclaimedBadges)
+            RewireTabBar(selection: $appState.selectedTab,
+                         isCollapsed: $appState.dockCollapsed,
+                         progressBadgeCount: unclaimedBadges)
                 .padding(.bottom, Theme.Spacing.xs)
         }
     }

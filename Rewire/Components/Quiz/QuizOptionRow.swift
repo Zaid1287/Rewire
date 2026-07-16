@@ -53,8 +53,10 @@ struct RadioOptionRow: View {
                             .foregroundStyle(.white)
                             .frame(width: 26, height: 26)
                             .background(Theme.Colors.green, in: Circle())
+                            .transition(.scale(scale: 0.5).combined(with: .opacity))
                     }
                 }
+                .animation(Theme.Motion.quick, value: isSelected)
                 Text(text)
                     .font(Theme.Typography.cardTitle())
                     .foregroundStyle(Theme.Colors.textPrimary)

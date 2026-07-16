@@ -7,7 +7,12 @@ final class AppState {
     var phase: Phase = .onboarding { didSet { persist?() } }
 
     /// Currently selected main tab.
-    var selectedTab: Tab = .home
+    var selectedTab: Tab = .today
+
+    /// Whether the dock is folded to its icon pill. Runtime-only, never
+    /// persisted — driven by scroll direction (down folds, up opens) via
+    /// `collapsesDock()` on each tab's ScrollView, and by tapping the pill.
+    var dockCollapsed: Bool = false
 
     /// Onboarding quiz answers — one option index per question.
     private(set) var quizAnswers: [Int] = [] { didSet { persist?() } }
@@ -38,37 +43,38 @@ final class AppState {
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
+    /// 4-tab IA (flow-redesign Phase 4, plan §1): Today / Progress / Toolkit /
+    /// Settings. Progress merges the old Recovery + History ("how am I doing?"
+    /// is one mental model); Toolkit is the old Quit Porn hub minus the rows
+    /// that were really settings. Direct labels over vague ones ("Home").
     enum Tab: Int, CaseIterable {
-        case home, quitPorn, recovery, history, settings
+        case today, progress, toolkit, settings
         var title: String {
             switch self {
-            case .home: "Home"
-            case .quitPorn: "Quit Porn"
-            case .recovery: "Recovery"
-            case .history: "History"
+            case .today: "Today"
+            case .progress: "Progress"
+            case .toolkit: "Toolkit"
             case .settings: "Settings"
             }
         }
         var symbol: String {
             switch self {
-            case .home: "house"
-            case .quitPorn: "shield"
-            case .recovery: "drop"
-            case .history: "clock.arrow.circlepath"
+            case .today: "house"
+            case .progress: "chart.bar"
+            case .toolkit: "wrench.and.screwdriver"
             case .settings: "gearshape"
             }
         }
         var activeSymbol: String {
             switch self {
-            case .home: "house.fill"
-            case .quitPorn: "shield.fill"
-            case .recovery: "drop.fill"
-            case .history: "clock.arrow.circlepath"
+            case .today: "house.fill"
+            case .progress: "chart.bar.fill"
+            case .toolkit: "wrench.and.screwdriver.fill"
             case .settings: "gearshape.fill"
             }
         }
-        /// Recovery tab shows a red "1" badge in the screenshots.
-        var badgeCount: Int? { self == .recovery ? 1 : nil }
+        /// Static fallback badge — live unclaimed-badge count overrides this.
+        var badgeCount: Int? { nil }
     }
 
     func finishOnboarding() {

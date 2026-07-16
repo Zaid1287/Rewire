@@ -58,6 +58,10 @@ struct WeeklyChallengeView: View {
             }
         }
         .background(Theme.Colors.background)
+        // The screen draws its own back circle — hide the system one (on
+        // iOS 26 it renders as a second glass circle right below ours).
+        .navigationBarBackButtonHidden()
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private func challengeRow(_ day: ChallengeDay) -> some View {

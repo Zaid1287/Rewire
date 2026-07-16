@@ -7,6 +7,11 @@ struct BadgesView: View {
     @Environment(StreakStore.self) private var streak
     @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
+    /// Milestone-upsell hook (plan §6): a claim is a calm, positive moment —
+    /// one of the two sanctioned paywall entry points. Free users see a soft
+    /// pitch after claiming; it never blocks the claim itself.
+    @State private var justClaimed = false
+    @State private var showPaywall = false
 
     /// All badges, tagged with their real state: claimed badges render dimmed
     /// (reusing `.locked`'s look), earned-but-unclaimed render claimable, and
@@ -30,6 +35,10 @@ struct BadgesView: View {
                         SectionHeader("Deserved Badges")
                         badgeGroup(claimableNow)
                     }
+                    if justClaimed && !gems.isPremium {
+                        milestoneUpsell
+                            .transition(.scale(scale: 0.95).combined(with: .opacity))
+                    }
                     VStack(alignment: .leading, spacing: Theme.Spacing.md) {
                         SectionHeader("Badges you must collect")
                         badgeGroup(notClaimable)
@@ -38,11 +47,42 @@ struct BadgesView: View {
                 .screenPadding()
                 .padding(.top, Theme.Spacing.md)
                 .padding(.bottom, Theme.Spacing.tabBarClearance)
+                .animation(Theme.Motion.enter, value: justClaimed)
             }
         }
         .background(Theme.Colors.background)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showPaywall) {
+            PaywallSheet().presentationDetents([.medium, .large])
+        }
+    }
+
+    private var milestoneUpsell: some View {
+        HStack(spacing: Theme.Spacing.md) {
+            Text("🏅")
+                .font(.system(size: 28))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("You're earning these fast")
+                    .font(Theme.Typography.headline())
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                Text("Premium unlocks the full toolkit behind them.")
+                    .font(Theme.Typography.subtitle())
+                    .foregroundStyle(Theme.Colors.textSecondary)
+            }
+            Spacer()
+            Button("See") { showPaywall = true }
+                .font(Theme.Typography.bodyMedium())
+                .foregroundStyle(.white)
+                .padding(.horizontal, Theme.Spacing.md)
+                .padding(.vertical, 8)
+                .background(Theme.Colors.primary, in: Capsule())
+        }
+        .padding(Theme.Spacing.md)
+        .background(Theme.Colors.primary.opacity(0.10),
+                    in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+        .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg)
+            .stroke(Theme.Colors.primary.opacity(0.4), lineWidth: 1))
     }
 
     private func badgeGroup(_ badges: [Badge]) -> some View {
@@ -51,6 +91,7 @@ struct BadgesView: View {
                 BadgeRow(badge: Badge(title: badge.title, requirement: badge.requirement, state: state(for: badge))) {
                     gems.claimBadge(badge.title)
                     gems.award(50)
+                    justClaimed = true
                     Analytics.capture("badge_claimed", ["badge": badge.title])
                 }
                 .padding(.horizontal, Theme.Spacing.md)

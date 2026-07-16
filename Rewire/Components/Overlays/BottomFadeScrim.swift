@@ -17,3 +17,19 @@ struct BottomFadeScrim: View {
         .allowsHitTesting(false)
     }
 }
+
+/// The top-edge counterpart, placed behind the floating glass top bars so
+/// content dissolves before it reaches the status bar (Apple's scroll-edge
+/// effect) instead of colliding with the clock.
+struct TopFadeScrim: View {
+    var body: some View {
+        LinearGradient(
+            colors: [Theme.Colors.background,
+                     Theme.Colors.background.opacity(0.85),
+                     Theme.Colors.background.opacity(0)],
+            startPoint: .top, endPoint: .bottom
+        )
+        .allowsHitTesting(false)
+        .ignoresSafeArea(edges: .top)
+    }
+}

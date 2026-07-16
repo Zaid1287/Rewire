@@ -15,6 +15,9 @@ struct PrimaryButtonLabel: View {
             if let trailingEmoji { Text(trailingEmoji) }
         }
         .font(Theme.Typography.button())
+        // Countdown titles (PanicSheet "I'm Safe Now · 0:17") re-render every
+        // second; fixed-width digits stop the label jittering. No-op otherwise.
+        .monospacedDigit()
         .foregroundStyle(foreground)
         .frame(maxWidth: .infinity)
         .frame(height: 60)

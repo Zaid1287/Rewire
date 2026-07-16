@@ -5,6 +5,7 @@ import SwiftUI
 struct RewardBoxView: View {
     @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var wiggle = false
 
     var body: some View {
@@ -24,7 +25,9 @@ struct RewardBoxView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.Colors.background.ignoresSafeArea())
         .onAppear {
-            wiggle = true
+            // Repeat-forever rotation is the classic vestibular trigger — the
+            // chest just sits still under Reduce Motion, copy carries the beat.
+            if !reduceMotion { wiggle = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 gems.award(50)
                 dismiss()

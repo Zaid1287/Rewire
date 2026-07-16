@@ -53,30 +53,28 @@ struct DataBackupView: View {
                 showImportConfirm = true
             }
         }
-        .overlay {
-            if showImportConfirm {
-                RewireAlert(
-                    title: "Import Backup",
-                    message: "This replaces all current progress on this device with the backup file. This can't be undone.",
-                    cancelTitle: "Cancel",
-                    confirmTitle: "Import",
-                    onCancel: { showImportConfirm = false },
-                    onConfirm: {
-                        showImportConfirm = false
-                        importPicked()
-                    }
-                )
-            }
-            if showImportFailed {
-                RewireAlert(
-                    title: "Import Failed",
-                    message: "Couldn't read that backup file.",
-                    confirmTitle: "OK",
-                    confirmIsDestructive: false,
-                    onCancel: { showImportFailed = false },
-                    onConfirm: { showImportFailed = false }
-                )
-            }
+        .rewireAlert(isPresented: showImportConfirm) {
+            RewireAlert(
+                title: "Import Backup",
+                message: "This replaces all current progress on this device with the backup file. This can't be undone.",
+                cancelTitle: "Cancel",
+                confirmTitle: "Import",
+                onCancel: { showImportConfirm = false },
+                onConfirm: {
+                    showImportConfirm = false
+                    importPicked()
+                }
+            )
+        }
+        .rewireAlert(isPresented: showImportFailed) {
+            RewireAlert(
+                title: "Import Failed",
+                message: "Couldn't read that backup file.",
+                confirmTitle: "OK",
+                confirmIsDestructive: false,
+                onCancel: { showImportFailed = false },
+                onConfirm: { showImportFailed = false }
+            )
         }
     }
 

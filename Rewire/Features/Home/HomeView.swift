@@ -11,12 +11,9 @@ struct HomeView: View {
     @State private var path: [HomeRoute] = []
     @State private var showStreakSheet = false
     @State private var showPanicSheet = false
-    @State private var showRelapseAlert = false
-    @State private var showRelapseFlow = false
-    @State private var showReportFlow = false
+    @State private var showSlipLog = false
+    @State private var showCheckIn = false
     @State private var showRewardBox = false
-    @State private var showPaywall = false
-    @State private var selectedPlan: Plan = SampleData.plans[1]
     /// Drives the offer countdown re-render; the deadline itself lives in GemStore.
     @State private var now = Date()
     private let offerTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -37,6 +34,13 @@ struct HomeView: View {
     /// Rough "time not spent watching" heuristic: one hour per full day clean.
     private var savedHours: Int { Int(streak.elapsed / 86_400) }
 
+    /// The current run's time past its whole-day count, e.g. "19h 34m 08s" —
+    /// the live-ticking tail under the day hero.
+    private var subDayRemainderText: String {
+        let rem = Int(streak.elapsed) % 86_400
+        return String(format: "%dh %02dm %02ds", rem / 3600, (rem % 3600) / 60, rem % 60)
+    }
+
     /// Seconds left on the one-time special offer (0 once expired or never started).
     private var offerRemaining: Int {
         guard let deadline = gems.offerDeadline else { return 0 }
@@ -53,11 +57,11 @@ struct HomeView: View {
                         progressSection
                         shortcutsSection
                         weekSection
-                        planSection
                     }
                     .padding(.top, Theme.Spacing.md)
                     .padding(.bottom, Theme.Spacing.tabBarClearance)
                 }
+                .collapsesDock()
 
                 // Floating special-offer countdown — an upsell, so premium users
                 // never see it. Deadline is persisted: the offer runs once per
@@ -69,12 +73,14 @@ struct HomeView: View {
                 }
             }
             .safeAreaInset(edge: .top) {
+                // Floating glass capsule; the scrim fades scrolling content out
+                // before the status bar instead of a solid bar.
                 HomeStatHeader(shieldPercent: max(1, min(100, Int(streak.progress * 100))),
                                streakText: compactStreakText,
                                gems: gems.gems,
                                showsWarning: streak.progress < 1,
                                onGiftTap: { showRewardBox = true })
-                    .background(Theme.Colors.background)
+                    .background { TopFadeScrim() }
             }
             .background(Theme.Colors.background)
             .toolbar(.hidden, for: .navigationBar)
@@ -86,32 +92,18 @@ struct HomeView: View {
                 }
             }
             .fullScreenCover(isPresented: $showStreakSheet) { MyStreakSheet() }
-            // Full screen with no swipe-to-dismiss: mid-urge, the only exits
-            // are "I'm Safe Now" (premium tool) or the close button (upsell).
+            // Full screen with no swipe-to-dismiss: mid-urge, the only exit is
+            // "I'm Safe Now" — the crisis tool is free for everyone, no upsell.
             .fullScreenCover(isPresented: $showPanicSheet) {
                 PanicSheet()
             }
-            .sheet(isPresented: $showPaywall) {
-                PaywallSheet().presentationDetents([.medium, .large])
+            // Slip Log resets the run only on save, so no "are you sure?" alert
+            // is needed — backing out of it costs nothing.
+            .fullScreenCover(isPresented: $showSlipLog) { SlipLogFlow() }
+            .sheet(isPresented: $showCheckIn) {
+                CheckInFlow().presentationDetents([.medium])
             }
-            .fullScreenCover(isPresented: $showRelapseFlow) { RelapseFlow() }
-            .fullScreenCover(isPresented: $showReportFlow) { DailyReportFlow() }
             .fullScreenCover(isPresented: $showRewardBox) { RewardBoxView() }
-            .overlay {
-                if showRelapseAlert {
-                    RewireAlert(
-                        title: "Relapse",
-                        message: "Have you relapsed recently?",
-                        cancelTitle: "Cancel",
-                        confirmTitle: "Yes, relapsed.",
-                        onCancel: { showRelapseAlert = false },
-                        onConfirm: {
-                            showRelapseAlert = false
-                            showRelapseFlow = true
-                        }
-                    )
-                }
-            }
             .onReceive(offerTimer) { now = $0 }
             .onAppear { if !gems.isPremium { gems.startOfferIfNeeded() } }
         }
@@ -120,7 +112,53 @@ struct HomeView: View {
 
     // MARK: Sections
 
-    private var heroSection: some View {
+    /// Home hero, two-layer streak model (flow-redesign Phase 1). Three states:
+    /// - brand-new user (no days, no banked history): the original "first
+    ///   victory" seconds moment, untouched — nothing to record yet.
+    /// - morning after a slip (run at day 0 but history exists): lead with what
+    ///   *survived* ("Still 47."), demote day 0. The anti-"slap in the face" screen.
+    /// - an ongoing run: the day count is the hero, with the record strip below.
+    @ViewBuilder private var heroSection: some View {
+        if !streak.hasRecord && streak.currentRunDays == 0 {
+            firstVictoryHero
+        } else {
+            VStack(spacing: Theme.Spacing.lg) {
+                FlameMark(size: 88)
+                if streak.currentRunDays == 0 {
+                    // Post-slip: what survived leads; day 0 lives in the flame pill.
+                    Text("DAY 1 OF YOUR NEXT RUN").sectionHeaderStyle()
+                    Text("Still \(streak.totalCleanDays).")
+                        .font(Theme.Typography.bigNumber())
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    Text("Last night is logged as a pattern, not a verdict.")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .screenPadding()
+                } else {
+                    Text("CURRENT RUN").sectionHeaderStyle()
+                    Text("\(streak.currentRunDays) \(streak.currentRunDays == 1 ? "day" : "days")")
+                        .font(Theme.Typography.bigNumber())
+                        .foregroundStyle(Theme.Colors.textPrimary)
+                    // Live sub-day remainder — the ticking detail, not a repeat
+                    // of the day count. (The full Y/M/D/H/M/S grid sits below.)
+                    Text("+ \(subDayRemainderText) and counting")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .monospacedDigit()
+                }
+                RecordStrip(totalCleanDays: streak.totalCleanDays,
+                            cleanThisMonthPercent: streak.cleanThisMonthPercent,
+                            bestRunDays: streak.bestRunDays,
+                            caption: streak.currentRunDays == 0 ? "survived the slip ✓" : "only ever grows ↑",
+                            highlighted: streak.currentRunDays == 0)
+                    .screenPadding()
+            }
+        }
+    }
+
+    /// The untouched brand-new-user moment — matches the first-victory shot.
+    private var firstVictoryHero: some View {
         VStack(spacing: Theme.Spacing.md) {
             FlameMark(size: 96)
             Text("Your first victory")
@@ -212,10 +250,10 @@ struct HomeView: View {
                                  value: "\(streak.components.minute)", unit: "minutes") { showStreakSheet = true }
                 }
                 HStack(spacing: Theme.Spacing.md) {
-                    WideActionCard(symbol: "arrow.uturn.backward", title: "Relapse",
-                                   caption: "I've relapsed.") { showRelapseAlert = true }
-                    WideActionCard(symbol: "square.and.pencil", title: "Daily Report", count: 1,
-                                   caption: "How was your day?") { showReportFlow = true }
+                    WideActionCard(symbol: "arrow.uturn.backward", title: "Log a Slip",
+                                   caption: "It happens. Log it.") { showSlipLog = true }
+                    WideActionCard(symbol: "square.and.pencil", title: "Check-in", count: 1,
+                                   caption: "How was today?") { showCheckIn = true }
                 }
                 Button {
                     Haptics.warning()
@@ -278,28 +316,6 @@ struct HomeView: View {
         .screenPadding()
     }
 
-    private var planSection: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            HStack(spacing: Theme.Spacing.sm) {
-                TagBadge(kind: .plus)
-                Text("Choose your plan")
-                    .font(Theme.Typography.title())
-                    .foregroundStyle(Theme.Colors.textPrimary)
-            }
-            VStack(spacing: 0) {
-                ForEach(Array(SampleData.plans.enumerated()), id: \.element.id) { idx, plan in
-                    PlanRow(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
-                    if idx < SampleData.plans.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
-                }
-            }
-            .background(Theme.Colors.surface.opacity(0.4),
-                        in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg).stroke(Theme.Colors.divider, lineWidth: 1))
-
-            PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") { showPaywall = true }
-        }
-        .screenPadding()
-    }
 }
 
 #Preview {

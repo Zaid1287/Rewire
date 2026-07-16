@@ -59,6 +59,51 @@ final class StreakStore {
 
     var components: StreakComponents { elapsed.streakComponents }
 
+    // MARK: Two-layer streak aggregation (flow-redesign Phase 1)
+    // The redesign's core: a "record" layer that only ever grows, sitting above
+    // the "current run" that resets on a slip. All derived from already-persisted
+    // fields (streaks / elapsed / recordSeconds / events) — no new stored state,
+    // no snapshot migration. Every banked run keeps counting toward the totals,
+    // so a relapse subtracts from the *run*, never from the record.
+
+    /// Current run length in whole days (the resettable layer).
+    var currentRunDays: Int { Int(elapsed / 86_400) }
+
+    /// Every completed run's clean time plus the live run, in whole days.
+    /// Only grows: each relapse banks the finished run into `streaks`, which
+    /// stays in this sum forever. `isOngoing` sample rows are excluded so the
+    /// live run (counted via `elapsed`) isn't double-counted.
+    var totalCleanDays: Int {
+        let banked = streaks.filter { !$0.isOngoing }.reduce(0) { $0 + $1.duration }
+        return Int((banked + elapsed) / 86_400)
+    }
+
+    /// Longest single run ever, in whole days.
+    var bestRunDays: Int { Int(max(recordSeconds, elapsed) / 86_400) }
+
+    /// Of the days elapsed so far this month (including today), the share with no
+    /// logged relapse. 100% for a clean month or a user with no relapse history.
+    var cleanThisMonthPercent: Int {
+        let cal = Calendar.current
+        let now = Date()
+        let daysElapsed = cal.component(.day, from: now)   // 1…31, includes today
+        guard daysElapsed > 0,
+              let monthStart = cal.date(from: cal.dateComponents([.year, .month], from: now))
+        else { return 100 }
+        let relapseDays = Set(
+            events.filter { $0.type == .relapse && $0.date >= monthStart }
+                  .map { cal.startOfDay(for: $0.date) }
+        )
+        let clean = max(0, daysElapsed - relapseDays.count)
+        return Int((Double(clean) / Double(daysElapsed) * 100).rounded())
+    }
+
+    /// True once there's at least one whole clean day banked — drives the Home
+    /// hero's "morning after a slip" framing (lead with what survived, not
+    /// day 0). Whole days, not any banked row: the sample data seeds a 60s
+    /// streak, and "Still 0." would be worse than the first-victory hero.
+    var hasRecord: Bool { totalCleanDays > 0 }
+
     /// User tapped "Yes, relapsed" — bank the finished streak, update the record,
     /// and reset the timer.
     func relapse() {
@@ -67,6 +112,64 @@ final class StreakStore {
         streaks.insert(Streak(index: nextIndex, duration: elapsed, isOngoing: false), at: 0)
         startDate = Date()
         elapsed = 0
+    }
+
+    // MARK: Slip Log (flow-redesign Phase 2)
+
+    /// Record a slip: bank the finished run, capture pattern data, and reset the
+    /// current run — but only when the user *saves* the Slip Log, never on entry,
+    /// so backing out costs nothing. Returns the created event so the caller can
+    /// offer an immediate undo on exactly it. Reverse with `undoSlip(_:)`.
+    @discardableResult
+    func logSlip(timeOfDay: String?, trigger: String?, feeling: String?) -> StreakEvent {
+        let preStart = startDate
+        let preRecord = recordSeconds
+        if elapsed > recordSeconds { recordSeconds = elapsed }
+
+        let banked = Streak(index: (streaks.map(\.index).max() ?? 0) + 1,
+                            duration: elapsed, isOngoing: false)
+        streaks.insert(banked, at: 0)
+
+        let event = StreakEvent(type: .relapse,
+                                timeOfDay: timeOfDay, trigger: trigger, feeling: feeling,
+                                bankedStreakID: banked.id,
+                                preStartDate: preStart, preRecordSeconds: preRecord)
+        events.insert(event, at: 0)
+
+        startDate = Date()
+        elapsed = 0
+        return event
+    }
+
+    /// Reverse a slip: restore the run that was reset and drop the banked row +
+    /// the event. No-op for non-slip or already-undone events.
+    func undoSlip(_ event: StreakEvent) {
+        guard event.type == .relapse else { return }
+        if let start = event.preStartDate {
+            startDate = start
+            elapsed = Date().timeIntervalSince(start)
+        }
+        if let rec = event.preRecordSeconds { recordSeconds = rec }
+        if let bankedID = event.bankedStreakID {
+            streaks.removeAll { $0.id == bankedID }
+        }
+        events.removeAll { $0.id == event.id }
+    }
+
+    /// A slip stays undoable until midnight of the day it was logged (the
+    /// forgiveness window for a misreport).
+    func isSlipUndoable(_ event: StreakEvent) -> Bool {
+        event.type == .relapse && Calendar.current.isDateInToday(event.date)
+    }
+
+    /// A one-line pattern read across recent slips, e.g. "3 of your last 4 slips
+    /// were late-night." Nil when there isn't a clear dominant time-of-day yet.
+    func slipPatternInsight() -> String? {
+        let recent = events.filter { $0.type == .relapse }.prefix(4).compactMap(\.timeOfDay)
+        guard recent.count >= 2 else { return nil }
+        let counts = Dictionary(grouping: recent, by: { $0 }).mapValues(\.count)
+        guard let (slot, n) = counts.max(by: { $0.value < $1.value }), n >= 2 else { return nil }
+        return "\(n) of your last \(recent.count) slips were \(slot.lowercased())."
     }
 
     func setGoal(_ goal: Goal) { self.goal = goal }

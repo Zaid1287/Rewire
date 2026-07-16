@@ -7,9 +7,13 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     enum Route: Hashable { case appearance, appIcon }
     @State private var path: [Route] = []
-    @State private var selectedPlan: Plan = SampleData.plans[0]
+    @State private var selectedPlan: Plan = SampleData.plans[1]   // annual — the anchor everywhere
     @State private var showPaywall = false
     @State private var showRestoredAlert = false
+    // Moved here from the old Quit Porn hub (Phase 4) — they're settings.
+    @State private var showReminders = false
+    @State private var showFaceIDSettings = false
+    @State private var showDataBackup = false
 
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -19,9 +23,7 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            VStack(spacing: 0) {
-                NavHeader(title: "Settings") { CoinPill(count: gems.coins) }
-                ScrollView {
+            ScrollView {
                     VStack(spacing: Theme.Spacing.xl) {
                         // Lifetime owners have nothing left to buy.
                         if gems.canUpgrade { upsellBanner }
@@ -31,7 +33,16 @@ struct SettingsView: View {
                                        accessory: .chevron) { path.append(.appearance) },
                             SettingRow(symbol: "checkmark.shield.fill", tint: Theme.Colors.greenDark,
                                        background: Theme.Colors.pastelLime, title: "App Icon",
-                                       accessory: .chevron) { path.append(.appIcon) }
+                                       accessory: .chevron) { path.append(.appIcon) },
+                            SettingRow(symbol: "app.badge", tint: .white,
+                                       background: Theme.Colors.flame, title: "Daily Reminders",
+                                       accessory: .chevron) { showReminders = true },
+                            SettingRow(symbol: "faceid", tint: .white,
+                                       background: Theme.Colors.green, title: "Face ID Lock",
+                                       accessory: .chevron) { showFaceIDSettings = true },
+                            SettingRow(symbol: "arrow.counterclockwise.circle", tint: .white,
+                                       background: Theme.Colors.purple, title: "Data Backup",
+                                       accessory: .chevron) { showDataBackup = true }
                         ])
                         supportUsGroup
                         group("About", rows: [
@@ -54,7 +65,11 @@ struct SettingsView: View {
                     .screenPadding()
                     .padding(.top, Theme.Spacing.lg)
                     .padding(.bottom, Theme.Spacing.tabBarClearance)
-                }
+            }
+            // Floating glass header — content scrolls underneath.
+            .safeAreaInset(edge: .top) {
+                NavHeader(title: "Settings") { CoinPill(count: gems.coins) }
+                    .background { TopFadeScrim() }
             }
             .background(Theme.Colors.background)
             .toolbar(.hidden, for: .navigationBar)
@@ -67,17 +82,24 @@ struct SettingsView: View {
             .sheet(isPresented: $showPaywall) {
                 PaywallSheet().presentationDetents([.medium, .large])
             }
-            .overlay {
-                if showRestoredAlert {
-                    RewireAlert(
-                        title: "Purchases Restored",
-                        message: "Your premium access has been restored.",
-                        confirmTitle: "OK",
-                        confirmIsDestructive: false,
-                        onCancel: { showRestoredAlert = false },
-                        onConfirm: { showRestoredAlert = false }
-                    )
-                }
+            .sheet(isPresented: $showReminders) {
+                ReminderSettingsView().presentationDetents([.medium])
+            }
+            .sheet(isPresented: $showFaceIDSettings) {
+                FaceIDSettingsView().presentationDetents([.medium])
+            }
+            .sheet(isPresented: $showDataBackup) {
+                DataBackupView().presentationDetents([.medium])
+            }
+            .rewireAlert(isPresented: showRestoredAlert) {
+                RewireAlert(
+                    title: "Purchases Restored",
+                    message: "Your premium access has been restored.",
+                    confirmTitle: "OK",
+                    confirmIsDestructive: false,
+                    onCancel: { showRestoredAlert = false },
+                    onConfirm: { showRestoredAlert = false }
+                )
             }
         }
         .tint(Theme.Colors.green)
@@ -165,13 +187,11 @@ struct SettingsView: View {
                     .font(Theme.Typography.title())
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
-            VStack(spacing: 0) {
-                ForEach(Array(SampleData.plans.enumerated()), id: \.element.id) { idx, plan in
-                    PlanRow(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
-                    if idx < SampleData.plans.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
+            VStack(spacing: Theme.Spacing.sm) {
+                ForEach(SampleData.plans) { plan in
+                    PlanCard(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
                 }
             }
-            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg).stroke(Theme.Colors.divider, lineWidth: 1))
 
             PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") { showPaywall = true }
         }

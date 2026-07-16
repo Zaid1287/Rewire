@@ -143,21 +143,19 @@ struct AppearanceTrackerView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.Colors.background)
-        .overlay {
-            if showDeleteConfirm {
-                RewireAlert(
-                    title: "Delete Photo",
-                    message: "This photo will be permanently removed. This can't be undone.",
-                    cancelTitle: "Cancel",
-                    confirmTitle: "Delete",
-                    onCancel: { showDeleteConfirm = false },
-                    onConfirm: {
-                        showDeleteConfirm = false
-                        appState.deleteAppearancePhoto(photo)
-                        selectedPhoto = nil
-                    }
-                )
-            }
+        .rewireAlert(isPresented: showDeleteConfirm) {
+            RewireAlert(
+                title: "Delete Photo",
+                message: "This photo will be permanently removed. This can't be undone.",
+                cancelTitle: "Cancel",
+                confirmTitle: "Delete",
+                onCancel: { showDeleteConfirm = false },
+                onConfirm: {
+                    showDeleteConfirm = false
+                    appState.deleteAppearancePhoto(photo)
+                    selectedPhoto = nil
+                }
+            )
         }
     }
 }

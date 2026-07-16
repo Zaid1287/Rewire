@@ -31,7 +31,8 @@ struct CoinPill: View {
         }
         .padding(.horizontal, Theme.Spacing.md)
         .padding(.vertical, Theme.Spacing.xs)
-        .overlay(Capsule().stroke(Theme.Colors.divider, lineWidth: 1))
+        // Detached floating glass pill, matching the nav chrome.
+        .liquidGlass(in: Capsule())
     }
 }
 

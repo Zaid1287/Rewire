@@ -3,6 +3,20 @@ import SwiftUI
 /// iOS-style centered alert (Relapse confirm): title, message, and two stacked-
 /// horizontal buttons. Rendered as a custom overlay so it can match the app's
 /// dark blurred look and destructive-red confirm.
+extension View {
+    /// Presents a RewireAlert as an animated overlay. `if flag { RewireAlert }`
+    /// inside a bare .overlay inserts with no transaction, so the alert's
+    /// pop/fade transition never fires — this wrapper supplies the animation.
+    func rewireAlert<A: View>(isPresented: Bool, @ViewBuilder _ alert: () -> A) -> some View {
+        overlay {
+            Group {
+                if isPresented { alert() }
+            }
+            .animation(Theme.Motion.enter, value: isPresented)
+        }
+    }
+}
+
 struct RewireAlert: View {
     let title: String
     let message: String
@@ -17,6 +31,7 @@ struct RewireAlert: View {
         ZStack {
             Color.black.opacity(0.5).ignoresSafeArea()
                 .onTapGesture { onCancel() }
+                .transition(.opacity)
 
             VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
                 Text(title)
@@ -50,10 +65,13 @@ struct RewireAlert: View {
             }
             .buttonStyle(.plain)
             .padding(Theme.Spacing.lg)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Theme.Radius.xl))
-            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.xl).stroke(Theme.Colors.divider, lineWidth: 1))
+            // Liquid Glass card floating over the scrim.
+            .liquidGlass(in: RoundedRectangle(cornerRadius: Theme.Radius.xl, style: .continuous))
+            .themeShadow(Theme.Shadows.floating)
             .padding(.horizontal, Theme.Spacing.xxl)
+            // Card pops from 0.95 like a system alert; scrim above just fades.
+            // Centered modal — scale stays center-anchored, no trigger origin.
+            .transition(.scale(scale: 0.95).combined(with: .opacity))
         }
-        .transition(.opacity)
     }
 }
