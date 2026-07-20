@@ -10,6 +10,7 @@ struct RewireApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        Theme.Fonts.register()
         PersistenceController.shared.configure(
             appState: appState, streak: streakStore, gems: gemStore
         )

@@ -21,17 +21,43 @@ extension Theme {
     /// Semantic color palette inferred from the screenshots.
     /// Neutrals are adaptive (light/dark); accents are fixed across modes.
     enum Colors {
-        // Backgrounds & surfaces
-        static let background   = Color(light: 0xF2F2F7, dark: 0x0D0D0F)   // screen bg
-        static let surface      = Color(light: 0xFFFFFF, dark: 0x1C1C1E)   // cards
-        static let surface2     = Color(light: 0xEFEFF4, dark: 0x262628)   // rows on cards / inputs
-        static let surface3     = Color(light: 0xE3E3E8, dark: 0x323234)   // pressed / raised
-        static let divider      = Color(light: 0xD9D9DE, dark: 0x2C2C2E)   // hairline separators
+        // Backgrounds & surfaces — fixed to the dark scene values (appearance
+        // toggle retired; per-screen scenes carry light/dark themselves).
+        static let background   = Color(hex: 0x0A0A0B)   // Void base
+        static let surface      = Color(hex: 0x1C1C1E)   // cards
+        static let surface2     = Color(hex: 0x262628)   // rows on cards / inputs
+        static let surface3     = Color(hex: 0x323234)   // pressed / raised
+        static let divider      = Color(hex: 0x2C2C2E)   // hairline separators
 
-        // Brand
-        static let primary      = Color(hex: 0x4F46E5)   // indigo CTA
-        static let primaryHi    = Color(hex: 0x5B52F0)   // gradient top
-        static let primaryLo    = Color(hex: 0x4338CA)   // gradient bottom
+        // Brand — butter, the single product accent (RonLab)
+        static let primary      = Color(hex: 0xE8C74B)   // butter CTA / accent
+        static let primaryHi    = Color(hex: 0xF0D468)   // gradient top
+        static let primaryLo    = Color(hex: 0xC9992E)   // gradient bottom
+        static let butter       = Color(hex: 0xE8C74B)
+
+        // RonLab scene palette
+        static let carbon       = Color(hex: 0x161618)   // opaque pill rows / dock wells
+        static let emberHi      = Color(hex: 0xC2402A)
+        static let emberLo      = Color(hex: 0x7A1F12)
+        static let fogHi        = Color(hex: 0xC9D4DE)
+        static let fogLo        = Color(hex: 0x9FB3C4)
+        static let amberHi      = Color(hex: 0x8A7362)
+        static let amberLo      = Color(hex: 0x3E332C)
+        static let ivory        = Color(hex: 0xEDEBE7)
+        static let ivoryCard    = Color(hex: 0xF6F5F2)
+        static let ink          = Color(hex: 0x191A1C)   // text on light scenes
+        static let inkLo        = Color(hex: 0x191A1C, alpha: 0.55)
+        static let slate        = Color(hex: 0x131316)
+        static let slateCard    = Color(hex: 0x1A1A1E)
+
+        // Semantic (data states only — never chrome)
+        static let critical     = Color(hex: 0xF5504E)
+        static let good         = Color(hex: 0x3FE06C)
+
+        // Scene-glass text tiers (dark scenes)
+        static let textHi       = Color(hex: 0xF6F7F8)
+        static let textLo       = Color.white.opacity(0.52)
+        static let textXlo      = Color.white.opacity(0.45)
 
         // Accents
         static let green        = Color(hex: 0x22C55E)   // success / active
@@ -49,10 +75,10 @@ extension Theme {
         static let testMintText = Color(hex: 0x3B6B4E)
         static let noteYellow   = Color(hex: 0xF3F35C)   // "keep busy" sticky
 
-        // Text
-        static let textPrimary   = Color(light: 0x111113, dark: 0xFFFFFF)
-        static let textSecondary = Color(light: 0x6E6E73, dark: 0xA1A1AA)
-        static let textTertiary  = Color(light: 0xA1A1AA, dark: 0x6E6E73)
+        // Text (fixed dark-scene values; light scenes use ink/inkLo locally)
+        static let textPrimary   = Color(hex: 0xF6F7F8)
+        static let textSecondary = Color.white.opacity(0.52)
+        static let textTertiary  = Color.white.opacity(0.45)
         static let textOnColor   = Color.white
 
         // Repeated non-palette accents (promoted from inline hex call sites)

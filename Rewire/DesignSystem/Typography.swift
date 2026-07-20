@@ -1,28 +1,40 @@
 import SwiftUI
 
 extension Theme {
-    /// Type scale. Uses the system font (SF Pro); numerals lean on the rounded
-    /// design to match the screenshots' timer/stat digits.
+    /// Type scale — Urbanist throughout (RonLab language). Hierarchy comes from
+    /// size and opacity, not weight: nothing heavier than SemiBold, and SemiBold
+    /// only on Family B display headlines.
     enum Typography {
-        static func hero()        -> Font { .system(size: 38, weight: .bold) }
-        static func title()       -> Font { .system(size: 32, weight: .bold) }
-        static func navTitle()    -> Font { .system(size: 19, weight: .semibold) }
-        static func cardTitle()   -> Font { .system(size: 21, weight: .semibold) }
-        static func headline()    -> Font { .system(size: 18, weight: .semibold) }
-        static func body()        -> Font { .system(size: 17, weight: .regular) }
-        static func bodyMedium()  -> Font { .system(size: 17, weight: .medium) }
-        static func subtitle()    -> Font { .system(size: 15, weight: .regular) }
-        static func caption()     -> Font { .system(size: 13, weight: .regular) }
-        static func button()      -> Font { .system(size: 18, weight: .semibold) }
-        static func tab()         -> Font { .system(size: 12, weight: .medium) }
+        private static func urbanist(_ name: String, _ size: CGFloat) -> Font {
+            .custom(name, fixedSize: size)
+        }
 
-        /// UPPERCASE tracked section headers (SHORTCUTS, GOALS, PREFERENCES…).
-        static func sectionHeader() -> Font { .system(size: 13, weight: .semibold) }
+        // Display
+        static func hero()        -> Font { urbanist(Fonts.extraLight, 38) }
+        static func title()       -> Font { urbanist(Fonts.light, 32) }
+        static func displayHeadline() -> Font { urbanist(Fonts.semiBold, 38) }   // Family B only
+        static func navTitle()    -> Font { urbanist(Fonts.medium, 19) }
+        static func cardTitle()   -> Font { urbanist(Fonts.regular, 19) }
+        static func headline()    -> Font { urbanist(Fonts.medium, 18) }
 
-        // Numeric / display (rounded)
-        static func statNumber()  -> Font { .system(size: 30, weight: .bold, design: .rounded) }
-        static func bigNumber()   -> Font { .system(size: 52, weight: .bold, design: .rounded) }
-        static func timerDigit()  -> Font { .system(size: 30, weight: .bold, design: .rounded) }
+        // Text
+        static func body()        -> Font { urbanist(Fonts.regular, 17) }
+        static func bodyMedium()  -> Font { urbanist(Fonts.medium, 17) }
+        static func subtitle()    -> Font { urbanist(Fonts.regular, 15) }
+        static func caption()     -> Font { urbanist(Fonts.regular, 13) }
+        static func button()      -> Font { urbanist(Fonts.regular, 17) }
+        static func tab()         -> Font { urbanist(Fonts.medium, 12) }
+        static func sectionHeader() -> Font { urbanist(Fonts.medium, 13) }
+
+        // Label: Value pattern
+        static func label()       -> Font { urbanist(Fonts.regular, 15) }
+        static func value()       -> Font { urbanist(Fonts.regular, 17) }
+
+        // Numeric / display
+        static func heroNumeral(_ size: CGFloat = 88) -> Font { urbanist(Fonts.thin, size) }
+        static func statNumber()  -> Font { urbanist(Fonts.light, 30) }
+        static func bigNumber()   -> Font { urbanist(Fonts.extraLight, 52) }
+        static func timerDigit()  -> Font { urbanist(Fonts.light, 30) }
     }
 }
 
@@ -33,5 +45,13 @@ extension View {
             .tracking(0.8)
             .foregroundStyle(Theme.Colors.textSecondary)
             .textCase(.uppercase)
+    }
+
+    /// Hero numeral + small unit suffix at 35% — `47 days`, `52 %`.
+    func heroNumeralStyle(size: CGFloat = 88) -> some View {
+        self.font(Theme.Typography.heroNumeral(size))
+            .kerning(size * -0.02)
+            .monospacedDigit()
+            .contentTransition(.numericText())
     }
 }
