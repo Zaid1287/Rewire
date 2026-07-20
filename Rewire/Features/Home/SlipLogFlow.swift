@@ -23,7 +23,7 @@ struct SlipLogFlow: View {
 
     var body: some View {
         ZStack {
-            Theme.Colors.background.ignoresSafeArea()
+            SceneBackground(kind: .emberDim)
             Group {
                 switch step {
                 case .log:   logView
@@ -83,51 +83,64 @@ struct SlipLogFlow: View {
 
     // MARK: Saved — insight + forward-looking exit
 
+    /// Marks for the kept history, ending in the just-logged red dot.
+    private var reframeMarks: [MorseMark] {
+        let kept = min(streak.totalCleanDays, 40)
+        var days: [Bool?] = Array(repeating: true, count: max(kept, 3))
+        days.append(false)
+        return MorseStrip.marks(fromDays: days)
+    }
+
     private var savedView: some View {
-        VStack(spacing: Theme.Spacing.lg) {
-            Spacer()
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer().frame(height: 70)
 
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 72))
-                .foregroundStyle(.white, Theme.Colors.green)
-                .transition(.scale(scale: 0.92).combined(with: .opacity))
+            Text("Relapse logged".uppercased())
+                .font(Theme.Typography.caption())
+                .tracking(1.4)
+                .foregroundStyle(Theme.Colors.textXlo)
 
-            VStack(spacing: Theme.Spacing.sm) {
-                Text("Logged. Next run starts now.")
-                    .font(Theme.Typography.title())
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                    .multilineTextAlignment(.center)
-                Text("Your record kept every clean day you earned — the slip only reset the current run.")
-                    .font(Theme.Typography.body())
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-            .screenPadding()
+            Text(streak.totalCleanDays > 1
+                 ? "\(streak.totalCleanDays) days don't disappear because of one."
+                 : "One slip doesn't decide the run.")
+                .font(Theme.Typography.hero())
+                .foregroundStyle(Theme.Colors.textHi)
+                .padding(.top, 18)
+
+            MorseStrip(marks: reframeMarks)
+                .padding(.top, 36)
+            Text("one dot in a long line")
+                .font(Theme.Typography.caption())
+                .foregroundStyle(Theme.Colors.textXlo)
+                .padding(.top, 10)
+
+            Text("The streak number resets. The rewiring doesn't — your record kept every clean day you earned.")
+                .font(Theme.Typography.subtitle())
+                .foregroundStyle(Theme.Colors.textLo)
+                .frame(maxWidth: 300, alignment: .leading)
+                .padding(.top, 14)
 
             if let insight = streak.slipPatternInsight() {
                 HStack(alignment: .top, spacing: Theme.Spacing.sm) {
-                    Image(systemName: "sparkles").foregroundStyle(Theme.Colors.purple)
+                    Image(systemName: "sparkles").foregroundStyle(Theme.Colors.butter)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Pattern found").font(Theme.Typography.headline())
-                            .foregroundStyle(Theme.Colors.textPrimary)
+                            .foregroundStyle(Theme.Colors.textHi)
                         Text(insight)
                             .font(Theme.Typography.body())
-                            .foregroundStyle(Theme.Colors.textSecondary)
+                            .foregroundStyle(Theme.Colors.textLo)
                     }
                     Spacer(minLength: 0)
                 }
                 .padding(Theme.Spacing.md)
-                .background(Theme.Colors.purple.opacity(0.10),
-                            in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.lg)
-                    .stroke(Theme.Colors.purple.opacity(0.35), lineWidth: 1))
-                .screenPadding()
+                .smokedGlass(radius: 20)
+                .padding(.top, Theme.Spacing.lg)
             }
 
             Spacer()
 
             VStack(spacing: Theme.Spacing.sm) {
-                PrimaryButton(title: "I'm re-committed 💪") { dismiss() }
+                PrimaryButton(title: "Keep going") { dismiss() }
                 // Forgiveness for a misreport — undoable until midnight.
                 Button("Logged this by mistake? Undo") {
                     if let event = loggedEvent { streak.undoSlip(event) }
@@ -137,9 +150,9 @@ struct SlipLogFlow: View {
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.textTertiary)
             }
-            .screenPadding()
             .padding(.bottom, Theme.Spacing.lg)
         }
+        .screenPadding()
     }
 }
 
