@@ -1,9 +1,10 @@
 import SwiftUI
 import Combine
 
-/// Home tab (IMG_5440 / 5441): live streak hero, timer grid, goal progress,
-/// shortcut actions, weekly strip, and the plan upsell — with a floating
-/// special-offer countdown clinging to the right edge.
+/// Home tab — RonLab Void scene: goal pill, hero streak numeral with live
+/// remainder, 60-day morse strip, best-run/recovery glass cards, milk panic
+/// capsule. Three-state hero (first victory / post-slip / ongoing run) kept
+/// from the flow redesign.
 struct HomeView: View {
     @Environment(StreakStore.self) private var streak
     @Environment(GemStore.self) private var gems
@@ -20,22 +21,7 @@ struct HomeView: View {
 
     enum HomeRoute: Hashable { case setGoal, addDays, challenge }
 
-    /// Top streak unit for the header pill: "2d", "18h", "44m" — never just
-    /// the minute component of a multi-day streak.
-    private var compactStreakText: String {
-        let c = streak.components
-        if c.year > 0 || c.month > 0 || c.day > 0 {
-            return "\(c.year * 365 + c.month * 30 + c.day)d"
-        }
-        if c.hour > 0 { return "\(c.hour)h" }
-        return "\(c.minute)m"
-    }
-
-    /// Rough "time not spent watching" heuristic: one hour per full day clean.
-    private var savedHours: Int { Int(streak.elapsed / 86_400) }
-
-    /// The current run's time past its whole-day count, e.g. "19h 34m 08s" —
-    /// the live-ticking tail under the day hero.
+    /// The current run's time past its whole-day count, e.g. "19h 34m 08s".
     private var subDayRemainderText: String {
         let rem = Int(streak.elapsed) % 86_400
         return String(format: "%dh %02dm %02ds", rem / 3600, (rem % 3600) / 60, rem % 60)
@@ -47,42 +33,49 @@ struct HomeView: View {
         return max(0, Int(deadline.timeIntervalSince(now)))
     }
 
+    /// 90-day rewiring fraction (same basis as the Recovery gauge).
+    private var recoveryPercent: Int {
+        min(100, Int(streak.elapsed / 86_400 / 90 * 100))
+    }
+
+    /// Last 60 days as rhythm: dashes for clean runs, red dots for relapses.
+    private var morseMarks: [MorseMark] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let relapseDays = Set(streak.events.filter { $0.type == .relapse }
+            .map { cal.startOfDay(for: $0.date) })
+        let days: [Bool?] = (0..<60).reversed().map { offset in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { return nil }
+            return !relapseDays.contains(day)
+        }
+        return MorseStrip.marks(fromDays: days)
+    }
+
+    private var relapsesInWindow: Int {
+        let cal = Calendar.current
+        guard let cutoff = cal.date(byAdding: .day, value: -60, to: Date()) else { return 0 }
+        return streak.events.filter { $0.type == .relapse && $0.date >= cutoff }.count
+    }
+
     var body: some View {
         NavigationStack(path: $path) {
-            ZStack(alignment: .topTrailing) {
+            ZStack {
+                SceneBackground(kind: .void)
+
                 ScrollView {
-                    VStack(spacing: Theme.Spacing.xxl) {
+                    VStack(spacing: 0) {
+                        goalPill
                         heroSection
-                        liveTimerSection
-                        progressSection
-                        shortcutsSection
-                        weekSection
+                        statCards
+                        panicCapsule
+                        quietActions
                     }
                     .padding(.top, Theme.Spacing.md)
                     .padding(.bottom, Theme.Spacing.tabBarClearance)
                 }
                 .collapsesDock()
-
-                // Floating special-offer countdown — an upsell, so premium users
-                // never see it. Deadline is persisted: the offer runs once per
-                // install and never comes back after expiring.
-                if !gems.isPremium && offerRemaining > 0 {
-                    OfferBanner(minutes: offerRemaining / 60, seconds: offerRemaining % 60)
-                        .offset(x: Theme.Spacing.md, y: 300)
-                        .allowsHitTesting(false)
-                }
             }
-            .safeAreaInset(edge: .top) {
-                // Floating glass capsule; the scrim fades scrolling content out
-                // before the status bar instead of a solid bar.
-                HomeStatHeader(shieldPercent: max(1, min(100, Int(streak.progress * 100))),
-                               streakText: compactStreakText,
-                               gems: gems.gems,
-                               showsWarning: streak.progress < 1,
-                               onGiftTap: { showRewardBox = true })
-                    .background { TopFadeScrim() }
-            }
-            .background(Theme.Colors.background)
+            .safeAreaInset(edge: .top) { topRow.background { TopFadeScrim() } }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
@@ -94,9 +87,7 @@ struct HomeView: View {
             .fullScreenCover(isPresented: $showStreakSheet) { MyStreakSheet() }
             // Full screen with no swipe-to-dismiss: mid-urge, the only exit is
             // "I'm Safe Now" — the crisis tool is free for everyone, no upsell.
-            .fullScreenCover(isPresented: $showPanicSheet) {
-                PanicSheet()
-            }
+            .fullScreenCover(isPresented: $showPanicSheet) { PanicSheet() }
             // Slip Log resets the run only on save, so no "are you sure?" alert
             // is needed — backing out of it costs nothing.
             .fullScreenCover(isPresented: $showSlipLog) { SlipLogFlow() }
@@ -107,215 +98,247 @@ struct HomeView: View {
             .onReceive(offerTimer) { now = $0 }
             .onAppear { if !gems.isPremium { gems.startOfferIfNeeded() } }
         }
-        .tint(Theme.Colors.green)
+        .tint(Theme.Colors.butter)
     }
 
-    // MARK: Sections
+    // MARK: Top row — brand squircle left, gift right (offer badge)
 
-    /// Home hero, two-layer streak model (flow-redesign Phase 1). Three states:
-    /// - brand-new user (no days, no banked history): the original "first
-    ///   victory" seconds moment, untouched — nothing to record yet.
-    /// - morning after a slip (run at day 0 but history exists): lead with what
-    ///   *survived* ("Still 47."), demote day 0. The anti-"slap in the face" screen.
-    /// - an ongoing run: the day count is the hero, with the record strip below.
+    private var topRow: some View {
+        HStack {
+            squircleButton { showStreakSheet = true } content: {
+                BrandDots(size: 20, color: Theme.Colors.textHi)
+            }
+            Spacer()
+            squircleButton { showRewardBox = true } content: {
+                Image(systemName: "gift")
+                    .font(.system(size: 17, weight: .regular))
+                    .foregroundStyle(Theme.Colors.textHi)
+            }
+            .overlay(alignment: .topTrailing) {
+                if offerRemaining > 0 && !gems.isPremium {
+                    Circle().fill(Color(hex: 0xE8352E)).frame(width: 7, height: 7)
+                        .offset(x: -9, y: 9)
+                }
+            }
+        }
+        .padding(.horizontal, Theme.Spacing.screen)
+        .padding(.top, Theme.Spacing.xs)
+    }
+
+    private func squircleButton(_ action: @escaping () -> Void,
+                                @ViewBuilder content: () -> some View) -> some View {
+        Button { Haptics.tap(); action() } label: {
+            content()
+                .frame(width: 46, height: 46)
+                .background(Color.white.opacity(0.06),
+                            in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.10), lineWidth: 1))
+        }
+        .buttonStyle(PressableButtonStyle())
+    }
+
+    // MARK: Goal pill
+
+    private var goalPill: some View {
+        PillRow(label: "Goal", value: "\(streak.goal.label) clean") { path.append(.setGoal) }
+            .screenPadding()
+    }
+
+    // MARK: Hero — three states preserved
+
     @ViewBuilder private var heroSection: some View {
-        if !streak.hasRecord && streak.currentRunDays == 0 {
-            firstVictoryHero
-        } else {
-            VStack(spacing: Theme.Spacing.lg) {
-                FlameMark(size: 88)
-                if streak.currentRunDays == 0 {
-                    // Post-slip: what survived leads; day 0 lives in the flame pill.
-                    Text("DAY 1 OF YOUR NEXT RUN").sectionHeaderStyle()
-                    Text("Still \(streak.totalCleanDays).")
-                        .font(Theme.Typography.bigNumber())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Last night is logged as a pattern, not a verdict.")
-                        .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .screenPadding()
-                } else {
-                    Text("CURRENT RUN").sectionHeaderStyle()
-                    Text("\(streak.currentRunDays) \(streak.currentRunDays == 1 ? "day" : "days")")
-                        .font(Theme.Typography.bigNumber())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    // Live sub-day remainder — the ticking detail, not a repeat
-                    // of the day count. (The full Y/M/D/H/M/S grid sits below.)
-                    Text("+ \(subDayRemainderText) and counting")
-                        .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .monospacedDigit()
-                }
-                RecordStrip(totalCleanDays: streak.totalCleanDays,
-                            cleanThisMonthPercent: streak.cleanThisMonthPercent,
-                            bestRunDays: streak.bestRunDays,
-                            caption: streak.currentRunDays == 0 ? "survived the slip ✓" : "only ever grows ↑",
-                            highlighted: streak.currentRunDays == 0)
-                    .screenPadding()
+        VStack(alignment: .leading, spacing: 0) {
+            if !streak.hasRecord && streak.currentRunDays == 0 {
+                firstVictoryHero
+            } else if streak.currentRunDays == 0 {
+                postSlipHero
+            } else {
+                ongoingHero
             }
+
+            // History rhythm appears once there's history to show — a lone
+            // dash on day one reads as broken, not minimal.
+            if streak.hasRecord || streak.currentRunDays > 0 {
+                MorseStrip(marks: morseMarks)
+                    .padding(.top, 30)
+                morseCaption
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(Theme.Colors.textXlo)
+                    .padding(.top, 10)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 30)
+        .padding(.top, 40)
+    }
+
+    private var morseCaption: Text {
+        if relapsesInWindow == 0 {
+            return Text("Last 60 days · clean line")
+        }
+        let word = relapsesInWindow == 1 ? "one relapse" : "\(relapsesInWindow) relapses"
+        return Text("Last 60 days · ")
+            + Text("●").foregroundStyle(Theme.Colors.critical)
+            + Text(" \(word)")
+    }
+
+    private var ongoingHero: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Current streak:")
+                .font(Theme.Typography.label())
+                .foregroundStyle(Theme.Colors.textLo)
+            HeroNumeral(value: "\(streak.currentRunDays)",
+                        unit: streak.currentRunDays == 1 ? "day" : "days",
+                        size: 96)
+            HStack(spacing: 12) {
+                Text(subDayRemainderText)
+                    .font(Theme.Typography.value())
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .monospacedDigit()
+                Text("and counting")
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(Theme.Colors.textXlo)
+                Spacer()
+                Button { path.append(.addDays) } label: {
+                    Text("Add days")
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textLo)
+                        .underline()
+                }
+            }
+            .padding(.top, 6)
         }
     }
 
-    /// The untouched brand-new-user moment — matches the first-victory shot.
+    /// Morning after a slip: what *survived* leads; day 0 is demoted.
+    private var postSlipHero: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Next run: day 1 · still standing:")
+                .font(Theme.Typography.label())
+                .foregroundStyle(Theme.Colors.textLo)
+            HeroNumeral(value: "\(streak.totalCleanDays)", unit: "days kept", size: 96)
+            Text("Last night is logged as a pattern, not a verdict.")
+                .font(Theme.Typography.subtitle())
+                .foregroundStyle(Theme.Colors.textLo)
+                .padding(.top, 6)
+        }
+    }
+
+    /// Brand-new user — first hours, seconds moment.
     private var firstVictoryHero: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            FlameMark(size: 96)
-            Text("Your first victory")
-                .font(Theme.Typography.title())
-                .foregroundStyle(Theme.Colors.textPrimary)
-
-            // Segmented green "N seconds" pill on a dark track
-            ZStack(alignment: .leading) {
-                Capsule().fill(Theme.Colors.surface2).frame(width: 340, height: 56)
-                Capsule().fill(Theme.Colors.greenMint).frame(width: 340, height: 56)
-                    .mask(alignment: .leading) {
-                        Capsule().frame(width: 300, height: 56)
-                    }
-                Text(streak.elapsed.humanShort())
-                    .font(Theme.Typography.button())
-                    .foregroundStyle(.black)
-                    .frame(width: 300, height: 56)
-            }
-            Text("You're almost there to achieve your first victory in your Rewire challenge.")
-                .font(Theme.Typography.body())
-                .foregroundStyle(Theme.Colors.textSecondary)
-                .multilineTextAlignment(.center)
-                .screenPadding()
+        let c = streak.components
+        let value = c.hour > 0 ? "\(c.hour)" : "\(max(c.minute, 1))"
+        let unit = c.hour > 0 ? (c.hour == 1 ? "hour" : "hours")
+                              : (c.minute == 1 ? "minute" : "minutes")
+        return VStack(alignment: .leading, spacing: 8) {
+            Text("Your first victory:")
+                .font(Theme.Typography.label())
+                .foregroundStyle(Theme.Colors.textLo)
+            HeroNumeral(value: value, unit: unit, size: 96)
+            Text("Every hour counts. The streak starts the moment you decide.")
+                .font(Theme.Typography.subtitle())
+                .foregroundStyle(Theme.Colors.textLo)
+                .padding(.top, 6)
         }
     }
 
-    private var liveTimerSection: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            SectionHeader(title: "Live Timer") {
-                HStack(spacing: Theme.Spacing.xs) {
-                    LinkButton(title: "Add Days") { path.append(.addDays) }
-                }
-            }
-            .overlay(alignment: .leading) {
-                // pulsing red "live" dot next to the header
-                Circle().fill(Theme.Colors.red).frame(width: 10, height: 10)
-                    .offset(x: 108)
-            }
+    // MARK: Stat cards
 
-            let c = streak.components
-            VStack(spacing: Theme.Spacing.sm) {
-                HStack(spacing: Theme.Spacing.sm) {
-                    StatTile(value: c.year, unit: "year")
-                    StatTile(value: c.month, unit: "month")
-                    StatTile(value: c.day, unit: "day")
-                }
-                HStack(spacing: Theme.Spacing.sm) {
-                    StatTile(value: c.hour, unit: "hour")
-                    StatTile(value: c.minute, unit: "minute")
-                    StatTile(value: c.second, unit: "second")
-                }
+    private var statCards: some View {
+        HStack(spacing: 12) {
+            miniCard(title: "Best run", value: "\(streak.bestRunDays)", unit: "days") {
+                showStreakSheet = true
+            }
+            miniCard(title: "Recovery", value: "\(recoveryPercent)", unit: "%") {
+                showStreakSheet = true
             }
         }
         .screenPadding()
+        .padding(.top, 26)
     }
 
-    private var progressSection: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            SectionHeader(title: "Progress") {
-                LinkButton(title: "Set Goal") { path.append(.setGoal) }
-            }
-            Card {
-                VStack(spacing: Theme.Spacing.md) {
-                    HStack {
-                        Image(systemName: "checkmark").foregroundStyle(Theme.Colors.textPrimary)
-                        Text("Try to reach your \(streak.goal.label) goal.")
-                            .font(Theme.Typography.body())
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                        Spacer()
-                        Text(streak.progressPercentText)
-                            .font(Theme.Typography.body())
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                    }
-                    ProgressBarView(value: streak.progress, height: 10)
+    private func miniCard(title: String, value: String, unit: String,
+                          action: @escaping () -> Void) -> some View {
+        Button { Haptics.tap(); action() } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(Theme.Colors.textLo)
+                HStack(alignment: .lastTextBaseline, spacing: 5) {
+                    Text(value)
+                        .font(Theme.Typography.unitSuffix(24))
+                        .foregroundStyle(Theme.Colors.textHi)
+                        .monospacedDigit()
+                    Text(unit)
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textXlo)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(18)
+            .overlay(alignment: .topTrailing) {
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .frame(width: 28, height: 28)
+                    .background(Color.white.opacity(0.07), in: Circle())
+                    .padding(12)
+            }
+        }
+        .buttonStyle(PressableButtonStyle())
+        .smokedGlass(radius: 26)
+    }
+
+    // MARK: Panic + quiet actions
+
+    private var panicCapsule: some View {
+        Button {
+            Haptics.warning()
+            showPanicSheet = true
+        } label: {
+            HStack(spacing: 10) {
+                Circle().fill(Theme.Colors.critical).frame(width: 8, height: 8)
+                Text("Panic — I need help now")
+            }
+            .font(Theme.Typography.button())
+            .foregroundStyle(Color(hex: 0x141416))
+            .frame(maxWidth: .infinity)
+            .frame(height: 62)
+            .background(Color(hex: 0xF3F2EF), in: Capsule())
+            .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
+        }
+        .buttonStyle(PressableButtonStyle())
+        .screenPadding()
+        .padding(.top, 26)
+    }
+
+    private var quietActions: some View {
+        HStack(spacing: 12) {
+            QuietGlassButton(title: "Check-in", height: 56) { showCheckIn = true }
+            QuietGlassButton(title: "Log a slip", height: 56) { showSlipLog = true }
         }
         .screenPadding()
+        .padding(.top, 12)
     }
+}
 
-    private var shortcutsSection: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            SectionHeader("Shortcuts")
-            VStack(spacing: Theme.Spacing.md) {
-                HStack(spacing: Theme.Spacing.md) {
-                    ShortcutCard(symbol: "clock", title: "Saved Time", tint: Theme.Colors.green,
-                                 value: "\(savedHours)", unit: "hours") { showStreakSheet = true }
-                    ShortcutCard(symbol: "flame.fill", title: "Streak", tint: Theme.Colors.flame,
-                                 value: "\(streak.components.minute)", unit: "minutes") { showStreakSheet = true }
-                }
-                HStack(spacing: Theme.Spacing.md) {
-                    WideActionCard(symbol: "arrow.uturn.backward", title: "Log a Slip",
-                                   caption: "It happens. Log it.") { showSlipLog = true }
-                    WideActionCard(symbol: "square.and.pencil", title: "Check-in", count: 1,
-                                   caption: "How was today?") { showCheckIn = true }
-                }
-                Button {
-                    Haptics.warning()
-                    showPanicSheet = true
-                } label: {
-                    HStack(spacing: Theme.Spacing.sm) {
-                        Image(systemName: "exclamationmark.octagon")
-                            .foregroundStyle(Theme.Colors.flame)
-                        Text("Panic Button")
-                            .font(Theme.Typography.cardTitle())
-                            .foregroundStyle(Theme.Colors.flame)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Theme.Spacing.lg)
-                    .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-                }
-                .buttonStyle(PressableButtonStyle())
+/// The 3-dot brand cluster mark.
+struct BrandDots: View {
+    var size: CGFloat = 20
+    var color: Color = Theme.Colors.textHi
+
+    var body: some View {
+        Canvas { ctx, _ in
+            let s = size / 20
+            for (x, y, r) in [(8.0, 7.0, 3.4), (14.4, 12.6, 2.1), (7.4, 14.6, 1.5)] {
+                ctx.fill(Path(ellipseIn: CGRect(x: (x - r) * s, y: (y - r) * s,
+                                                width: r * 2 * s, height: r * 2 * s)),
+                         with: .color(color))
             }
         }
-        .screenPadding()
+        .frame(width: size, height: size)
     }
-
-    /// This week's Sun–Sat state, derived from real report/relapse dates.
-    /// Relapse wins over report; a plain "today" dot only shows when today
-    /// has neither.
-    private var weekStates: [WeekStrip.DayState] {
-        let cal = Calendar.current
-        let today = Date()
-        // Sun-first week start, independent of the calendar's locale firstWeekday
-        // (WeekStrip's headers are always Sun…Sat).
-        let weekday = cal.component(.weekday, from: today)   // 1 = Sun … 7 = Sat
-        guard let weekStart = cal.date(byAdding: .day, value: -(weekday - 1), to: cal.startOfDay(for: today)) else {
-            return Array(repeating: .none, count: 7)
-        }
-        let reportDays = Set(streak.reports.map { cal.startOfDay(for: $0.date) })
-        let relapseDays = Set(streak.events.filter { $0.type == .relapse }.map { cal.startOfDay(for: $0.date) })
-
-        return (0..<7).map { offset in
-            guard let day = cal.date(byAdding: .day, value: offset, to: weekStart) else { return .none }
-            let start = cal.startOfDay(for: day)
-            if relapseDays.contains(start) { return .relapse }
-            if reportDays.contains(start) { return .report }
-            if cal.isDate(start, inSameDayAs: cal.startOfDay(for: today)) { return .today }
-            return .none
-        }
-    }
-
-    private var weekSection: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            SectionHeader(title: "This Week") {
-                LinkButton(title: "Detail") { showStreakSheet = true }
-            }
-            Button { Haptics.tap(); path.append(.challenge) } label: {
-                Card {
-                    WeekStrip(states: weekStates)
-                }
-            }
-            .buttonStyle(PressableButtonStyle())
-        }
-        .screenPadding()
-    }
-
 }
 
 #Preview {

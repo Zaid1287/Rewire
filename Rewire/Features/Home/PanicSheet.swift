@@ -12,7 +12,7 @@ struct PanicSheet: View {
     var body: some View {
         PanicModeView()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Theme.Colors.background)
+            .background { SceneBackground(kind: .ember) }
             .onAppear {
                 gems.recordAchievement("panic")
                 Analytics.capture("panic_opened")
@@ -67,11 +67,9 @@ struct PanicModeView: View {
 
     /// Breathing scale ranges — shrunk (not removed) under Reduce Motion:
     /// the pacing is the feature, the large oscillation is the vestibular problem.
+    /// The tick dial breathes as one instrument, so the swing is subtle.
     private var haloScale: CGFloat {
-        lungsInflated ? (reduceMotion ? 1.1 : 1.35) : 1.0
-    }
-    private var coreScale: CGFloat {
-        lungsInflated ? (reduceMotion ? 1.05 : 1.25) : (reduceMotion ? 0.95 : 0.9)
+        lungsInflated ? (reduceMotion ? 1.02 : 1.06) : (reduceMotion ? 1.0 : 0.97)
     }
 
     /// Animate toward the current phase's lung state (inhale/hold = inflated,
@@ -153,7 +151,7 @@ struct PanicModeView: View {
 
     private var riding: some View {
         VStack(spacing: Theme.Spacing.lg) {
-            SheetChrome(title: "Panic Mode")
+            SheetChrome(title: "Urge SOS")
 
             Text(gems.isPremium
                  ? "You're riding minute \(minutesRidden) of the wave"
@@ -214,57 +212,48 @@ struct PanicModeView: View {
         }
     }
 
-    /// The free tier's full-size breathing pacer.
+    /// Seconds left in the current 4s breath phase, shown as the hero countdown.
+    private var phaseCountdown: String {
+        String(format: "%02d", 4 - (elapsed % 4))
+    }
+
+    /// The breathing pacer — RonLab tick dial: butter progress sweeps one full
+    /// 12s cycle; the whole instrument breathes with the 4-4-4 pace.
     private var breathingCircle: some View {
         ZStack {
             Circle()
-                .fill(Theme.Colors.primary.opacity(0.15))
-                .frame(width: 180, height: 180)
-                .scaleEffect(haloScale)
-            // Gradient ring hugging the halo — soft glow copy underneath.
-            Circle()
-                .stroke(
-                    AngularGradient(
-                        colors: [Theme.Colors.primary, Theme.Colors.green,
-                                 Theme.Colors.purple, Theme.Colors.primary],
-                        center: .center),
-                    lineWidth: 6
-                )
-                .frame(width: 180, height: 180)
-                .blur(radius: 8)
-                .scaleEffect(haloScale)
-            Circle()
-                .stroke(
-                    AngularGradient(
-                        colors: [Theme.Colors.primary, Theme.Colors.green,
-                                 Theme.Colors.purple, Theme.Colors.primary],
-                        center: .center),
-                    lineWidth: 2.5
-                )
-                .frame(width: 180, height: 180)
-                .scaleEffect(haloScale)
-            // Soft glowing orb, not a solid disc — a radial fade with a thin
-            // rim reads as breath and light, which is what calms someone down.
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [Theme.Colors.primary.opacity(0.85),
-                                 Theme.Colors.primary.opacity(0.35),
-                                 Theme.Colors.primary.opacity(0.0)],
-                        center: .center, startRadius: 8, endRadius: 62)
-                )
-                .frame(width: 124, height: 124)
-                .scaleEffect(coreScale)
-            Circle()
-                .stroke(Theme.Colors.primary.opacity(0.55), lineWidth: 1.5)
-                .frame(width: 108, height: 108)
-                .scaleEffect(coreScale)
-            Text(phase.label)
-                .font(Theme.Typography.headline())
-                .foregroundStyle(Theme.Colors.textPrimary)
-                .transaction { $0.animation = nil }   // label swaps instantly; only the circle breathes
+                .fill(Color.white.opacity(0.05))
+                .overlay(Circle().stroke(Color.white.opacity(0.14), lineWidth: 1))
+                .frame(width: 200, height: 200)
+            TickRing(count: 64,
+                     activeFraction: Double(elapsed % 12) / 12,
+                     inactiveColor: .white.opacity(0.28),
+                     activeColor: Theme.Colors.butter)
+                .frame(width: 268, height: 268)
+            VStack(spacing: 6) {
+                Text(phaseCountdown)
+                    .heroNumeralStyle(size: 72)
+                    .foregroundStyle(Theme.Colors.textHi)
+                Text(phase.label.uppercased())
+                    .font(Theme.Typography.caption())
+                    .tracking(1.2)
+                    .foregroundStyle(Theme.Colors.textLo)
+                    .transaction { $0.animation = nil }   // label swaps instantly
+            }
         }
-        .frame(height: 250)
+        .scaleEffect(haloScale)
+        .frame(height: 290)
+        .overlay(alignment: .bottom) {
+            // Phase dots: in / hold / out
+            HStack(spacing: 8) {
+                ForEach(BreathPhase.allCases, id: \.rawValue) { p in
+                    Circle()
+                        .fill(p == phase ? Color.white : Color.white.opacity(0.25))
+                        .frame(width: 6, height: 6)
+                }
+            }
+            .offset(y: 18)
+        }
     }
 
     // MARK: Post-crisis debrief — the only place premium is ever pitched
@@ -369,9 +358,9 @@ struct UrgeWaveView: View {
                         }
                     }
                     .stroke(
-                        LinearGradient(colors: [Theme.Colors.primary, Theme.Colors.flame, Theme.Colors.green],
+                        LinearGradient(colors: [Theme.Colors.critical, Theme.Colors.butter, Theme.Colors.good],
                                        startPoint: .leading, endPoint: .trailing),
-                        style: StrokeStyle(lineWidth: 5, lineCap: .round)
+                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
                     )
 
                     Text("crest ~min 6")
@@ -401,7 +390,7 @@ struct UrgeWaveView: View {
             .foregroundStyle(Theme.Colors.textTertiary)
         }
         .padding(Theme.Spacing.md)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+        .smokedGlass(radius: 20)
     }
 }
 
