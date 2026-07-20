@@ -6,8 +6,9 @@ import SwiftUI
 struct PrimaryButtonLabel: View {
     let title: String
     var trailingEmoji: String? = nil
-    var background: AnyShapeStyle = AnyShapeStyle(Theme.Colors.primaryGradient)
-    var foreground: Color = .white
+    // RonLab primary: white capsule, near-black text — the calm dominant CTA.
+    var background: AnyShapeStyle = AnyShapeStyle(Color(hex: 0xF3F2EF))
+    var foreground: Color = Color(hex: 0x141416)
 
     var body: some View {
         HStack(spacing: Theme.Spacing.xs) {
@@ -20,19 +21,20 @@ struct PrimaryButtonLabel: View {
         .monospacedDigit()
         .foregroundStyle(foreground)
         .frame(maxWidth: .infinity)
-        .frame(height: 60)
+        .frame(height: 62)
         .background(background)
         .clipShape(Capsule())
+        .shadow(color: .black.opacity(0.35), radius: 18, y: 8)
     }
 }
 
-/// Full-width indigo pill CTA — "Continue", "Enable Reminders", "Done",
-/// "Unlock Premium". The dominant action button across the app.
+/// Full-width white capsule CTA — "Continue", "Enable Reminders", "Done".
+/// The dominant action button across the app.
 struct PrimaryButton: View {
     let title: String
     var trailingEmoji: String? = nil
-    var background: AnyShapeStyle = AnyShapeStyle(Theme.Colors.primaryGradient)
-    var foreground: Color = .white
+    var background: AnyShapeStyle = AnyShapeStyle(Color(hex: 0xF3F2EF))
+    var foreground: Color = Color(hex: 0x141416)
     let action: () -> Void
 
     var body: some View {

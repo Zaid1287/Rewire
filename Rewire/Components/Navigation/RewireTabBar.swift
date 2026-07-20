@@ -31,7 +31,7 @@ struct RewireTabBar: View {
         // capsule itself animates between widths and positions (Dynamic
         // Island-style morph). No matchedGeometryEffect on the glass: MGE
         // layered onto glassEffect breaks hit-testing of everything inside it.
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
             if isCollapsed {
                 collapsedContent
             } else {
@@ -40,10 +40,16 @@ struct RewireTabBar: View {
                 }
             }
         }
-        .padding(.horizontal, Theme.Spacing.xs)
-        .padding(.vertical, Theme.Spacing.xs)
-        // Liquid Glass to match the floating top bars — one material language.
-        .liquidGlass(in: Capsule())
+        .padding(8)
+        // RonLab shelf: dark translucent rounded-rect, hairline border. Plain
+        // material (not glassEffect) so the MGE pill keeps hit-testing intact.
+        .background {
+            let shelf = RoundedRectangle(cornerRadius: 34, style: .continuous)
+            shelf.fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+                .overlay(shelf.fill(Color(hex: 0x101012).opacity(0.45)))
+                .overlay(shelf.strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
+        }
         .background(
             GeometryReader { geo in
                 Color.clear
@@ -77,7 +83,7 @@ struct RewireTabBar: View {
     private var collapsedContent: some View {
         Image(systemName: selection.activeSymbol)
             .font(.system(size: 20, weight: .regular))
-            .foregroundStyle(Theme.Colors.green)
+            .foregroundStyle(Theme.Colors.textHi)
             .frame(width: 44, height: 44)
             .overlay(alignment: .topTrailing) {
                 // Keep the unclaimed-badge signal alive while Progress is hidden.
@@ -118,30 +124,31 @@ struct RewireTabBar: View {
     private func tabButton(_ tab: AppState.Tab) -> some View {
         let active = tab == selection
         return Group {
-            VStack(spacing: 4) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: active ? tab.activeSymbol : tab.symbol)
-                        .font(.system(size: 20, weight: .regular))
-                        .frame(height: 24)
-                    if let count = badgeCount(for: tab), count > 0 {
-                        CountBadge(count: count)
-                            .scaleEffect(0.72)
-                            .offset(x: 14, y: -8)
-                    }
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: active ? tab.activeSymbol : tab.symbol)
+                    .font(.system(size: 20, weight: .regular))
+                    .frame(height: 24)
+                if let count = badgeCount(for: tab), count > 0 {
+                    CountBadge(count: count)
+                        .scaleEffect(0.72)
+                        .offset(x: 14, y: -8)
                 }
-                Text(tab.title)
-                    .font(Theme.Typography.tab())
             }
-            .foregroundStyle(active ? Theme.Colors.green : Theme.Colors.textPrimary)
+            // Inverted active tab: white squircle, near-black glyph.
+            .foregroundStyle(active ? Color(hex: 0x141416) : Theme.Colors.textHi.opacity(0.85))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, Theme.Spacing.xs)
+            .frame(height: 58)
+            .accessibilityLabel(tab.title)
             // Pill slides between tabs (matchedGeometryEffect) instead of
             // fading out/in — this is the scrub animation.
             .background {
+                let squircle = RoundedRectangle(cornerRadius: 26, style: .continuous)
                 if active {
-                    Capsule()
-                        .fill(Theme.Colors.surface3)
+                    squircle
+                        .fill(Color(hex: 0xF3F2EF))
                         .matchedGeometryEffect(id: "pill", in: pillNamespace)
+                } else {
+                    squircle.fill(Color.white.opacity(0.04))
                 }
             }
             .scaleEffect(active && scrubbing && !reduceMotion ? 1.08 : 1)

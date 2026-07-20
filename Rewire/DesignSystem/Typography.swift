@@ -32,6 +32,7 @@ extension Theme {
 
         // Numeric / display
         static func heroNumeral(_ size: CGFloat = 88) -> Font { urbanist(Fonts.thin, size) }
+        static func unitSuffix(_ size: CGFloat) -> Font { urbanist(Fonts.light, size) }
         static func statNumber()  -> Font { urbanist(Fonts.light, 30) }
         static func bigNumber()   -> Font { urbanist(Fonts.extraLight, 52) }
         static func timerDigit()  -> Font { urbanist(Fonts.light, 30) }
