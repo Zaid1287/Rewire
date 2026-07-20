@@ -42,7 +42,7 @@ struct PersonalPlanView: View {
         let isDone = streak.completedPlanDays.contains(day.day)
         return HStack(spacing: Theme.Spacing.md) {
             IconCircle(symbol: isDone ? "checkmark" : "\(day.day).circle",
-                       tint: .white,
+                       tint: isDone ? .white : Theme.Colors.textPrimary,
                        background: isDone ? Theme.Colors.green : Theme.Colors.surface2,
                        size: 40,
                        stroke: isDone ? nil : Theme.Colors.textTertiary)

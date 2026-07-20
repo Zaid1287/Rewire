@@ -120,25 +120,63 @@ final class StreakStore {
     /// current run — but only when the user *saves* the Slip Log, never on entry,
     /// so backing out costs nothing. Returns the created event so the caller can
     /// offer an immediate undo on exactly it. Reverse with `undoSlip(_:)`.
+    /// `source` is nil for the manual Slip Log, "shield" when auto-logged.
+    /// `date` is when the slip *happened* — it defaults to now for the manual
+    /// flow, but a shield slip is ingested whenever Rewire next opens, so the
+    /// run it banks must end at the tap, not at the ingest.
     @discardableResult
-    func logSlip(timeOfDay: String?, trigger: String?, feeling: String?) -> StreakEvent {
+    func logSlip(timeOfDay: String?, trigger: String?, feeling: String?,
+                 source: String? = nil, at date: Date = Date()) -> StreakEvent {
         let preStart = startDate
         let preRecord = recordSeconds
-        if elapsed > recordSeconds { recordSeconds = elapsed }
+        let runLength = max(0, date.timeIntervalSince(startDate))
+        if runLength > recordSeconds { recordSeconds = runLength }
 
         let banked = Streak(index: (streaks.map(\.index).max() ?? 0) + 1,
-                            duration: elapsed, isOngoing: false)
+                            duration: runLength, isOngoing: false)
         streaks.insert(banked, at: 0)
 
-        let event = StreakEvent(type: .relapse,
+        let event = StreakEvent(date: date, type: .relapse,
                                 timeOfDay: timeOfDay, trigger: trigger, feeling: feeling,
+                                source: source,
                                 bankedStreakID: banked.id,
                                 preStartDate: preStart, preRecordSeconds: preRecord)
         events.insert(event, at: 0)
 
-        startDate = Date()
-        elapsed = 0
+        startDate = date
+        elapsed = Date().timeIntervalSince(date)
         return event
+    }
+
+    /// A shield "Not this time" tap. Deliberately touches no streak state — the
+    /// run continues untouched; this is purely new data the manual flow can
+    /// never produce.
+    func logResisted(at date: Date = Date()) {
+        events.insert(StreakEvent(date: date, type: .resisted, source: "shield"), at: 0)
+    }
+
+    /// Resisted urges logged, all-time. Survives a relapse on purpose: the count
+    /// is the user's evidence they *can* say no, so a slip must not zero it.
+    var resistedCount: Int { events.filter { $0.type == .resisted }.count }
+
+    /// Drain shield-extension taps into the normal pipeline. Call on foreground.
+    /// Relapses take the existing slip path, so undo-until-midnight and the
+    /// two-layer totals keep working with no special-casing.
+    func ingestShieldEvents() {
+        let pending = ShieldEventStore.pending()
+        guard !pending.isEmpty else { return }
+        for event in pending.sorted(by: { $0.date < $1.date }) {
+            switch event.kind {
+            case .relapse:
+                logSlip(timeOfDay: nil, trigger: nil, feeling: nil,
+                        source: "shield", at: event.date)
+            case .resisted:
+                logResisted(at: event.date)
+            }
+        }
+        // Clear only after the loop: every mutation above already flushed to
+        // disk via `persist`, so a crash here re-ingests at worst nothing.
+        ShieldEventStore.clear()
     }
 
     /// Reverse a slip: restore the run that was reset and drop the banked row +

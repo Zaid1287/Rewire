@@ -46,7 +46,7 @@ struct AvatarInitial: View {
     var body: some View {
         Text(String(name.prefix(1)))
             .font(.system(size: size * 0.45, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.Colors.textPrimary)
             .frame(width: size, height: size)
             .background(Theme.Colors.surface2, in: Circle())
             .overlay(Circle().stroke(Theme.Colors.divider, lineWidth: 1))

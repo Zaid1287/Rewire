@@ -69,8 +69,8 @@ struct HeroCarouselView: View {
                 // app, so no blocking ToS popup is needed.
                 Text("By continuing, you agree to our [Terms of Service](\(Legal.termsURL.absoluteString)) and [Privacy Policy](\(Legal.privacyURL.absoluteString)).")
                     .font(Theme.Typography.caption())
-                    .foregroundStyle(.white.opacity(0.55))
-                    .tint(.white.opacity(0.8))
+                    .foregroundStyle(Theme.Colors.textSecondary)
+                    .tint(Theme.Colors.textPrimary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }

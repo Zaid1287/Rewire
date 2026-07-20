@@ -47,8 +47,10 @@ struct AppearancePhoto: Identifiable, Codable {
 struct StreakEvent: Identifiable, Codable {
     var id = UUID()
     var date: Date = Date()
-    /// Event kind — matches the Add Event screen options.
-    enum Kind: String, Codable, CaseIterable { case relapse, milestone, note }
+    /// Event kind — `relapse` / `milestone` / `note` match the Add Event screen
+    /// options; `resisted` is shield-only (a "Not this time" tap) and never
+    /// offered manually.
+    enum Kind: String, Codable, CaseIterable { case relapse, milestone, note, resisted }
     let type: Kind
     var note: String? = nil
 
@@ -59,6 +61,11 @@ struct StreakEvent: Identifiable, Codable {
     var timeOfDay: String? = nil
     var trigger: String? = nil
     var feeling: String? = nil
+
+    /// Where the event came from — nil for the manual flows, "shield" when a
+    /// Screen Time shield tap auto-logged it. Optional like the fields above so
+    /// pre-shield snapshots still decode.
+    var source: String? = nil
 
     // MARK: Undo bookkeeping (flow-redesign Phase 2)
     // Enough state to reverse the streak reset a slip caused, until midnight.

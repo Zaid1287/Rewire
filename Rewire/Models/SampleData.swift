@@ -147,8 +147,7 @@ enum SampleData {
     ]
     static let toolkitBoost: [FeatureItem] = [
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
-                    subtitle: "Block porn websites. Avoid unexpected relapses.",
-                    badge: .soon, showsChevron: false),
+                    subtitle: "Block porn apps and websites. Avoid unexpected relapses."),
         FeatureItem(symbol: "person.2.fill", title: "Rewire Community",
                     subtitle: "Join the private Telegram group. Get amazing support.",
                     badge: .soon, showsChevron: false),

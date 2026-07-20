@@ -8,17 +8,25 @@ extension Color {
         let b = Double(hex & 0xFF) / 255
         self.init(.sRGB, red: r, green: g, blue: b, opacity: alpha)
     }
+
+    /// Adaptive color that resolves per the current light/dark trait.
+    init(light: UInt32, dark: UInt32) {
+        self.init(UIColor { trait in
+            UIColor(Color(hex: trait.userInterfaceStyle == .dark ? dark : light))
+        })
+    }
 }
 
 extension Theme {
     /// Semantic color palette inferred from the screenshots.
+    /// Neutrals are adaptive (light/dark); accents are fixed across modes.
     enum Colors {
-        // Backgrounds & surfaces (dark stack)
-        static let background   = Color(hex: 0x0D0D0F)   // near-black screen bg
-        static let surface      = Color(hex: 0x1C1C1E)   // cards
-        static let surface2     = Color(hex: 0x262628)   // rows on cards / inputs
-        static let surface3     = Color(hex: 0x323234)   // pressed / raised
-        static let divider      = Color(hex: 0x2C2C2E)   // hairline separators
+        // Backgrounds & surfaces
+        static let background   = Color(light: 0xF2F2F7, dark: 0x0D0D0F)   // screen bg
+        static let surface      = Color(light: 0xFFFFFF, dark: 0x1C1C1E)   // cards
+        static let surface2     = Color(light: 0xEFEFF4, dark: 0x262628)   // rows on cards / inputs
+        static let surface3     = Color(light: 0xE3E3E8, dark: 0x323234)   // pressed / raised
+        static let divider      = Color(light: 0xD9D9DE, dark: 0x2C2C2E)   // hairline separators
 
         // Brand
         static let primary      = Color(hex: 0x4F46E5)   // indigo CTA
@@ -42,9 +50,9 @@ extension Theme {
         static let noteYellow   = Color(hex: 0xF3F35C)   // "keep busy" sticky
 
         // Text
-        static let textPrimary   = Color.white
-        static let textSecondary = Color(hex: 0xA1A1AA)
-        static let textTertiary  = Color(hex: 0x6E6E73)
+        static let textPrimary   = Color(light: 0x111113, dark: 0xFFFFFF)
+        static let textSecondary = Color(light: 0x6E6E73, dark: 0xA1A1AA)
+        static let textTertiary  = Color(light: 0xA1A1AA, dark: 0x6E6E73)
         static let textOnColor   = Color.white
 
         // Repeated non-palette accents (promoted from inline hex call sites)

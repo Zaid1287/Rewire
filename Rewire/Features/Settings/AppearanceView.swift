@@ -1,12 +1,11 @@
 import SwiftUI
 
-/// Appearance (Settings → Appearance). No dedicated screenshot; a faithful
-/// minimal theme picker. The app is dark-only, so light/system are shown as
-/// coming-soon to stay honest about current support.
+/// Appearance (Settings → Appearance). Dark / Light / System theme picker,
+/// persisted on AppState and applied app-wide via preferredColorScheme.
 struct AppearanceView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var selection = "Dark"
-    private let options = ["Dark", "Light", "System"]
+    @Environment(AppState.self) private var appState
+    private let options: [AppState.Appearance] = [.dark, .light, .system]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -16,19 +15,16 @@ struct AppearanceView: View {
                     SectionHeader("Theme")
                     VStack(spacing: 0) {
                         ForEach(Array(options.enumerated()), id: \.offset) { idx, option in
-                            Button { if option == "Dark" { selection = option } } label: {
+                            Button {
+                                Haptics.select()
+                                withAnimation(Theme.Motion.standard) { appState.setAppearance(option) }
+                            } label: {
                                 HStack {
-                                    Text(option)
+                                    Text(option.title)
                                         .font(Theme.Typography.cardTitle())
-                                        .foregroundStyle(option == "Dark" ? Theme.Colors.textPrimary : Theme.Colors.textTertiary)
-                                    if option != "Dark" {
-                                        Text("Soon").font(Theme.Typography.caption())
-                                            .foregroundStyle(Theme.Colors.textTertiary)
-                                            .padding(.horizontal, 8).padding(.vertical, 2)
-                                            .background(Theme.Colors.surface2, in: Capsule())
-                                    }
+                                        .foregroundStyle(Theme.Colors.textPrimary)
                                     Spacer()
-                                    if selection == option {
+                                    if appState.appearance == option {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(.white, Theme.Colors.green)
                                     }
@@ -51,4 +47,4 @@ struct AppearanceView: View {
     }
 }
 
-#Preview { NavigationStack { AppearanceView() } }
+#Preview { NavigationStack { AppearanceView() }.environment(AppState()) }

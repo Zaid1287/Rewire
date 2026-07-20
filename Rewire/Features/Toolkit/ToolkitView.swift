@@ -7,16 +7,17 @@ import SwiftUI
 /// Row wiring: "Challenges" pushes WeeklyChallengeView; "21-day Personal Plan"
 /// pushes PersonalPlanView; "Appearance Tracker" pushes AppearanceTrackerView;
 /// "Breathing Exercise" presents the shared PanicModeView; "My Motivations"
-/// presents MotivationsView; "Power up your shield" pushes MyShieldView.
-/// Rows with no real screen yet ("Porn Blocker", "Rewire Community", "Private
-/// Support") carry `.soon` badges (dimmed, no chevron, no haptic) so they
-/// never read as working controls.
+/// presents MotivationsView; "Power up your shield" pushes MyShieldView;
+/// "Porn Blocker" pushes GuardSetupView (Screen Time shields, Phase S1).
+/// Rows with no real screen yet ("Rewire Community", "Private Support") carry
+/// `.soon` badges (dimmed, no chevron, no haptic) so they never read as
+/// working controls.
 struct ToolkitView: View {
     @State private var path: [Route] = []
     @State private var showBreathing = false
     @State private var showMotivations = false
 
-    enum Route: Hashable { case challenge, personalPlan, appearance, shield }
+    enum Route: Hashable { case challenge, personalPlan, appearance, shield, guardSetup }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -44,6 +45,7 @@ struct ToolkitView: View {
                 case .personalPlan: PersonalPlanView()
                 case .appearance: AppearanceTrackerView()
                 case .shield: MyShieldView()
+                case .guardSetup: GuardSetupView()
                 }
             }
             .sheet(isPresented: $showBreathing) {
@@ -85,6 +87,8 @@ struct ToolkitView: View {
             path.append(.personalPlan)
         } else if item.title == "Appearance Tracker" {
             path.append(.appearance)
+        } else if item.title == "Porn Blocker" {
+            path.append(.guardSetup)
         } else if item.title == "Breathing Exercise" {
             showBreathing = true
         } else if item.title == "My Motivations" {
@@ -94,4 +98,9 @@ struct ToolkitView: View {
     }
 }
 
-#Preview { ToolkitView().environment(GemStore()).environment(AppState()) }
+#Preview {
+    ToolkitView()
+        .environment(GemStore())
+        .environment(AppState())
+        .environment(ShieldController())
+}

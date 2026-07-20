@@ -49,7 +49,7 @@ private struct RippleCircle: View {
 
     var body: some View {
         Circle()
-            .fill(.white.opacity(0.16))
+            .fill(.primary.opacity(0.16))
             .frame(width: maxRadius * 2, height: maxRadius * 2)
             .scaleEffect(expanded ? 1 : 0.08)
             .opacity(expanded ? 0 : 1)

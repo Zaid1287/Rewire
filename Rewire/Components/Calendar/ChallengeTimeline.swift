@@ -32,7 +32,7 @@ struct ChallengeTimeline: View {
         let active = value == activeMilestone
         return Text("\(value)")
             .font(.system(size: 20, weight: .bold, design: .rounded))
-            .foregroundStyle(active ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
+            .foregroundStyle(active ? .black : Theme.Colors.textSecondary)
             .frame(width: 56, height: 56)
             .background(active ? .white : Theme.Colors.surface3,
                         in: RoundedRectangle(cornerRadius: Theme.Radius.sm))

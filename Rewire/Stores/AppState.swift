@@ -9,6 +9,26 @@ final class AppState {
     /// Currently selected main tab.
     var selectedTab: Tab = .today
 
+    /// Appearance preference (Settings → Appearance). Dark is the default —
+    /// the app's designed-first mode and what existing installs expect.
+    enum Appearance: String, Codable, CaseIterable {
+        case system, light, dark
+        var title: String { rawValue.capitalized }
+        /// nil = follow the system setting.
+        var colorScheme: ColorScheme? {
+            switch self {
+            case .system: nil
+            case .light: .light
+            case .dark: .dark
+            }
+        }
+    }
+    private(set) var appearance: Appearance = .dark { didSet { persist?() } }
+
+    func setAppearance(_ a: Appearance) {
+        appearance = a
+    }
+
     /// Whether the dock is folded to its icon pill. Runtime-only, never
     /// persisted — driven by scroll direction (down folds, up opens) via
     /// `collapsesDock()` on each tab's ScrollView, and by tapping the pill.
@@ -168,6 +188,7 @@ final class AppState {
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0
         faceIDEnabled = s.faceIDEnabled ?? false
+        appearance = s.appearance ?? .dark
         // Cold launches must start locked when the lock is on — isUnlocked
         // defaults true for the no-lock case, so without this a force-kill +
         // relaunch would bypass Face ID entirely.

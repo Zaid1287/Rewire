@@ -261,7 +261,7 @@ struct PanicModeView: View {
                 .scaleEffect(coreScale)
             Text(phase.label)
                 .font(Theme.Typography.headline())
-                .foregroundStyle(.white)
+                .foregroundStyle(Theme.Colors.textPrimary)
                 .transaction { $0.animation = nil }   // label swaps instantly; only the circle breathes
         }
         .frame(height: 250)
@@ -384,7 +384,7 @@ struct UrgeWaveView: View {
                         .position(point(0.93, in: geo.size).applying(.init(translationX: 0, y: -14)))
 
                     Circle()
-                        .fill(.white)
+                        .fill(Theme.Colors.textPrimary)
                         .frame(width: 14, height: 14)
                         .position(point(t, in: geo.size))
                         .animation(reduceMotion ? nil : .linear(duration: 1), value: elapsed)

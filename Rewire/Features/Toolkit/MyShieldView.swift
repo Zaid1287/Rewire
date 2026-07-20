@@ -9,8 +9,10 @@ struct MyShieldView: View {
     @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
     @Environment(StreakStore.self) private var streak
+    @Environment(ShieldController.self) private var guardController
     @Environment(\.dismiss) private var dismiss
 
+    @State private var showGuardSetup = false
     @State private var showReminders = false
     @State private var showMotivations = false
     @State private var showBreathing = false
@@ -35,8 +37,9 @@ struct MyShieldView: View {
                  done: streak.elapsed >= 60 || streak.totalCleanDays > 0),
             Task(id: "blocker", symbol: "checkmark.shield",
                  title: "Enable your porn blocker",
-                 subtitle: "Block porn websites. Avoid unexpected relapses.",
-                 done: false, soon: true),
+                 subtitle: "Block porn apps and websites. Avoid unexpected relapses.",
+                 done: guardController.enabled,
+                 action: { showGuardSetup = true }),
             Task(id: "reminders", symbol: "app.badge",
                  title: "Enable reminder notifications",
                  subtitle: "You will get only useful notifications. We promise!",
@@ -136,6 +139,9 @@ struct MyShieldView: View {
         .background(Theme.Colors.background)
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $showGuardSetup) {
+            NavigationStack { GuardSetupView() }
+        }
         .sheet(isPresented: $showReminders) {
             ReminderSettingsView().presentationDetents([.medium])
         }
@@ -236,4 +242,5 @@ struct MyShieldView: View {
         .environment(AppState())
         .environment(GemStore())
         .environment(StreakStore())
+        .environment(ShieldController())
 }
