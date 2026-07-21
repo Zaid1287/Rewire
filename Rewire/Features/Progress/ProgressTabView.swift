@@ -50,10 +50,11 @@ struct ProgressTabView: View {
                             Image(systemName: "plus")
                             Text("Add Event").font(Theme.Typography.button())
                         }
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(hex: 0x141416))
                         .padding(.horizontal, Theme.Spacing.lg)
                         .frame(height: 54)
-                        .background(Theme.Colors.primaryGradient, in: Capsule())
+                        .background(Theme.Colors.butter, in: Capsule())
+                        .shadow(color: .black.opacity(0.3), radius: 14, y: 6)
                     }
                     .buttonStyle(PressableButtonStyle())
                     .padding(.trailing, Theme.Spacing.lg)
@@ -73,7 +74,7 @@ struct ProgressTabView: View {
                 }
                 .background { TopFadeScrim() }
             }
-            .background(Theme.Colors.background)
+            .background { SceneBackground(kind: .amberFog) }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
                 switch route {
@@ -101,43 +102,54 @@ struct ProgressTabView: View {
                 )
             }
         }
-        .tint(Theme.Colors.green)
+        .tint(Theme.Colors.butter)
     }
 
     // MARK: Recovery sections (from the old Recovery tab)
 
     private var recoveryHeader: some View {
-        HStack(spacing: Theme.Spacing.lg) {
-            RecoveryRing(percent: recoveryPercent)
-                .frame(width: 92, height: 92)
-            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                HStack(spacing: Theme.Spacing.xs) {
-                    Text("Your recovery")
-                        .font(Theme.Typography.cardTitle())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Image(systemName: "info.circle")
-                        .foregroundStyle(Theme.Colors.textSecondary)
+        VStack(spacing: 10) {
+            ZStack {
+                TickRing(count: 66,
+                         activeFraction: Double(recoveryPercent) / 100,
+                         startAngle: .degrees(135), sweep: .degrees(270),
+                         tickLength: 16,
+                         inactiveColor: .white.opacity(0.22),
+                         activeColor: .white.opacity(0.9),
+                         positionDot: Theme.Colors.butter)
+                    .frame(width: 250, height: 250)
+                VStack(spacing: 2) {
+                    HeroNumeral(value: "\(recoveryPercent)", unit: "%", size: 76)
+                    Text("rewired")
+                        .font(Theme.Typography.label())
+                        .foregroundStyle(Theme.Colors.textLo)
                 }
-                Text("Keep your streak to recover completely.")
-                    .font(Theme.Typography.body())
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
-            Spacer(minLength: 0)
+            HStack {
+                Text("day 0"); Spacer(); Text("day 90")
+            }
+            .font(Theme.Typography.caption())
+            .foregroundStyle(Theme.Colors.textXlo)
+            .frame(width: 230)
+            Text("Neural pathways weaken after ~90 clean days — you're on day \(min(90, Int(streak.elapsed / 86_400))).")
+                .font(Theme.Typography.caption())
+                .foregroundStyle(Theme.Colors.textXlo)
+                .multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var collection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             SectionHeader("My Collection")
             HStack(spacing: Theme.Spacing.md) {
-                collectionCard(icon: "rosette", iconColor: Theme.Colors.purple,
+                collectionCard(icon: "rosette", iconColor: Theme.Colors.textLo,
                                title: "Badges",
                                badge: unclaimedBadges == 0 ? nil : unclaimedBadges,
                                value: "\(gems.claimedBadges.count)", unit: "badges") {
                     path.append(.badges)
                 }
-                collectionCard(icon: "trophy.fill", iconColor: Theme.Colors.gold,
+                collectionCard(icon: "trophy", iconColor: Theme.Colors.textLo,
                                title: "Levels",
                                badge: nil,
                                value: SampleData.levels.first(where: { $0.rank == gems.currentLevel })?.name ?? "Newcomer",
@@ -175,9 +187,9 @@ struct ProgressTabView: View {
             }
             .padding(Theme.Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
         }
         .buttonStyle(PressableButtonStyle())
+        .smokedGlass(radius: 24)
     }
 
     private var superpowersPreview: some View {
@@ -204,7 +216,7 @@ struct ProgressTabView: View {
                     if idx < SampleData.recoveryEasier.count - 1 { RowDivider(inset: 64) }
                 }
             }
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+            .smokedGlass(radius: 24)
         }
     }
 
@@ -216,9 +228,9 @@ struct ProgressTabView: View {
                 symbol: "chart.bar.xaxis", title: "Statistics",
                 subtitle: "Track your progress with detailed statistics."))
             .padding(.horizontal, Theme.Spacing.md)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
         }
         .buttonStyle(PressableButtonStyle())
+        .smokedGlass(radius: 24)
     }
 
     private var streaksSection: some View {
@@ -230,7 +242,7 @@ struct ProgressTabView: View {
                     if idx < streak.streaks.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
                 }
             }
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+            .smokedGlass(radius: 24)
         }
     }
 
@@ -244,7 +256,7 @@ struct ProgressTabView: View {
                         if idx < streak.events.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
                     }
                 }
-                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+                .smokedGlass(radius: 24)
             }
         }
     }
