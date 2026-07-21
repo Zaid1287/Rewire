@@ -8,8 +8,8 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(GemStore.self) private var gems
     @Environment(\.openURL) private var openURL
-    enum Route: Hashable { case appIcon }
-    @State private var path: [Route] = []
+    /// The four bundled icons — index 0 is the primary (nil alternate name).
+    @AppStorage("selectedAppIcon") private var selectedIcon = 0
     @State private var showPaywall = false
     @State private var showRestoredAlert = false
     // Moved here from the old Quit Porn hub (Phase 4) — they're settings.
@@ -24,7 +24,7 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack {
             ZStack {
                 SceneBackground(kind: .slate)
                 ScrollView {
@@ -37,9 +37,6 @@ struct SettingsView: View {
                         appIconSection
 
                         section("General") {
-                            slateRow("circle.lefthalf.filled", "App Icon",
-                                     accessory: .chevron) { path.append(.appIcon) }
-                            divider
                             slateRow("bell", "Daily Reminders",
                                      accessory: .chevron) { showReminders = true }
                             divider
@@ -89,11 +86,6 @@ struct SettingsView: View {
                     .background { TopFadeScrim() }
             }
             .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(for: Route.self) { route in
-                switch route {
-                case .appIcon: AppIconView()
-                }
-            }
             .sheet(isPresented: $showPaywall) {
                 PaywallSheet().presentationDetents([.large])
             }
@@ -128,6 +120,39 @@ struct SettingsView: View {
 
     // MARK: App icon picker
 
+    /// Ground + mark colour per variant, mirroring the shipped .appiconset art.
+    private struct IconOption {
+        let name: String
+        let alternate: String?          // nil = primary icon
+        let ground: AnyShapeStyle
+        let dots: Color
+    }
+
+    private var iconOptions: [IconOption] {
+        [
+            IconOption(name: "Void", alternate: nil,
+                       ground: AnyShapeStyle(Theme.Colors.background),
+                       dots: Theme.Colors.butter),
+            IconOption(name: "Ember", alternate: "AppIconFlame",
+                       ground: AnyShapeStyle(LinearGradient(
+                        colors: [Theme.Colors.emberHi, Theme.Colors.emberLo],
+                        startPoint: .topLeading, endPoint: .bottomTrailing)),
+                       dots: Theme.Colors.textHi),
+            IconOption(name: "Ivory", alternate: "AppIconDrop",
+                       ground: AnyShapeStyle(LinearGradient(
+                        colors: [Theme.Colors.ivory, Color(hex: 0xC9C6C0)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing)),
+                       dots: Theme.Colors.ink),
+            IconOption(name: "Cobalt", alternate: "AppIconBolt",
+                       ground: AnyShapeStyle(LinearGradient(
+                        colors: [Color(hex: 0x4A63E8), Color(hex: 0x1D2FA8)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing)),
+                       dots: Theme.Colors.textHi)
+        ]
+    }
+
+    /// Tapping a swatch sets the icon right here — no second screen for four
+    /// self-evident choices.
     private var appIconSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("App icon".uppercased())
@@ -136,35 +161,40 @@ struct SettingsView: View {
                 .foregroundStyle(Theme.Colors.textXlo)
                 .padding(.horizontal, 8)
             HStack(spacing: 12) {
-                iconSwatch(fill: AnyShapeStyle(Theme.Colors.background),
-                           dots: Theme.Colors.butter, selected: true)
-                iconSwatch(fill: AnyShapeStyle(LinearGradient(colors: [Theme.Colors.emberHi, Theme.Colors.emberLo],
-                                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
-                           dots: Theme.Colors.textHi, selected: false)
-                iconSwatch(fill: AnyShapeStyle(LinearGradient(colors: [Theme.Colors.ivory, Color(hex: 0xC9C6C0)],
-                                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
-                           dots: Theme.Colors.ink, selected: false)
-                iconSwatch(fill: AnyShapeStyle(LinearGradient(colors: [Color(hex: 0x4A63E8), Color(hex: 0x1D2FA8)],
-                                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
-                           dots: Theme.Colors.textHi, selected: false)
+                ForEach(Array(iconOptions.enumerated()), id: \.offset) { idx, option in
+                    iconSwatch(option, index: idx)
+                }
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 4)
         }
     }
 
-    private func iconSwatch(fill: AnyShapeStyle, dots: Color, selected: Bool) -> some View {
-        Button { Haptics.tap(); path.append(.appIcon) } label: {
-            BrandDots(size: 22, color: dots)
-                .frame(width: 54, height: 54)
-                .background(fill, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(selected ? Theme.Colors.butter : Color.white.opacity(0.12),
-                                      lineWidth: selected ? 2 : 1)
-                )
+    private func iconSwatch(_ option: IconOption, index: Int) -> some View {
+        let selected = selectedIcon == index
+        return Button {
+            Haptics.select()
+            selectedIcon = index
+            UIApplication.shared.setAlternateIconName(option.alternate) { error in
+                if let error { print("App icon change failed: \(error.localizedDescription)") }
+            }
+        } label: {
+            VStack(spacing: 6) {
+                BrandDots(size: 26, color: option.dots)
+                    .frame(width: 54, height: 54)
+                    .background(option.ground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(selected ? Theme.Colors.butter : Color.white.opacity(0.12),
+                                          lineWidth: selected ? 2 : 1)
+                    )
+                Text(option.name)
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(selected ? Theme.Colors.textHi : Theme.Colors.textXlo)
+            }
         }
         .buttonStyle(PressableButtonStyle())
+        .animation(Theme.Motion.quick, value: selected)
     }
 
     // MARK: Grouped card
