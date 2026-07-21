@@ -225,11 +225,14 @@ struct PanicModeView: View {
                 .fill(Color.white.opacity(0.05))
                 .overlay(Circle().stroke(Color.white.opacity(0.14), lineWidth: 1))
                 .frame(width: 200, height: 200)
+            // The ring fills once per 4s phase — full circle on every
+            // in / hold / out, then resets. One breath, one sweep.
             TickRing(count: 64,
-                     activeFraction: Double(elapsed % 12) / 12,
+                     activeFraction: Double((elapsed % 4) + 1) / 4,
                      inactiveColor: .white.opacity(0.28),
                      activeColor: Theme.Colors.butter)
                 .frame(width: 268, height: 268)
+                .animation(.linear(duration: 0.9), value: elapsed)
             VStack(spacing: 6) {
                 Text(phaseCountdown)
                     .heroNumeralStyle(size: 72)
