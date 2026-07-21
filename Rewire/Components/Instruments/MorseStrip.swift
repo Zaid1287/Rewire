@@ -3,10 +3,22 @@ import SwiftUI
 /// History as rhythm: rounded dashes/dots of varying length, relapses as red dots.
 /// Replaces sparklines and calendars anywhere a "how it's been going" glance is
 /// needed. Reads left (oldest, faded) → right (newest).
+///
+/// Drawn in a Canvas that scales the run to the width it's given — a long
+/// history must never widen its container (an over-wide HStack silently
+/// stretches the whole screen).
 enum MorseMark: Hashable {
     case dash(CGFloat)   // run length in points (8–30 reads well)
     case dot             // single quiet day
     case relapse         // red event dot
+
+    var intrinsicWidth: CGFloat {
+        switch self {
+        case .dash(let w): w
+        case .dot: 3
+        case .relapse: 5
+        }
+    }
 }
 
 struct MorseStrip: View {
@@ -17,25 +29,47 @@ struct MorseStrip: View {
     var fade = true
     var minOpacity: Double = 0.35
 
+    private let spacing: CGFloat = 4
+    private let barHeight: CGFloat = 3
+
     var body: some View {
-        HStack(alignment: .center, spacing: 4) {
-            ForEach(Array(marks.enumerated()), id: \.offset) { i, mark in
+        Canvas { ctx, size in
+            guard !marks.isEmpty else { return }
+            let gaps = spacing * CGFloat(marks.count - 1)
+            let intrinsic = marks.reduce(0) { $0 + $1.intrinsicWidth } + gaps
+            // Squeeze to fit; never stretch beyond the natural rhythm.
+            let scale = intrinsic > size.width ? (size.width - gaps) / (intrinsic - gaps) : 1
+            let midY = size.height / 2
+
+            var x: CGFloat = 0
+            for (i, mark) in marks.enumerated() {
                 let t = marks.count <= 1 ? 1 : Double(i) / Double(marks.count - 1)
                 let opacity = fade ? minOpacity + (1 - minOpacity) * t : 1
+
                 switch mark {
-                case .dash(let w):
-                    Capsule().fill(color.opacity(opacity))
-                        .frame(width: w, height: 3)
-                case .dot:
-                    Circle().fill(color.opacity(opacity))
-                        .frame(width: 3, height: 3)
                 case .relapse:
-                    Circle().fill(relapseColor)
-                        .frame(width: 5, height: 5)
+                    // Relapse dots keep their size — they're the signal.
+                    let d: CGFloat = 5
+                    ctx.fill(Path(ellipseIn: CGRect(x: x, y: midY - d / 2, width: d, height: d)),
+                             with: .color(relapseColor))
+                    x += d + spacing
+                case .dot:
+                    let d = max(2, 3 * scale)
+                    ctx.fill(Path(ellipseIn: CGRect(x: x, y: midY - d / 2, width: d, height: d)),
+                             with: .color(color.opacity(opacity)))
+                    x += d + spacing
+                case .dash(let w):
+                    let dw = max(3, w * scale)
+                    ctx.fill(Path(roundedRect: CGRect(x: x, y: midY - barHeight / 2,
+                                                      width: dw, height: barHeight),
+                                  cornerRadius: barHeight / 2),
+                             with: .color(color.opacity(opacity)))
+                    x += dw + spacing
                 }
             }
         }
-        .frame(height: 5)
+        .frame(height: 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

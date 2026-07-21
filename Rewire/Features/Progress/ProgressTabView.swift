@@ -6,7 +6,7 @@ import SwiftUI
 /// (with slip undo), plus the floating Add Event button.
 /// Named ProgressTabView because SwiftUI owns `ProgressView`.
 struct ProgressTabView: View {
-    enum Route: Hashable { case superpowers, badges, levels, statistics, streakDetail(Int) }
+    enum Route: Hashable { case superpowers, badges, levels, streakDetail(Int) }
     @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
     @Environment(StreakStore.self) private var streak
@@ -32,7 +32,6 @@ struct ProgressTabView: View {
                             recoveryHeader
                             collection
                             superpowersPreview
-                            statisticsRow
                             streaksSection
                             eventsSection
                             easier
@@ -81,7 +80,6 @@ struct ProgressTabView: View {
                 case .superpowers: SuperpowersView()
                 case .badges:      BadgesView()
                 case .levels:      LevelsView()
-                case .statistics:  StatisticsView()
                 case .streakDetail(let i): StreakDetailView(index: i)
                 }
             }
@@ -221,17 +219,6 @@ struct ProgressTabView: View {
     }
 
     // MARK: History sections (from the old History tab)
-
-    private var statisticsRow: some View {
-        Button { path.append(.statistics) } label: {
-            FeatureRow(item: FeatureItem(
-                symbol: "chart.bar.xaxis", title: "Statistics",
-                subtitle: "Track your progress with detailed statistics."))
-            .padding(.horizontal, Theme.Spacing.md)
-        }
-        .buttonStyle(PressableButtonStyle())
-        .smokedGlass(radius: 24)
-    }
 
     private var streaksSection: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {

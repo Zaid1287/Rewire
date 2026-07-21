@@ -13,6 +13,8 @@ struct RewireTabBar: View {
     /// Live unclaimed-badge count for the Progress tab; overrides the static
     /// sample badge. nil keeps `Tab.badgeCount`, 0 hides the badge.
     var progressBadgeCount: Int? = nil
+    /// Ivory screens (Stats) need an inverted dock — dark glass disappears on paper.
+    var isLight = false
     /// Measured bar width — drives finger-position → tab mapping while scrubbing.
     @State private var barWidth: CGFloat = 0
     /// Whether a scrub drag is in flight — the active tab pops slightly while true.
@@ -46,9 +48,13 @@ struct RewireTabBar: View {
         .background {
             let shelf = RoundedRectangle(cornerRadius: 34, style: .continuous)
             shelf.fill(.ultraThinMaterial)
-                .environment(\.colorScheme, .dark)
-                .overlay(shelf.fill(Color(hex: 0x101012).opacity(0.45)))
-                .overlay(shelf.strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
+                .environment(\.colorScheme, isLight ? .light : .dark)
+                .overlay(shelf.fill(isLight
+                                    ? Theme.Colors.ivoryCard.opacity(0.72)
+                                    : Color(hex: 0x101012).opacity(0.45)))
+                .overlay(shelf.strokeBorder(isLight
+                                            ? Theme.Colors.ink.opacity(0.08)
+                                            : Color.white.opacity(0.08), lineWidth: 1))
         }
         .background(
             GeometryReader { geo in
@@ -83,7 +89,7 @@ struct RewireTabBar: View {
     private var collapsedContent: some View {
         Image(systemName: selection.activeSymbol)
             .font(.system(size: 20, weight: .regular))
-            .foregroundStyle(Theme.Colors.textHi)
+            .foregroundStyle(isLight ? Theme.Colors.ink : Theme.Colors.textHi)
             .frame(width: 44, height: 44)
             .overlay(alignment: .topTrailing) {
                 // Keep the unclaimed-badge signal alive while Progress is hidden.
@@ -135,7 +141,9 @@ struct RewireTabBar: View {
                 }
             }
             // Inverted active tab: white squircle, near-black glyph.
-            .foregroundStyle(active ? Color(hex: 0x141416) : Theme.Colors.textHi.opacity(0.85))
+            .foregroundStyle(active
+                             ? (isLight ? Theme.Colors.ivoryCard : Color(hex: 0x141416))
+                             : (isLight ? Theme.Colors.ink.opacity(0.8) : Theme.Colors.textHi.opacity(0.85)))
             .frame(maxWidth: .infinity)
             .frame(height: 58)
             .accessibilityLabel(tab.title)
@@ -145,10 +153,11 @@ struct RewireTabBar: View {
                 let squircle = RoundedRectangle(cornerRadius: 26, style: .continuous)
                 if active {
                     squircle
-                        .fill(Color(hex: 0xF3F2EF))
+                        .fill(isLight ? Theme.Colors.ink : Color(hex: 0xF3F2EF))
                         .matchedGeometryEffect(id: "pill", in: pillNamespace)
                 } else {
-                    squircle.fill(Color.white.opacity(0.04))
+                    squircle.fill(isLight ? Theme.Colors.ink.opacity(0.04)
+                                          : Color.white.opacity(0.04))
                 }
             }
             .scaleEffect(active && scrubbing && !reduceMotion ? 1.08 : 1)

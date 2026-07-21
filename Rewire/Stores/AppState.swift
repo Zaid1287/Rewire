@@ -6,8 +6,16 @@ final class AppState {
     enum Phase: String, Codable { case onboarding, main }
     var phase: Phase = .onboarding { didSet { persist?() } }
 
-    /// Currently selected main tab.
-    var selectedTab: Tab = .today
+    /// Currently selected main tab. In debug builds `REWIRE_TAB=<rawValue>` in
+    /// the environment lands the app on a given tab — lets a screenshot pass
+    /// reach any tab without driving the UI.
+    var selectedTab: Tab = {
+        #if DEBUG
+        if let raw = ProcessInfo.processInfo.environment["REWIRE_TAB"],
+           let value = Int(raw), let tab = Tab(rawValue: value) { return tab }
+        #endif
+        return .today
+    }()
 
     /// Appearance preference (Settings → Appearance). Dark is the default —
     /// the app's designed-first mode and what existing installs expect.
@@ -68,11 +76,12 @@ final class AppState {
     /// is one mental model); Toolkit is the old Quit Porn hub minus the rows
     /// that were really settings. Direct labels over vague ones ("Home").
     enum Tab: Int, CaseIterable {
-        case today, progress, toolkit, settings
+        case today, progress, stats, toolkit, settings
         var title: String {
             switch self {
             case .today: "Today"
-            case .progress: "Progress"
+            case .progress: "Recovery"
+            case .stats: "Stats"
             case .toolkit: "Toolkit"
             case .settings: "Settings"
             }
@@ -80,7 +89,8 @@ final class AppState {
         var symbol: String {
             switch self {
             case .today: "house"
-            case .progress: "chart.bar"
+            case .progress: "leaf"
+            case .stats: "chart.bar"
             case .toolkit: "wrench.and.screwdriver"
             case .settings: "gearshape"
             }
@@ -88,7 +98,8 @@ final class AppState {
         var activeSymbol: String {
             switch self {
             case .today: "house.fill"
-            case .progress: "chart.bar.fill"
+            case .progress: "leaf.fill"
+            case .stats: "chart.bar.fill"
             case .toolkit: "wrench.and.screwdriver.fill"
             case .settings: "gearshape.fill"
             }

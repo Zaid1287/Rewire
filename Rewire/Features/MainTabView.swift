@@ -22,6 +22,7 @@ struct MainTabView: View {
                 switch appState.selectedTab {
                 case .today:    HomeView()
                 case .progress: ProgressTabView()
+                case .stats:    StatisticsView()
                 case .toolkit:  ToolkitView()
                 case .settings: SettingsView()
                 }
@@ -33,7 +34,10 @@ struct MainTabView: View {
 
             RewireTabBar(selection: $appState.selectedTab,
                          isCollapsed: $appState.dockCollapsed,
-                         progressBadgeCount: unclaimedBadges)
+                         progressBadgeCount: unclaimedBadges,
+                         // Stats is the one light (Ivory) screen — the dock
+                         // inverts so it reads on paper instead of vanishing.
+                         isLight: appState.selectedTab == .stats)
                 .padding(.bottom, Theme.Spacing.xs)
         }
     }

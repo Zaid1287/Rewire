@@ -1,15 +1,70 @@
 import SwiftUI
 
-/// Statistics — the app's one Family B screen (RonLab Ivory): warm paper ground,
+/// Stats tab — the app's one Family B screen (RonLab Ivory): warm paper ground,
 /// opaque cards, display headline, and instrument viz (fan gauge, dot-matrix
-/// score, barcode, morse) instead of charts.
+/// score, barcode, morse) instead of charts. Reached from the dock.
 struct StatisticsView: View {
     @Environment(StreakStore.self) private var streak
-    @Environment(\.dismiss) private var dismiss
 
-    /// Reports with no P/M/O flags — fully clean days.
+    /// Window the whole screen is scoped to.
+    enum Range: String, CaseIterable, Identifiable {
+        case week = "Week", month = "Month", all = "All time"
+        var id: String { rawValue }
+        /// Days of history the cards read; nil = everything.
+        var days: Int? {
+            switch self {
+            case .week: 7
+            case .month: 30
+            case .all: nil
+            }
+        }
+        /// How many marks/bars the micro-charts draw.
+        var sampleCount: Int { days ?? 60 }
+    }
+
+    @State private var range: Range = .all
+
+    // MARK: Derived data
+
+    private var cal: Calendar { Calendar.current }
+    private var today: Date { cal.startOfDay(for: Date()) }
+
+    private var windowStart: Date? {
+        guard let days = range.days else { return nil }
+        return cal.date(byAdding: .day, value: -(days - 1), to: today)
+    }
+
+    private var reportDays: Set<Date> {
+        Set(streak.reports.map { cal.startOfDay(for: $0.date) })
+    }
+    private var relapseDays: Set<Date> {
+        Set(streak.events.filter { $0.type == .relapse }.map { cal.startOfDay(for: $0.date) })
+    }
+
+    /// Clean check-ins inside the window.
     private var cleanDaysCount: Int {
-        streak.reports.filter { !$0.watchedPorn && !$0.masturbated && !$0.relapsed }.count
+        streak.reports.filter { report in
+            guard !report.watchedPorn, !report.masturbated, !report.relapsed else { return false }
+            guard let start = windowStart else { return true }
+            return cal.startOfDay(for: report.date) >= start
+        }.count
+    }
+
+    /// Urges beaten = panic sessions ridden out, approximated by logged events
+    /// that aren't relapses inside the window.
+    private var urgesBeaten: Int {
+        streak.events.filter { event in
+            guard event.type != .relapse else { return false }
+            guard let start = windowStart else { return true }
+            return cal.startOfDay(for: event.date) >= start
+        }.count
+    }
+
+    private var relapsesInWindow: Int {
+        relapseDays.filter { day in
+            guard let start = windowStart else { return true }
+            return day >= start
+        }.count
     }
 
     /// Mean length of finished streaks; falls back to the live streak.
@@ -28,31 +83,28 @@ struct StatisticsView: View {
     /// Recovery score: clean days into the 90-day rewire window.
     private var score: Int { min(90, totalDays) }
 
-    /// Last-30-days report rhythm for the barcode (days with a report stand tall).
-    private var barcodeValues: [Double] {
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let reportDays = Set(streak.reports.map { cal.startOfDay(for: $0.date) })
-        return (0..<30).reversed().map { off in
-            guard let d = cal.date(byAdding: .day, value: -off, to: today) else { return 0.25 }
-            return reportDays.contains(d) ? 0.9 : 0.25
-        }
-    }
-
-    /// Check-in morse: report days as rhythm, relapses as red dots.
-    private var checkinMarks: [MorseMark] {
-        let cal = Calendar.current
-        let today = cal.startOfDay(for: Date())
-        let reportDays = Set(streak.reports.map { cal.startOfDay(for: $0.date) })
-        let relapseDays = Set(streak.events.filter { $0.type == .relapse }
-            .map { cal.startOfDay(for: $0.date) })
-        let days: [Bool?] = (0..<30).reversed().map { off in
+    /// Day-by-day history for the window, oldest → newest.
+    private func dayStates() -> [Bool?] {
+        (0..<range.sampleCount).reversed().map { off in
             guard let d = cal.date(byAdding: .day, value: -off, to: today) else { return nil }
             if relapseDays.contains(d) { return false }
             return reportDays.contains(d) ? true : nil
         }
-        return MorseStrip.marks(fromDays: days)
     }
+
+    private var barcodeValues: [Double] {
+        dayStates().map { state in
+            switch state {
+            case true?: 0.9
+            case false?: 0.45
+            default: 0.25
+            }
+        }
+    }
+
+    private var checkinMarks: [MorseMark] { MorseStrip.marks(fromDays: dayStates()) }
+
+    // MARK: Body
 
     var body: some View {
         ZStack {
@@ -60,38 +112,68 @@ struct StatisticsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     header
+                    filters
                     scoreCard
                     statPair
                     checkinsCard
                 }
                 .screenPadding()
-                .padding(.top, Theme.Spacing.lg)
+                .padding(.top, Theme.Spacing.md)
                 .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
+            .collapsesDock()
         }
-        .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
     }
 
-    // MARK: Sections
-
     private var header: some View {
         HStack(alignment: .top) {
-            // Display headline — the one place SemiBold is allowed.
-            Text("Your\nRecovery")
-                .font(Theme.Typography.displayHeadline())
-                .foregroundStyle(Theme.Colors.ink)
-                .lineSpacing(-2)
+            // Display headline — the one place SemiBold is allowed. Two Texts
+            // with negative spacing: tight leading (~1.05) is the Family B look.
+            VStack(alignment: .leading, spacing: -6) {
+                Text("Your")
+                Text("Recovery")
+            }
+            .font(Theme.Typography.displayHeadline())
+            .foregroundStyle(Theme.Colors.ink)
             Spacer()
-            Button { Haptics.tap(); dismiss() } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 15, weight: .medium))
+            ShareLink(item: shareSummary) {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 15, weight: .regular))
                     .foregroundStyle(Theme.Colors.ink)
                     .frame(width: 44, height: 44)
                     .background(Theme.Colors.ink.opacity(0.05), in: Circle())
             }
+            .buttonStyle(.plain)
         }
-        .padding(.bottom, 6)
+        .padding(.bottom, 2)
+    }
+
+    private var shareSummary: String {
+        "\(score) of 90 days rewired · \(cleanDaysCount) clean check-ins · Rewire"
+    }
+
+    private var filters: some View {
+        HStack(spacing: 8) {
+            ForEach(Range.allCases) { option in
+                let on = option == range
+                Button {
+                    Haptics.select()
+                    withAnimation(Theme.Motion.quick) { range = option }
+                } label: {
+                    Text(option.rawValue)
+                        .font(Theme.Typography.subtitle())
+                        .foregroundStyle(on ? Theme.Colors.ivoryCard : Theme.Colors.inkLo)
+                        .padding(.horizontal, 18)
+                        .frame(height: 38)
+                        .background(on ? Theme.Colors.ink : Theme.Colors.ink.opacity(0.05),
+                                    in: Capsule())
+                }
+                .buttonStyle(PressableButtonStyle())
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.bottom, 4)
     }
 
     private var scoreCard: some View {
@@ -130,7 +212,8 @@ struct StatisticsView: View {
                             .font(Theme.Typography.unitSuffix(34))
                             .foregroundStyle(Theme.Colors.ink)
                             .monospacedDigit()
-                        Text("logged")
+                            .contentTransition(.numericText())
+                        Text("of \(range.sampleCount)")
                             .font(Theme.Typography.caption())
                             .foregroundStyle(Theme.Colors.inkLo)
                     }
@@ -142,20 +225,17 @@ struct StatisticsView: View {
             }
             ivoryCard {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Streaks")
+                    Text("Urges beaten")
                         .font(Theme.Typography.label())
                         .foregroundStyle(Theme.Colors.inkLo)
-                    HStack(alignment: .lastTextBaseline, spacing: 6) {
-                        Text("\(streak.streaks.count)")
-                            .font(Theme.Typography.unitSuffix(34))
-                            .foregroundStyle(Theme.Colors.ink)
-                            .monospacedDigit()
-                        Text("total")
-                            .font(Theme.Typography.caption())
-                            .foregroundStyle(Theme.Colors.inkLo)
-                    }
-                    StatusLabel(color: Theme.Colors.good,
-                                text: "best \(max(streak.recordSeconds, streak.elapsed).humanShort())",
+                    Text("\(urgesBeaten)")
+                        .font(Theme.Typography.unitSuffix(34))
+                        .foregroundStyle(Theme.Colors.ink)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                    StatusLabel(color: relapsesInWindow == 0 ? Theme.Colors.good : Theme.Colors.critical,
+                                text: relapsesInWindow == 0 ? "Good"
+                                    : "\(relapsesInWindow) relapse\(relapsesInWindow == 1 ? "" : "s")",
                                 textColor: Theme.Colors.inkLo)
                         .padding(.top, 12)
                 }
@@ -166,16 +246,22 @@ struct StatisticsView: View {
     private var checkinsCard: some View {
         ivoryCard {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Check-ins · last 30 days")
+                Text("Check-ins · last \(range.sampleCount) days")
                     .font(Theme.Typography.label())
                     .foregroundStyle(Theme.Colors.inkLo)
                 MorseStrip(marks: checkinMarks,
                            color: Theme.Colors.ink.opacity(0.7), fade: false)
-                Text("goal progress: \(streak.progressPercentText) · average streak: \(averageStreak.humanShort())")
-                    .font(Theme.Typography.caption())
-                    .foregroundStyle(Theme.Colors.ink.opacity(0.45))
+                legend
             }
         }
+    }
+
+    private var legend: Text {
+        Text("● ").foregroundStyle(Theme.Colors.good)
+        + Text("clean · ").foregroundStyle(Theme.Colors.ink.opacity(0.45))
+        + Text("● ").foregroundStyle(Theme.Colors.critical)
+        + Text("relapse · dash = clean run")
+            .foregroundStyle(Theme.Colors.ink.opacity(0.45))
     }
 
     private func ivoryCard(@ViewBuilder _ content: () -> some View) -> some View {
@@ -188,7 +274,7 @@ struct StatisticsView: View {
     }
 }
 
-/// Streak detail (reached from a Progress streak row). Void scene, glass cards.
+/// Streak detail (reached from a Recovery streak row). Void scene, glass cards.
 struct StreakDetailView: View {
     let index: Int
     @Environment(StreakStore.self) private var streak
