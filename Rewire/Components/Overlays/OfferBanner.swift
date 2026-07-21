@@ -23,14 +23,14 @@ struct OfferBanner: View {
         }
         .padding(.horizontal, Theme.Spacing.md)
         .padding(.vertical, Theme.Spacing.sm)
-        .background(Theme.Colors.flame, in: RoundedRectangle(cornerRadius: Theme.Radius.md))
+        .background(Theme.Colors.butter, in: RoundedRectangle(cornerRadius: Theme.Radius.md))
         .themeShadow(Theme.Shadows.banner)
     }
 
     private func digit(_ s: String) -> some View {
         Text(s)
             .font(.system(size: 26, weight: .bold, design: .rounded))
-            .foregroundStyle(Theme.Colors.flame)
+            .foregroundStyle(Theme.Colors.butter)
             .frame(width: 52, height: 52)
             .background(.white, in: RoundedRectangle(cornerRadius: Theme.Radius.sm))
     }

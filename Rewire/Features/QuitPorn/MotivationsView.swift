@@ -48,7 +48,7 @@ struct MotivationsView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
     }
 
     private func motivationRow(_ m: Motivation) -> some View {

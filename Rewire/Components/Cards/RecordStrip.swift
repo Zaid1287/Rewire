@@ -22,12 +22,12 @@ struct RecordStrip: View {
                 Spacer()
                 Text(caption)
                     .font(Theme.Typography.caption())
-                    .foregroundStyle(Theme.Colors.greenMint)
+                    .foregroundStyle(Theme.Colors.good)
             }
             HStack(spacing: 0) {
                 stat("\(totalCleanDays)", "total clean days")
                 divider
-                stat("\(cleanThisMonthPercent)%", "clean this month", tint: Theme.Colors.greenMint)
+                stat("\(cleanThisMonthPercent)%", "clean this month", tint: Theme.Colors.good)
                 divider
                 stat("\(bestRunDays)d", "best run")
             }
@@ -36,7 +36,7 @@ struct RecordStrip: View {
         .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous)
-                .stroke(Theme.Colors.greenMint.opacity(0.35), lineWidth: highlighted ? 1 : 0)
+                .stroke(Theme.Colors.good.opacity(0.35), lineWidth: highlighted ? 1 : 0)
         )
     }
 
@@ -66,5 +66,5 @@ struct RecordStrip: View {
                     caption: "survived the slip ✓", highlighted: true)
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

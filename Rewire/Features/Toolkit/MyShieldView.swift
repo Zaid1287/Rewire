@@ -96,9 +96,9 @@ struct MyShieldView: View {
 
     private var ringTint: Color {
         switch shieldPercent {
-        case ..<34:  Theme.Colors.flame
-        case ..<67:  Theme.Colors.star
-        default:     Theme.Colors.green
+        case ..<34:  Theme.Colors.butter
+        case ..<67:  Theme.Colors.butter
+        default:     Theme.Colors.good
         }
     }
 
@@ -115,7 +115,7 @@ struct MyShieldView: View {
                             Text("❗️")
                             Text("\(shieldPercent)% is not enough to avoid relapses.")
                                 .font(Theme.Typography.bodyMedium())
-                                .foregroundStyle(Theme.Colors.flame)
+                                .foregroundStyle(Theme.Colors.butter)
                         }
                     }
 
@@ -136,7 +136,7 @@ struct MyShieldView: View {
             }
             .collapsesDock()
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showGuardSetup) {
@@ -150,7 +150,7 @@ struct MyShieldView: View {
         }
         .sheet(isPresented: $showBreathing) {
             PanicModeView()
-                .background(Theme.Colors.background)
+                .background { SceneBackground(kind: .void) }
                 .presentationDetents([.large])
         }
         .sheet(isPresented: $showCheckIn) {
@@ -163,7 +163,7 @@ struct MyShieldView: View {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 HStack(spacing: Theme.Spacing.xs) {
                     Image(systemName: "shield.lefthalf.filled")
-                        .foregroundStyle(Theme.Colors.green)
+                        .foregroundStyle(Theme.Colors.good)
                     Text("Your shield level")
                         .font(Theme.Typography.cardTitle())
                         .foregroundStyle(Theme.Colors.textPrimary)
@@ -186,7 +186,7 @@ struct MyShieldView: View {
             if task.done {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 24))
-                    .foregroundStyle(.white, Theme.Colors.green)
+                    .foregroundStyle(.white, Theme.Colors.good)
             } else {
                 Circle()
                     .strokeBorder(Theme.Colors.textTertiary,

@@ -63,11 +63,11 @@ struct TestimonialQuoteCard: View {
                 HStack(alignment: .top, spacing: Theme.Spacing.xs) {
                     Text("\u{201C}")
                         .font(.system(size: 34, weight: .bold))
-                        .foregroundStyle(Theme.Colors.greenMint)
+                        .foregroundStyle(Theme.Colors.good)
                         .offset(y: 8)
                     Text(item.title)
                         .font(Theme.Typography.headline())
-                        .foregroundStyle(Theme.Colors.greenMint)
+                        .foregroundStyle(Theme.Colors.good)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Text(item.body)

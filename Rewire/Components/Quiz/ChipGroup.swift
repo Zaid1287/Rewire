@@ -32,12 +32,12 @@ private struct Chip: View {
         Button(action: action) {
             Text(text)
                 .font(Theme.Typography.bodyMedium())
-                .foregroundStyle(selected ? Theme.Colors.green : Theme.Colors.textSecondary)
+                .foregroundStyle(selected ? Theme.Colors.good : Theme.Colors.textSecondary)
                 .padding(.horizontal, Theme.Spacing.md)
                 .padding(.vertical, 10)
-                .background(selected ? Theme.Colors.green.opacity(0.14) : Theme.Colors.surface,
+                .background(selected ? Theme.Colors.good.opacity(0.14) : Theme.Colors.surface,
                             in: Capsule())
-                .overlay(Capsule().stroke(selected ? Theme.Colors.green : Theme.Colors.divider,
+                .overlay(Capsule().stroke(selected ? Theme.Colors.good : Theme.Colors.divider,
                                           lineWidth: 1))
         }
         .buttonStyle(PressableButtonStyle())
@@ -84,7 +84,7 @@ struct FlowLayout: Layout {
             ChipGroup(title: "When did it happen?",
                       options: SampleData.slipTimesOfDay, selection: $sel)
                 .padding()
-                .background(Theme.Colors.background)
+                .background { SceneBackground(kind: .void) }
         }
     }
     return Demo()

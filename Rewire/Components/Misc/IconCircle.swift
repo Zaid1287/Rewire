@@ -59,5 +59,5 @@ struct IconSquare: View {
         IconSquare(symbol: "circle.lefthalf.filled", background: Theme.Colors.primary)
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

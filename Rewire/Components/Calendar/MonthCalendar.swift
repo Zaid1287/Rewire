@@ -37,7 +37,7 @@ struct MonthCalendar: View {
         ZStack {
             if day == today {
                 RoundedRectangle(cornerRadius: Theme.Radius.md)
-                    .fill(Theme.Colors.red)
+                    .fill(Theme.Colors.critical)
                     .frame(width: 44, height: 44)
             }
             if flaggedDays.contains(day) {

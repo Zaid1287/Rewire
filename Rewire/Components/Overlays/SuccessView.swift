@@ -3,7 +3,7 @@ import SwiftUI
 /// Full-screen "Saved successfully" / "Test Completed" confirmation: big green
 /// check, title, subtitle, and an optional primary action.
 struct SuccessView: View {
-    var checkColor: Color = Theme.Colors.green
+    var checkColor: Color = Theme.Colors.good
     let title: String
     let subtitle: String
     var buttonTitle: String? = "Done"

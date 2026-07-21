@@ -25,8 +25,8 @@ struct StatTile: View {
 struct LabeledStatCard: View {
     var symbol: String? = nil
     var emoji: String? = nil
-    var iconColor: Color = Theme.Colors.green
-    var iconBackground: Color = Theme.Colors.green
+    var iconColor: Color = Theme.Colors.good
+    var iconBackground: Color = Theme.Colors.good
     let value: String
     let label: String
 

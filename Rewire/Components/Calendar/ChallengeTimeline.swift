@@ -11,7 +11,7 @@ struct ChallengeTimeline: View {
         HStack(spacing: 0) {
             // Start nub
             Capsule()
-                .fill(Theme.Colors.green)
+                .fill(Theme.Colors.good)
                 .frame(width: 52, height: 18)
             segment
             ForEach(Array(milestones.enumerated()), id: \.offset) { idx, m in
@@ -38,7 +38,7 @@ struct ChallengeTimeline: View {
                         in: RoundedRectangle(cornerRadius: Theme.Radius.sm))
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.Radius.sm)
-                    .stroke(active ? Theme.Colors.flame : Color.clear, lineWidth: 3)
+                    .stroke(active ? Theme.Colors.butter : Color.clear, lineWidth: 3)
             )
     }
 }

@@ -40,7 +40,7 @@ struct GuardSetupView: View {
             }
             .collapsesDock()
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
         .familyActivityPicker(isPresented: $showPicker, selection: $guardController.selection)
@@ -54,7 +54,7 @@ struct GuardSetupView: View {
     private var notAuthorized: some View {
         VStack(spacing: Theme.Spacing.xl) {
             hero(icon: "checkmark.shield.fill",
-                 tint: Theme.Colors.green,
+                 tint: Theme.Colors.good,
                  title: "Block porn apps & sites",
                  subtitle: "Pick what you don't want to open. When you reach for it, Rewire stops you at the door.")
 
@@ -93,7 +93,7 @@ struct GuardSetupView: View {
     private func guarding(_ guardController: ShieldController) -> some View {
         VStack(spacing: Theme.Spacing.xl) {
             hero(icon: guardController.enabled ? "checkmark.shield.fill" : "shield.slash.fill",
-                 tint: guardController.enabled ? Theme.Colors.green : Theme.Colors.textTertiary,
+                 tint: guardController.enabled ? Theme.Colors.good : Theme.Colors.textTertiary,
                  title: guardController.enabled ? "Blocker is on" : "Blocker is off",
                  subtitle: guardController.enabled
                     ? "Guarding \(selectionSummary). Reaching for one shows the shield."
@@ -102,7 +102,7 @@ struct GuardSetupView: View {
             // On/off — the primary control once something is selected.
             HStack(spacing: Theme.Spacing.md) {
                 IconCircle(symbol: "power",
-                           tint: guardController.enabled ? Theme.Colors.green : Theme.Colors.textSecondary,
+                           tint: guardController.enabled ? Theme.Colors.good : Theme.Colors.textSecondary,
                            background: Theme.Colors.surface2, size: 44)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Blocker")
@@ -118,7 +118,7 @@ struct GuardSetupView: View {
                     set: { guardController.setEnabled($0) }
                 ))
                 .labelsHidden()
-                .tint(Theme.Colors.green)
+                .tint(Theme.Colors.good)
             }
             .padding(Theme.Spacing.md)
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
@@ -143,7 +143,7 @@ struct GuardSetupView: View {
     private func denied(_ reason: String) -> some View {
         VStack(spacing: Theme.Spacing.xl) {
             hero(icon: "exclamationmark.shield.fill",
-                 tint: Theme.Colors.flame,
+                 tint: Theme.Colors.butter,
                  title: "Screen Time access is off",
                  subtitle: "The blocker needs it. Everything else in Rewire works without it — turn it on and come back.")
 
@@ -195,7 +195,7 @@ struct GuardSetupView: View {
 
     private func infoRow(_ symbol: String, _ title: String, _ subtitle: String) -> some View {
         HStack(spacing: Theme.Spacing.md) {
-            IconCircle(symbol: symbol, tint: Theme.Colors.green,
+            IconCircle(symbol: symbol, tint: Theme.Colors.good,
                        background: Theme.Colors.surface2, size: 40)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)

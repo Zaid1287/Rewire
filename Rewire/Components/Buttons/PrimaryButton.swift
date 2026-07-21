@@ -52,7 +52,7 @@ struct PrimaryButton: View {
 struct SolidPillButton: View {
     let title: String
     var fill: Color = .white
-    var textColor: Color = Theme.Colors.scoreRed
+    var textColor: Color = Theme.Colors.emberHi
     let action: () -> Void
 
     var body: some View {
@@ -89,5 +89,5 @@ struct PressableButtonStyle: ButtonStyle {
         SolidPillButton(title: "I'm ready to quit my addiction") {}
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

@@ -10,7 +10,7 @@ struct GemPill: View {
             GemIcon(size: 22)
             Text(animatedDelta ?? "\(count)")
                 .font(.system(size: 17, weight: .semibold, design: .rounded))
-                .foregroundStyle(animatedDelta != nil ? Theme.Colors.green : Theme.Colors.textPrimary)
+                .foregroundStyle(animatedDelta != nil ? Theme.Colors.good : Theme.Colors.textPrimary)
                 .contentTransition(.numericText())
         }
         .padding(.horizontal, Theme.Spacing.md)
@@ -43,7 +43,7 @@ struct GemIcon: View {
         Image(systemName: "diamond.fill")
             .font(.system(size: size))
             .foregroundStyle(
-                LinearGradient(colors: [Theme.Colors.blueLight, Theme.Colors.blue],
+                LinearGradient(colors: [Theme.Colors.textLo, Theme.Colors.textLo],
                                startPoint: .top, endPoint: .bottom)
             )
     }
@@ -70,5 +70,5 @@ struct CoinIcon: View {
         CoinPill(count: 0)
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

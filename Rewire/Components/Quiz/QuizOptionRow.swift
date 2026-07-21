@@ -15,7 +15,7 @@ struct QuizOptionRow: View {
                     .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(.white)
                     .frame(width: 34, height: 34)
-                    .background(Theme.Colors.red, in: Circle())
+                    .background(Theme.Colors.critical, in: Circle())
                 Text(text)
                     .font(Theme.Typography.cardTitle())
                     .foregroundStyle(Theme.Colors.textPrimary)
@@ -26,7 +26,7 @@ struct QuizOptionRow: View {
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.Radius.lg)
-                    .stroke(Theme.Colors.green, lineWidth: isSelected ? 2 : 0)
+                    .stroke(Theme.Colors.good, lineWidth: isSelected ? 2 : 0)
             )
         }
         .buttonStyle(PressableButtonStyle())
@@ -44,7 +44,7 @@ struct RadioOptionRow: View {
         Button(action: { Haptics.select(); action() }) {
             HStack(spacing: Theme.Spacing.md) {
                 ZStack {
-                    Circle().stroke(isSelected ? Theme.Colors.green : Theme.Colors.textTertiary,
+                    Circle().stroke(isSelected ? Theme.Colors.good : Theme.Colors.textTertiary,
                                     lineWidth: 2)
                         .frame(width: 26, height: 26)
                     if isSelected {
@@ -52,7 +52,7 @@ struct RadioOptionRow: View {
                             .font(.system(size: 13, weight: .bold))
                             .foregroundStyle(.white)
                             .frame(width: 26, height: 26)
-                            .background(Theme.Colors.green, in: Circle())
+                            .background(Theme.Colors.good, in: Circle())
                             .transition(.scale(scale: 0.5).combined(with: .opacity))
                     }
                 }
@@ -67,7 +67,7 @@ struct RadioOptionRow: View {
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
             .overlay(
                 RoundedRectangle(cornerRadius: Theme.Radius.lg)
-                    .stroke(Theme.Colors.green, lineWidth: isSelected ? 2 : 0)
+                    .stroke(Theme.Colors.good, lineWidth: isSelected ? 2 : 0)
             )
         }
         .buttonStyle(PressableButtonStyle())

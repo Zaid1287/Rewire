@@ -5,7 +5,7 @@ import SwiftUI
 struct ProgressBarView: View {
     var value: Double            // 0…1
     var height: CGFloat = 10
-    var fill: Color = Theme.Colors.greenMint
+    var fill: Color = Theme.Colors.good
     var track: Color = Theme.Colors.surface2
 
     var body: some View {
@@ -29,5 +29,5 @@ struct ProgressBarView: View {
         ProgressBarView(value: 1.0)
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

@@ -50,7 +50,7 @@ struct BadgesView: View {
                 .animation(Theme.Motion.enter, value: justClaimed)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $showPaywall) {

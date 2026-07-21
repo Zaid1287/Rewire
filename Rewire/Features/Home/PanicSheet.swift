@@ -173,7 +173,7 @@ struct PanicModeView: View {
 
                 Text("💎 +10 gems for every minute you hold")
                     .font(Theme.Typography.bodyMedium())
-                    .foregroundStyle(Theme.Colors.star)
+                    .foregroundStyle(Theme.Colors.butter)
             }
 
             // .id + .transition drive the crossfade — a bare .animation on a
@@ -264,7 +264,7 @@ struct PanicModeView: View {
 
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 80))
-                .foregroundStyle(.white, Theme.Colors.green)
+                .foregroundStyle(.white, Theme.Colors.good)
                 .transition(.scale(scale: 0.92).combined(with: .opacity))
 
             VStack(spacing: Theme.Spacing.sm) {
@@ -280,7 +280,7 @@ struct PanicModeView: View {
 
             Text("💎 +\(earned) gems earned")
                 .font(Theme.Typography.headline())
-                .foregroundStyle(Theme.Colors.star)
+                .foregroundStyle(Theme.Colors.butter)
 
             ChipGroup(title: "What helped most?",
                       options: ["Breathing", "My motivations", "The urge timer"],
@@ -369,7 +369,7 @@ struct UrgeWaveView: View {
                         .position(point(0.4, in: geo.size).applying(.init(translationX: 0, y: -14)))
                     Text("it passes")
                         .font(Theme.Typography.caption())
-                        .foregroundStyle(Theme.Colors.green)
+                        .foregroundStyle(Theme.Colors.good)
                         .position(point(0.93, in: geo.size).applying(.init(translationX: 0, y: -14)))
 
                     Circle()

@@ -24,7 +24,7 @@ struct WeeklyChallengeView: View {
                         Text("7-day event")
                             .font(Theme.Typography.cardTitle())
                             .foregroundStyle(Theme.Colors.textSecondary)
-                        Rectangle().fill(Theme.Colors.flame)
+                        Rectangle().fill(Theme.Colors.butter)
                             .frame(width: 140, height: 3)
                             .padding(.top, Theme.Spacing.xs)
                     }
@@ -57,7 +57,7 @@ struct WeeklyChallengeView: View {
                 .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         // The screen draws its own back circle — hide the system one (on
         // iOS 26 it renders as a second glass circle right below ours).
         .navigationBarBackButtonHidden()
@@ -95,10 +95,10 @@ struct WeeklyChallengeView: View {
                 .frame(width: 24, height: 24)
         case .done:
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(.white, Theme.Colors.green).font(.system(size: 24))
+                .foregroundStyle(.white, Theme.Colors.good).font(.system(size: 24))
         case .failed:
             Image(systemName: "xmark.circle.fill")
-                .foregroundStyle(.white, Theme.Colors.flame).font(.system(size: 24))
+                .foregroundStyle(.white, Theme.Colors.butter).font(.system(size: 24))
         }
     }
 }

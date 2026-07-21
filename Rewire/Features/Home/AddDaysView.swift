@@ -50,7 +50,7 @@ struct AddDaysView: View {
                 .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
     }

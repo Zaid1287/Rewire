@@ -38,7 +38,7 @@ struct SetGoalView: View {
                 .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -58,7 +58,7 @@ struct SetGoalView: View {
                 Spacer()
                 if selected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.white, Theme.Colors.green)
+                        .foregroundStyle(.white, Theme.Colors.good)
                         .font(.system(size: 24))
                 } else {
                     Circle().stroke(Theme.Colors.textTertiary, lineWidth: 2)

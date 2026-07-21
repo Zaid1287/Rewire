@@ -25,7 +25,7 @@ struct BadgeRow: View {
                 Button(action: { Haptics.success(); onClaim() }) {
                     Text("Claim")
                         .font(Theme.Typography.bodyMedium())
-                        .foregroundStyle(Theme.Colors.green)
+                        .foregroundStyle(Theme.Colors.good)
                 }
                 .buttonStyle(.plain)
             }
@@ -40,7 +40,7 @@ struct RibbonGlyph: View {
     var body: some View {
         Image(systemName: "rosette")
             .font(.system(size: 30))
-            .foregroundStyle(active ? Theme.Colors.purple : Color(hex: 0xB9B3E0).opacity(0.7))
+            .foregroundStyle(active ? Theme.Colors.butter : Color(hex: 0xB9B3E0).opacity(0.7))
             .frame(width: 44, height: 44)
     }
 }

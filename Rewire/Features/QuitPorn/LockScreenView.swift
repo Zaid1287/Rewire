@@ -26,7 +26,7 @@ struct LockScreenView: View {
             .padding(.bottom, Theme.Spacing.xl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .onAppear { Task { await attemptUnlock() } }
     }
 

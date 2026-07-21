@@ -23,7 +23,7 @@ struct RewardBoxView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background.ignoresSafeArea())
+        .background { SceneBackground(kind: .void) }
         .onAppear {
             // Repeat-forever rotation is the classic vestibular trigger — the
             // chest just sits still under Reduce Motion, copy carries the beat.

@@ -23,7 +23,7 @@ struct ToolkitView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(spacing: Theme.Spacing.xl) {
-                    group("Recommended", SampleData.toolkitRecommended, iconColor: Theme.Colors.green)
+                    group("Recommended", SampleData.toolkitRecommended, iconColor: Theme.Colors.butter)
                     group("Boost your progress", SampleData.toolkitBoost)
                     group("Willpower", SampleData.toolkitWillpower)
                 }
@@ -37,7 +37,7 @@ struct ToolkitView: View {
                 NavHeader(title: "Toolkit")
                     .background { TopFadeScrim() }
             }
-            .background(Theme.Colors.background)
+            .background { SceneBackground(kind: .void) }
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
                 switch route {
@@ -50,14 +50,14 @@ struct ToolkitView: View {
             }
             .sheet(isPresented: $showBreathing) {
                 PanicModeView()
-                    .background(Theme.Colors.background)
+                    .background { SceneBackground(kind: .ember) }
                     .presentationDetents([.large])
             }
             .sheet(isPresented: $showMotivations) {
                 MotivationsView().presentationDetents([.large])
             }
         }
-        .tint(Theme.Colors.green)
+        .tint(Theme.Colors.butter)
     }
 
     private func group(_ title: String, _ items: [FeatureItem],
@@ -67,13 +67,13 @@ struct ToolkitView: View {
             VStack(spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.id) { idx, item in
                     FeatureRow(item: item,
-                               iconColor: item.title.contains("Power up") ? Theme.Colors.green : iconColor,
+                               iconColor: item.title.contains("Power up") ? Theme.Colors.butter : iconColor,
                                action: { rowTapped(item) })
                         .padding(.horizontal, Theme.Spacing.md)
                     if idx < items.count - 1 { RowDivider(inset: 64) }
                 }
             }
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+            .smokedGlass(radius: 24)
         }
     }
 

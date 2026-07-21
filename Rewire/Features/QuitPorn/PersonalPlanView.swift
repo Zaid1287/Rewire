@@ -33,7 +33,7 @@ struct PersonalPlanView: View {
                 .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -43,7 +43,7 @@ struct PersonalPlanView: View {
         return HStack(spacing: Theme.Spacing.md) {
             IconCircle(symbol: isDone ? "checkmark" : "\(day.day).circle",
                        tint: isDone ? .white : Theme.Colors.textPrimary,
-                       background: isDone ? Theme.Colors.green : Theme.Colors.surface2,
+                       background: isDone ? Theme.Colors.good : Theme.Colors.surface2,
                        size: 40,
                        stroke: isDone ? nil : Theme.Colors.textTertiary)
             VStack(alignment: .leading, spacing: 2) {

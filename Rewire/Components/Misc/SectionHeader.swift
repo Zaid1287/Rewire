@@ -28,5 +28,5 @@ extension SectionHeader where Trailing == EmptyView {
         }
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

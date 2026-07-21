@@ -41,7 +41,7 @@ struct AddEventView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
     }
 }
 

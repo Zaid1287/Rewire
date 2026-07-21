@@ -51,5 +51,5 @@ extension NavHeader where Trailing == EmptyView {
             CoinPill(count: 0)
         }
     }
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

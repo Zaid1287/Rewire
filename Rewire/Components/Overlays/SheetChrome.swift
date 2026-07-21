@@ -22,5 +22,5 @@ struct SheetChrome: View {
         SheetChrome(title: "Data Backup")
         Spacer()
     }
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

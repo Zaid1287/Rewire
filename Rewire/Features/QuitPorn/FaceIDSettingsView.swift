@@ -21,7 +21,7 @@ struct FaceIDSettingsView: View {
                         Spacer()
                         Toggle("", isOn: $enabled)
                             .labelsHidden()
-                            .tint(Theme.Colors.green)
+                            .tint(Theme.Colors.good)
                             .onChange(of: enabled) { _, newValue in toggleChanged(newValue) }
                     }
                     .padding(Theme.Spacing.md)
@@ -40,7 +40,7 @@ struct FaceIDSettingsView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .onAppear { enabled = appState.faceIDEnabled }
     }
 

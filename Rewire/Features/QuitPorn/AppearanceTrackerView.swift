@@ -47,7 +47,7 @@ struct AppearanceTrackerView: View {
                 .padding(.bottom, Theme.Spacing.tabBarClearance)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
         .onChange(of: pickerItem) { _, item in
@@ -132,7 +132,7 @@ struct AppearanceTrackerView: View {
             } label: {
                 Text("Delete Photo")
                     .font(Theme.Typography.button())
-                    .foregroundStyle(Theme.Colors.red)
+                    .foregroundStyle(Theme.Colors.critical)
                     .frame(maxWidth: .infinity)
                     .frame(height: 60)
                     .background(Theme.Colors.surface3, in: Capsule())
@@ -142,7 +142,7 @@ struct AppearanceTrackerView: View {
             .padding(.bottom, Theme.Spacing.lg)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .rewireAlert(isPresented: showDeleteConfirm) {
             RewireAlert(
                 title: "Delete Photo",

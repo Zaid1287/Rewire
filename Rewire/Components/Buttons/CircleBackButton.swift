@@ -26,7 +26,7 @@ struct CircleBackButton: View {
 struct LinkButton: View {
     let title: String
     var trailingSymbol: String? = "arrow.right"
-    var color: Color = Theme.Colors.green
+    var color: Color = Theme.Colors.good
     let action: () -> Void
 
     var body: some View {
@@ -52,5 +52,5 @@ struct LinkButton: View {
         LinkButton(title: "Set Goal") {}
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

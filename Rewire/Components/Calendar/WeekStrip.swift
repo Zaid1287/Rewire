@@ -31,17 +31,17 @@ struct WeekStrip: View {
                 .foregroundStyle(Theme.Colors.textTertiary)
                 .frame(width: 22, height: 22)
         case .today:
-            Circle().fill(Theme.Colors.blue).frame(width: 22, height: 22)
+            Circle().fill(Theme.Colors.textLo).frame(width: 22, height: 22)
         case .report:
             ZStack {
-                Circle().fill(Theme.Colors.green)
+                Circle().fill(Theme.Colors.good)
                 Image(systemName: "checkmark")
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(.white)
             }
             .frame(width: 22, height: 22)
         case .relapse:
-            Circle().fill(Theme.Colors.red).frame(width: 22, height: 22)
+            Circle().fill(Theme.Colors.critical).frame(width: 22, height: 22)
         }
     }
 }

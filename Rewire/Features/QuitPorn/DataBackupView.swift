@@ -45,7 +45,7 @@ struct DataBackupView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .onAppear { PersistenceController.shared.flush() }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
             if case .success(let url) = result {

@@ -22,7 +22,7 @@ struct FlameMark: View {
     var body: some View {
         Image(systemName: "flame.fill")
             .font(.system(size: size))
-            .foregroundStyle(Theme.Colors.flameGradient)
+            .foregroundStyle(Theme.Colors.primaryGradient)
     }
 }
 
@@ -32,5 +32,5 @@ struct FlameMark: View {
         FlameMark(size: 100)
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

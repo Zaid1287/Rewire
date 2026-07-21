@@ -1,13 +1,15 @@
 import SwiftUI
 
-/// Settings tab (IMG_5467): an upsell banner, grouped preference/support/about
-/// rows, and the plan chooser.
+/// Settings tab — RonLab Family B (Slate): grouped opaque cards with hairline
+/// row dividers, monochrome icon squircles, app-icon picker, and the
+/// butter-gradient premium card. This is the expected, low-risk paywall entry.
+/// The Appearance picker is retired: scenes are fixed per screen, so a
+/// light/dark toggle has nothing left to switch.
 struct SettingsView: View {
     @Environment(GemStore.self) private var gems
     @Environment(\.openURL) private var openURL
-    enum Route: Hashable { case appearance, appIcon }
+    enum Route: Hashable { case appIcon }
     @State private var path: [Route] = []
-    @State private var selectedPlan: Plan = SampleData.plans[1]   // annual — the anchor everywhere
     @State private var showPaywall = false
     @State private var showRestoredAlert = false
     // Moved here from the old Quit Porn hub (Phase 4) — they're settings.
@@ -23,64 +25,77 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            ScrollView {
-                    VStack(spacing: Theme.Spacing.xl) {
+            ZStack {
+                SceneBackground(kind: .slate)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        Text("No account — everything stays on this phone.")
+                            .font(Theme.Typography.caption())
+                            .foregroundStyle(Theme.Colors.textXlo)
+                            .padding(.horizontal, 6)
+
+                        appIconSection
+
+                        section("General") {
+                            slateRow("circle.lefthalf.filled", "App Icon",
+                                     accessory: .chevron) { path.append(.appIcon) }
+                            divider
+                            slateRow("bell", "Daily Reminders",
+                                     accessory: .chevron) { showReminders = true }
+                            divider
+                            slateRow("faceid", "App Lock · Face ID",
+                                     accessory: .chevron) { showFaceIDSettings = true }
+                        }
+
+                        section("Privacy & data") {
+                            slateRow("shield", "Privacy Policy",
+                                     accessory: .chevron) { openURL(Legal.privacyURL) }
+                            divider
+                            slateRow("doc.text", "Terms of Service",
+                                     accessory: .chevron) { openURL(Legal.termsURL) }
+                            divider
+                            slateRow("arrow.down.circle", "Export Data",
+                                     accessory: .value("JSON")) { showDataBackup = true }
+                            divider
+                            slateRow("arrow.clockwise", "Restore Purchase",
+                                     accessory: .chevron) { restorePurchase() }
+                        }
+
+                        section("Support") {
+                            slateRow("paperplane", "Give Feedback",
+                                     accessory: .chevron, enabled: false) {}
+                            divider
+                            inviteRow
+                        }
+
                         // Lifetime owners have nothing left to buy.
-                        if gems.canUpgrade { upsellBanner }
-                        group("Preferences", rows: [
-                            SettingRow(symbol: "circle.lefthalf.filled", tint: .white,
-                                       background: Theme.Colors.primary, title: "Appearance",
-                                       accessory: .chevron) { path.append(.appearance) },
-                            SettingRow(symbol: "checkmark.shield.fill", tint: Theme.Colors.greenDark,
-                                       background: Theme.Colors.pastelLime, title: "App Icon",
-                                       accessory: .chevron) { path.append(.appIcon) },
-                            SettingRow(symbol: "app.badge", tint: .white,
-                                       background: Theme.Colors.flame, title: "Daily Reminders",
-                                       accessory: .chevron) { showReminders = true },
-                            SettingRow(symbol: "faceid", tint: .white,
-                                       background: Theme.Colors.green, title: "Face ID Lock",
-                                       accessory: .chevron) { showFaceIDSettings = true },
-                            SettingRow(symbol: "arrow.counterclockwise.circle", tint: .white,
-                                       background: Theme.Colors.purple, title: "Data Backup",
-                                       accessory: .chevron) { showDataBackup = true }
-                        ])
-                        supportUsGroup
-                        group("About", rows: [
-                            SettingRow(symbol: "doc.fill", tint: .white,
-                                       background: Theme.Colors.blue, title: "Privacy Policy",
-                                       accessory: .chevron) { openURL(Legal.privacyURL) },
-                            SettingRow(symbol: "doc.text.fill", tint: .white,
-                                       background: Theme.Colors.blue, title: "Terms of Service",
-                                       accessory: .chevron) { openURL(Legal.termsURL) },
-                            SettingRow(symbol: "arrow.counterclockwise.circle.fill", tint: .white,
-                                       background: Theme.Colors.blue, title: "Restore Purchase",
-                                       accessory: .none) { restorePurchase() },
-                            SettingRow(symbol: "info.circle.fill", tint: .white,
-                                       background: Color(hex: 0x4B5AD8), title: "Version Number",
-                                       accessory: .value(appVersion)) {}
-                        ])
-                        // Premium users have nothing to buy — hide the chooser.
-                        if !gems.isPremium { planSection }
+                        if gems.canUpgrade { premiumCard }
+
+                        Text("Rewire v\(appVersion)")
+                            .font(Theme.Typography.caption())
+                            .foregroundStyle(Theme.Colors.textXlo)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 6)
                     }
                     .screenPadding()
-                    .padding(.top, Theme.Spacing.lg)
+                    .padding(.top, Theme.Spacing.md)
                     .padding(.bottom, Theme.Spacing.tabBarClearance)
+                }
+                .collapsesDock()
             }
             // Floating glass header — content scrolls underneath.
             .safeAreaInset(edge: .top) {
                 NavHeader(title: "Settings") { CoinPill(count: gems.coins) }
                     .background { TopFadeScrim() }
             }
-            .background(Theme.Colors.background)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
                 switch route {
-                case .appearance: AppearanceView()
-                case .appIcon:    AppIconView()
+                case .appIcon: AppIconView()
                 }
             }
             .sheet(isPresented: $showPaywall) {
-                PaywallSheet().presentationDetents([.medium, .large])
+                PaywallSheet().presentationDetents([.large])
             }
             .sheet(isPresented: $showReminders) {
                 ReminderSettingsView().presentationDetents([.medium])
@@ -102,7 +117,7 @@ struct SettingsView: View {
                 )
             }
         }
-        .tint(Theme.Colors.green)
+        .tint(Theme.Colors.butter)
     }
 
     private func restorePurchase() {
@@ -111,129 +126,172 @@ struct SettingsView: View {
         showRestoredAlert = true
     }
 
-    /// Support group — Give Feedback is disabled (no mail composer wired up yet).
-    /// Invite shares the app link, so it's a ShareLink rather than a SettingRow action.
-    private var supportUsGroup: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            SectionHeader("Support us")
-            VStack(spacing: 0) {
-                SettingRow(symbol: "paperplane.fill", tint: .white,
-                           background: Theme.Colors.blue, title: "Give Feedback",
-                           accessory: .chevron, enabled: false)
-                RowDivider(inset: 62)
-                ShareLink(item: URL(string: "https://rewire.app/download")!,
-                          message: Text("Join me on Rewire — take back control. 💪")) {
-                    HStack(spacing: Theme.Spacing.md) {
-                        IconSquare(symbol: "arrowshape.turn.up.right.fill", tint: .white,
-                                   background: Theme.Colors.blue)
-                        Text("Invite Friends")
-                            .font(Theme.Typography.cardTitle())
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                        Spacer()
-                    }
-                    .padding(Theme.Spacing.md)
-                }
-                .buttonStyle(.plain)
-                .simultaneousGesture(TapGesture().onEnded {
-                    Haptics.tap()
-                    gems.recordAchievement("share")
-                })
+    // MARK: App icon picker
+
+    private var appIconSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("App icon".uppercased())
+                .font(Theme.Typography.unitSuffix(12))
+                .tracking(1.2)
+                .foregroundStyle(Theme.Colors.textXlo)
+                .padding(.horizontal, 8)
+            HStack(spacing: 12) {
+                iconSwatch(fill: AnyShapeStyle(Theme.Colors.background),
+                           dots: Theme.Colors.butter, selected: true)
+                iconSwatch(fill: AnyShapeStyle(LinearGradient(colors: [Theme.Colors.emberHi, Theme.Colors.emberLo],
+                                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
+                           dots: Theme.Colors.textHi, selected: false)
+                iconSwatch(fill: AnyShapeStyle(LinearGradient(colors: [Theme.Colors.ivory, Color(hex: 0xC9C6C0)],
+                                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
+                           dots: Theme.Colors.ink, selected: false)
+                iconSwatch(fill: AnyShapeStyle(LinearGradient(colors: [Color(hex: 0x4A63E8), Color(hex: 0x1D2FA8)],
+                                                              startPoint: .topLeading, endPoint: .bottomTrailing)),
+                           dots: Theme.Colors.textHi, selected: false)
+                Spacer(minLength: 0)
             }
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+            .padding(.horizontal, 4)
         }
     }
 
-    private var upsellBanner: some View {
-        Button { showPaywall = true } label: {
-            HStack(spacing: Theme.Spacing.md) {
-                IconSquare(symbol: "arrow.up.right", tint: Theme.Colors.greenDark,
-                           background: Theme.Colors.pastelLime)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(gems.isPremium ? "Upgrade" : "Get the Full Effect")
-                        .font(Theme.Typography.headline())
-                        .foregroundStyle(Theme.Colors.green)
-                    Text(gems.isPremium ? "Go Lifetime — pay once, keep it forever"
-                                        : "Reach your goals faster 🔥")
-                        .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
-            }
-            .padding(Theme.Spacing.md)
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+    private func iconSwatch(fill: AnyShapeStyle, dots: Color, selected: Bool) -> some View {
+        Button { Haptics.tap(); path.append(.appIcon) } label: {
+            BrandDots(size: 22, color: dots)
+                .frame(width: 54, height: 54)
+                .background(fill, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .strokeBorder(selected ? Theme.Colors.butter : Color.white.opacity(0.12),
+                                      lineWidth: selected ? 2 : 1)
+                )
         }
         .buttonStyle(PressableButtonStyle())
     }
 
-    private func group(_ title: String, rows: [SettingRow]) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-            SectionHeader(title)
-            VStack(spacing: 0) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { idx, row in
-                    row
-                    if idx < rows.count - 1 { RowDivider(inset: 62) }
-                }
-            }
-            .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+    // MARK: Grouped card
+
+    private func section(_ title: String, @ViewBuilder rows: () -> some View) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title.uppercased())
+                .font(Theme.Typography.unitSuffix(12))
+                .tracking(1.2)
+                .foregroundStyle(Theme.Colors.textXlo)
+                .padding(.horizontal, 8)
+            VStack(spacing: 0) { rows() }
+                .background(Theme.Colors.slateCard,
+                            in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .strokeBorder(Color.white.opacity(0.07), lineWidth: 1))
         }
     }
 
-    private var planSection: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            HStack(spacing: Theme.Spacing.sm) {
-                TagBadge(kind: .plus)
-                Text("Choose your plan")
-                    .font(Theme.Typography.title())
-                    .foregroundStyle(Theme.Colors.textPrimary)
-            }
-            VStack(spacing: Theme.Spacing.sm) {
-                ForEach(SampleData.plans) { plan in
-                    PlanCard(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
-                }
-            }
-
-            PrimaryButton(title: "Unlock Premium", trailingEmoji: "🙌") { showPaywall = true }
-        }
+    private var divider: some View {
+        Rectangle().fill(Color.white.opacity(0.06))
+            .frame(height: 1)
+            .padding(.leading, 62)
     }
-}
 
-/// A single settings row (icon square + title + trailing accessory).
-struct SettingRow: View {
-    let symbol: String
-    var tint: Color = .white
-    var background: Color = Theme.Colors.primary
-    let title: String
-    enum Accessory { case chevron, none, value(String) }
-    var accessory: Accessory = .chevron
-    /// When false, the row reads as unavailable: dimmed, no chevron, taps do nothing.
-    var enabled: Bool = true
-    var action: () -> Void = {}
+    private enum RowAccessory { case chevron, value(String), none }
 
-    var body: some View {
-        Button(action: { if enabled { Haptics.tap(); action() } }) {
-            HStack(spacing: Theme.Spacing.md) {
-                IconSquare(symbol: symbol, tint: tint, background: background)
+    private func slateRow(_ symbol: String, _ title: String,
+                          accessory: RowAccessory = .chevron,
+                          enabled: Bool = true,
+                          action: @escaping () -> Void) -> some View {
+        Button { if enabled { Haptics.tap(); action() } } label: {
+            HStack(spacing: 13) {
+                Image(systemName: symbol)
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .frame(width: 34, height: 34)
+                    .background(Color.white.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 Text(title)
-                    .font(Theme.Typography.cardTitle())
-                    .foregroundStyle(Theme.Colors.textPrimary)
-                Spacer()
-                if enabled {
-                    switch accessory {
-                    case .chevron:
-                        Image(systemName: "chevron.right").foregroundStyle(Theme.Colors.textTertiary)
-                    case .value(let v):
-                        Text(v).font(Theme.Typography.body()).foregroundStyle(Theme.Colors.textSecondary)
-                    case .none:
-                        EmptyView()
+                    .font(Theme.Typography.value())
+                    .foregroundStyle(Theme.Colors.textHi)
+                Spacer(minLength: 0)
+                switch accessory {
+                case .chevron:
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Theme.Colors.textLo)
+                case .value(let v):
+                    HStack(spacing: 10) {
+                        Text(v).font(Theme.Typography.label())
+                            .foregroundStyle(Theme.Colors.textLo)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Theme.Colors.textLo)
                     }
+                case .none:
+                    EmptyView()
                 }
             }
-            .padding(Theme.Spacing.md)
-            .contentShape(Rectangle())   // whole tile tappable, not just text/icon
+            .padding(.horizontal, 16)
+            .frame(minHeight: 54)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .opacity(enabled ? 1 : 0.45)
+    }
+
+    /// Invite shares the app link, so it's a ShareLink rather than a plain row.
+    private var inviteRow: some View {
+        ShareLink(item: URL(string: "https://rewire.app/download")!,
+                  message: Text("Join me on Rewire — take back control.")) {
+            HStack(spacing: 13) {
+                Image(systemName: "arrowshape.turn.up.right")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .frame(width: 34, height: 34)
+                    .background(Color.white.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                Text("Invite Friends")
+                    .font(Theme.Typography.value())
+                    .foregroundStyle(Theme.Colors.textHi)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Theme.Colors.textLo)
+            }
+            .padding(.horizontal, 16)
+            .frame(minHeight: 54)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .simultaneousGesture(TapGesture().onEnded {
+            Haptics.tap()
+            gems.recordAchievement("share")
+        })
+    }
+
+    // MARK: Premium card — the expected, low-risk paywall entry
+
+    private var premiumCard: some View {
+        Button { Haptics.tap(); showPaywall = true } label: {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(gems.isPremium ? "Go Lifetime" : "Rewire Premium")
+                        .font(Theme.Typography.headline())
+                        .foregroundStyle(Color(hex: 0x141416))
+                    Text(gems.isPremium ? "Pay once, keep it forever"
+                                        : "Everything unlocked · \(SampleData.plans[1].subtitle.replacingOccurrences(of: "only ", with: ""))")
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Color(hex: 0x141416).opacity(0.72))
+                }
+                Spacer(minLength: 0)
+                Text(gems.isPremium ? "Upgrade" : "Upgrade")
+                    .font(Theme.Typography.unitSuffix(14))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 10)
+                    .background(Color(hex: 0x141416), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            }
+            .padding(19)
+            .background(
+                LinearGradient(colors: [Theme.Colors.butter, Theme.Colors.primaryLo],
+                               startPoint: .topLeading, endPoint: .bottomTrailing),
+                in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        }
+        .buttonStyle(PressableButtonStyle())
     }
 }
 

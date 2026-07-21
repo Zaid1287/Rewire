@@ -16,9 +16,9 @@ struct HomeStatHeader: View {
             // Shield %
             HStack(spacing: 4) {
                 Image(systemName: "shield.lefthalf.filled")
-                    .foregroundStyle(Theme.Colors.green)
+                    .foregroundStyle(Theme.Colors.good)
                 Text("\(shieldPercent)%")
-                    .foregroundStyle(Theme.Colors.green)
+                    .foregroundStyle(Theme.Colors.good)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                 if showsWarning { Text("❗️").font(.system(size: 13)) }
             }
@@ -26,9 +26,9 @@ struct HomeStatHeader: View {
 
             // Flame streak
             HStack(spacing: 4) {
-                Image(systemName: "flame.fill").foregroundStyle(Theme.Colors.flame)
+                Image(systemName: "flame.fill").foregroundStyle(Theme.Colors.butter)
                 Text(streakText)
-                    .foregroundStyle(Theme.Colors.flame)
+                    .foregroundStyle(Theme.Colors.butter)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
             }
             .frame(maxWidth: .infinity)
@@ -37,7 +37,7 @@ struct HomeStatHeader: View {
             HStack(spacing: 4) {
                 GemIcon(size: 20)
                 Text(gemDelta ?? "\(gems)")
-                    .foregroundStyle(gemDelta != nil ? Theme.Colors.green : Theme.Colors.blueLight)
+                    .foregroundStyle(gemDelta != nil ? Theme.Colors.good : Theme.Colors.textLo)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .contentTransition(.numericText())
             }
@@ -61,5 +61,5 @@ struct HomeStatHeader: View {
 
 #Preview {
     HomeStatHeader(shieldPercent: 5, streakText: "1m", gems: 250, gemDelta: "+250")
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
 }

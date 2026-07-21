@@ -56,5 +56,5 @@ struct ChestMark: View {
 #Preview {
     ChestMark()
         .padding()
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
 }

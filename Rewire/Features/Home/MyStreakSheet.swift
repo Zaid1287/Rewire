@@ -37,7 +37,7 @@ struct MyStreakSheet: View {
                 .padding(.bottom, Theme.Spacing.xxl)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
     }
 
     private var headline: some View {
@@ -53,7 +53,7 @@ struct MyStreakSheet: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: Theme.Spacing.xs) {
-                HStack(spacing: 4) { GemIcon(size: 20); Text("\(gems.gems)").foregroundStyle(Theme.Colors.blueLight).font(.system(size: 16, weight: .semibold, design: .rounded)) }
+                HStack(spacing: 4) { GemIcon(size: 20); Text("\(gems.gems)").foregroundStyle(Theme.Colors.textLo).font(.system(size: 16, weight: .semibold, design: .rounded)) }
                 HStack(spacing: 4) { CoinIcon(size: 20); Text("\(gems.coins)").foregroundStyle(Theme.Colors.textPrimary).font(.system(size: 16, weight: .semibold, design: .rounded)) }
             }
         }
@@ -62,7 +62,7 @@ struct MyStreakSheet: View {
     private var recordNote: some View {
         let remaining = streak.recordSeconds - streak.elapsed
         return HStack(spacing: Theme.Spacing.sm) {
-            Image(systemName: "star.fill").foregroundStyle(Theme.Colors.purple)
+            Image(systemName: "star.fill").foregroundStyle(Theme.Colors.butter)
             Text(remaining <= 0
                  ? "New record! You've beaten your own streak record."
                  : "\(remaining.humanShort()) left to break your own streak record.")
@@ -119,9 +119,9 @@ struct MyStreakSheet: View {
             }
 
             HStack(spacing: Theme.Spacing.md) {
-                LabeledStatCard(symbol: "checkmark", iconBackground: Theme.Colors.green,
+                LabeledStatCard(symbol: "checkmark", iconBackground: Theme.Colors.good,
                                 value: "\(cleanDaysCount)", label: "clean days")
-                LabeledStatCard(symbol: "exclamationmark", iconBackground: Theme.Colors.red,
+                LabeledStatCard(symbol: "exclamationmark", iconBackground: Theme.Colors.critical,
                                 value: "\(streak.reports.filter(\.watchedPorn).count)", label: "times watched")
             }
 
@@ -157,7 +157,7 @@ struct MyStreakSheet: View {
 
     private var bottomStats: some View {
         HStack(spacing: Theme.Spacing.md) {
-            LabeledStatCard(emoji: "💧", iconBackground: Theme.Colors.blue,
+            LabeledStatCard(emoji: "💧", iconBackground: Theme.Colors.textLo,
                             value: "\(eventCount("Wet dream"))", label: "wet dream")
             LabeledStatCard(emoji: "✋", iconBackground: Color(hex: 0xE8A317),
                             value: "\(eventCount("Edging"))", label: "edging")

@@ -27,7 +27,7 @@ struct CountBadge: View {
             .foregroundStyle(.white)
             .frame(minWidth: 20, minHeight: 20)
             .padding(.horizontal, 2)
-            .background(Theme.Colors.red, in: Circle())
+            .background(Theme.Colors.critical, in: Circle())
     }
 }
 
@@ -36,7 +36,7 @@ struct WarningDot: View {
     var body: some View {
         Image(systemName: "exclamationmark.octagon.fill")
             .font(.system(size: 18))
-            .foregroundStyle(Theme.Colors.flame)
+            .foregroundStyle(Theme.Colors.butter)
     }
 }
 
@@ -48,5 +48,5 @@ struct WarningDot: View {
         WarningDot()
     }
     .padding()
-    .background(Theme.Colors.background)
+    .background { SceneBackground(kind: .void) }
 }

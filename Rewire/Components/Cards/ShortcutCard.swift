@@ -4,7 +4,7 @@ import SwiftUI
 struct ShortcutCard: View {
     let symbol: String
     let title: String
-    var tint: Color = Theme.Colors.green
+    var tint: Color = Theme.Colors.good
     let value: String
     let unit: String
     var showsChevron: Bool = true

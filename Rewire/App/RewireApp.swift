@@ -24,7 +24,12 @@ struct RewireApp: App {
                 .environment(streakStore)
                 .environment(gemStore)
                 .environment(shieldController)
-                .preferredColorScheme(appState.appearance.colorScheme)
+                // Scenes are fixed per screen (RonLab): Home is Void, check-in
+                // is Fog, stats are Ivory. There's nothing left for a light/dark
+                // toggle to switch, so the app is pinned dark and the Appearance
+                // setting is retired. `AppState.appearance` stays for snapshot
+                // compatibility with older installs.
+                .preferredColorScheme(.dark)
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
                     // Drain any shield taps that happened while we were closed.

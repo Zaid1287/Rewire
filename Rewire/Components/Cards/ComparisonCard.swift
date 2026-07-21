@@ -18,7 +18,7 @@ struct ComparisonCard: View {
                 HStack(alignment: .top, spacing: Theme.Spacing.sm) {
                     if positive {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(Theme.Colors.green)
+                            .foregroundStyle(Theme.Colors.good)
                     } else {
                         Image(systemName: "minus.circle.fill")
                             .foregroundStyle(Theme.Colors.textTertiary)

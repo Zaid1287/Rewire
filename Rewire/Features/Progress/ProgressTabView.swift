@@ -286,10 +286,10 @@ struct ProgressTabView: View {
                 } label: {
                     Text("Undo")
                         .font(Theme.Typography.bodyMedium())
-                        .foregroundStyle(Theme.Colors.green)
+                        .foregroundStyle(Theme.Colors.good)
                         .padding(.horizontal, Theme.Spacing.md)
                         .padding(.vertical, 8)
-                        .background(Theme.Colors.green.opacity(0.14), in: Capsule())
+                        .background(Theme.Colors.good.opacity(0.14), in: Capsule())
                 }
                 .buttonStyle(PressableButtonStyle())
             } else {
@@ -326,7 +326,7 @@ struct ProgressTabView: View {
                 }
                 Spacer()
                 if s.isOngoing {
-                    Text("ongoing").font(Theme.Typography.body()).foregroundStyle(Theme.Colors.green)
+                    Text("ongoing").font(Theme.Typography.body()).foregroundStyle(Theme.Colors.good)
                 }
                 Image(systemName: "chevron.right").font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(Theme.Colors.textTertiary)
@@ -342,7 +342,7 @@ struct RecoveryRing: View {
     let percent: Int
     /// Ring color — green for recovery, caller-supplied elsewhere (My Shield
     /// goes flame→gold→green as the level climbs).
-    var tint: Color = Theme.Colors.green
+    var tint: Color = Theme.Colors.good
     var body: some View {
         ZStack {
             Circle().stroke(Theme.Colors.surface2, lineWidth: 8)

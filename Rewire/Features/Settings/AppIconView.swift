@@ -8,7 +8,7 @@ struct AppIconView: View {
 
     private let icons: [(String, Color, Color)] = [
         ("checkmark.shield.fill", Theme.Colors.greenDark, Theme.Colors.pastelLime),
-        ("flame.fill", .white, Theme.Colors.flame),
+        ("flame.fill", .white, Theme.Colors.butter),
         ("drop.fill", .white, Theme.Colors.primary),
         ("bolt.fill", .black, Theme.Colors.noteYellow)
     ]
@@ -32,7 +32,7 @@ struct AppIconView: View {
                                     .font(.system(size: 40, weight: .bold))
                                     .foregroundStyle(icon.1))
                                 .overlay(RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Theme.Colors.green, lineWidth: selected == idx ? 3 : 0))
+                                    .stroke(Theme.Colors.good, lineWidth: selected == idx ? 3 : 0))
                         }
                         .buttonStyle(PressableButtonStyle())
                     }
@@ -41,7 +41,7 @@ struct AppIconView: View {
                 .padding(.top, Theme.Spacing.lg)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .navigationBarBackButtonHidden()
         .toolbar(.hidden, for: .navigationBar)
     }

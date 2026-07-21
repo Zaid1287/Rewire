@@ -22,7 +22,7 @@ struct ReminderSettingsView: View {
                     Spacer()
                     Toggle("", isOn: $enabled)
                         .labelsHidden()
-                        .tint(Theme.Colors.green)
+                        .tint(Theme.Colors.good)
                         .onChange(of: enabled) { _, newValue in toggleChanged(newValue) }
                 }
                 .padding(Theme.Spacing.md)
@@ -55,7 +55,7 @@ struct ReminderSettingsView: View {
                             ReminderScheduler.openSystemSettings()
                         }
                         .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.green)
+                        .foregroundStyle(Theme.Colors.good)
                     }
                     .padding(Theme.Spacing.md)
                     .frame(maxWidth: .infinity)
@@ -67,7 +67,7 @@ struct ReminderSettingsView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .onAppear(perform: onAppear)
     }
 

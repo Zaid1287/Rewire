@@ -96,7 +96,7 @@ struct CheckInFlow: View {
             Spacer()
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 80))
-                .foregroundStyle(.white, Theme.Colors.green)
+                .foregroundStyle(.white, Theme.Colors.good)
                 .transition(.scale(scale: 0.92).combined(with: .opacity))
             Text("Clean day logged 💪")
                 .font(Theme.Typography.title())

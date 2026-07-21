@@ -66,6 +66,6 @@ struct QuestionScaffold<Options: View>: View {
             .padding(.bottom, Theme.Spacing.xl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
     }
 }

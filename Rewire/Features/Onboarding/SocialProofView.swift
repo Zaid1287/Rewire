@@ -10,7 +10,7 @@ struct SocialProofView: View {
             ScrollView {
                 VStack(spacing: Theme.Spacing.lg) {
                     HStack(spacing: Theme.Spacing.sm) {
-                        Circle().fill(Theme.Colors.red).frame(width: 22, height: 22)
+                        Circle().fill(Theme.Colors.critical).frame(width: 22, height: 22)
                         Text("Everyone has started joining July challenge.")
                             .font(Theme.Typography.cardTitle())
                             .foregroundStyle(Theme.Colors.textPrimary)
@@ -27,7 +27,7 @@ struct SocialProofView: View {
                         VStack(spacing: Theme.Spacing.xs) {
                             HStack(spacing: 4) {
                                 ForEach(0..<5, id: \.self) { _ in
-                                    Image(systemName: "star.fill").foregroundStyle(Theme.Colors.star)
+                                    Image(systemName: "star.fill").foregroundStyle(Theme.Colors.butter)
                                 }
                             }
                             Text("100k+ porn free\nhappy users")

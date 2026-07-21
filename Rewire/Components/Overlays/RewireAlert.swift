@@ -55,7 +55,7 @@ struct RewireAlert: View {
                     Button(action: { Haptics.warning(); onConfirm() }) {
                         Text(confirmTitle)
                             .font(Theme.Typography.button())
-                            .foregroundStyle(confirmIsDestructive ? Theme.Colors.red : Theme.Colors.primary)
+                            .foregroundStyle(confirmIsDestructive ? Theme.Colors.critical : Theme.Colors.primary)
                             .frame(maxWidth: .infinity)
                             .frame(height: 52)
                             .background(Theme.Colors.surface3, in: Capsule())
