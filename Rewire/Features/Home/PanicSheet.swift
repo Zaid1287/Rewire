@@ -38,6 +38,9 @@ struct PanicModeView: View {
     @State private var lungsInflated = false
     /// Crisis screen vs post-crisis debrief.
     @State private var stage: Stage = .riding
+    /// 0→1 across the current breath phase; drives the dial sweep. Animated
+    /// directly (the 1s timer is too coarse to read as motion).
+    @State private var ringFill: Double = 0
     @State private var earned = 0
     @State private var whatHelped: String?
     @State private var showPaywall = false
@@ -46,7 +49,10 @@ struct PanicModeView: View {
 
     enum Stage { case riding, debrief }
 
-    /// 4-4-4 breathing: inhale, hold full, exhale.
+    /// Seconds per breath phase — 5-5-5 coherent breathing.
+    private let phaseLength = 5
+
+    /// 5-5-5 breathing: inhale, hold full, exhale.
     private enum BreathPhase: Int, CaseIterable {
         case breatheIn, hold, breatheOut
 
@@ -62,7 +68,7 @@ struct PanicModeView: View {
     }
 
     private var phase: BreathPhase {
-        BreathPhase.allCases[(elapsed / 4) % BreathPhase.allCases.count]
+        BreathPhase.allCases[(elapsed / phaseLength) % BreathPhase.allCases.count]
     }
 
     /// Breathing scale ranges — shrunk (not removed) under Reduce Motion:
@@ -73,11 +79,19 @@ struct PanicModeView: View {
     }
 
     /// Animate toward the current phase's lung state (inhale/hold = inflated,
-    /// exhale = deflated). One 4s ease per transition, matching the 4-4-4 pace.
+    /// exhale = deflated). One ease per transition, matching the breath pace.
     private func syncBreath() {
         let inflate = phase.lungsFull
         guard inflate != lungsInflated else { return }
-        withAnimation(.easeInOut(duration: 4)) { lungsInflated = inflate }
+        withAnimation(.easeInOut(duration: Double(phaseLength))) { lungsInflated = inflate }
+    }
+
+    /// Restart the dial sweep: snap to empty, then fill over the whole phase.
+    private func startRingSweep() {
+        var snap = Transaction()
+        snap.disablesAnimations = true
+        withTransaction(snap) { ringFill = 0 }
+        withAnimation(.linear(duration: Double(phaseLength))) { ringFill = 1 }
     }
 
     /// Urge-focused lines, rotated every 8 seconds.
@@ -100,7 +114,8 @@ struct PanicModeView: View {
         String(format: "%d:%02d", elapsed / 60, elapsed % 60)
     }
 
-    /// Two full 12s breath cycles before the reward unlocks.
+    /// ~1.5 breath cycles (15s each) before the reward unlocks — long enough
+    /// to matter, short enough not to trap someone mid-crisis.
     private let minimumSeconds = 24
     private var canFinish: Bool { elapsed >= minimumSeconds }
     private var safeButtonTitle: String {
@@ -126,11 +141,16 @@ struct PanicModeView: View {
             .transition(.push(forward: true))
         }
         .animation(Theme.Motion.enter, value: stage)
-        .onAppear { syncBreath() }   // first motion = the inhale, immediately
+        .onAppear {
+            syncBreath()          // first motion = the inhale, immediately
+            startRingSweep()
+        }
         .onReceive(timer) { _ in
             guard stage == .riding else { return }
             elapsed += 1
             syncBreath()
+            // New phase → the dial resets to empty and sweeps again.
+            if elapsed % phaseLength == 0 { startRingSweep() }
             // The earned moment: haptic + one spring pulse when the reward unlocks.
             if elapsed == minimumSeconds {
                 Haptics.success()
@@ -212,9 +232,9 @@ struct PanicModeView: View {
         }
     }
 
-    /// Seconds left in the current 4s breath phase, shown as the hero countdown.
+    /// Seconds left in the current breath phase, shown as the hero countdown.
     private var phaseCountdown: String {
-        String(format: "%02d", 4 - (elapsed % 4))
+        String(format: "%02d", phaseLength - (elapsed % phaseLength))
     }
 
     /// The breathing pacer — RonLab tick dial: butter progress sweeps one full
@@ -225,14 +245,13 @@ struct PanicModeView: View {
                 .fill(Color.white.opacity(0.05))
                 .overlay(Circle().stroke(Color.white.opacity(0.14), lineWidth: 1))
                 .frame(width: 200, height: 200)
-            // The ring fills once per 4s phase — full circle on every
-            // in / hold / out, then resets. One breath, one sweep.
+            // The ring starts empty and fills a full circle over each phase —
+            // one breath, one sweep, then back to empty.
             TickRing(count: 64,
-                     activeFraction: Double((elapsed % 4) + 1) / 4,
+                     activeFraction: ringFill,
                      inactiveColor: .white.opacity(0.28),
                      activeColor: Theme.Colors.butter)
                 .frame(width: 268, height: 268)
-                .animation(.linear(duration: 0.9), value: elapsed)
             VStack(spacing: 6) {
                 Text(phaseCountdown)
                     .heroNumeralStyle(size: 72)

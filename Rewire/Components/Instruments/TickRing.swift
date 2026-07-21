@@ -1,5 +1,14 @@
 import SwiftUI
 
+/// Animating `activeFraction` interpolates the sweep frame by frame — a Canvas
+/// won't do that on its own, so the fill has to be the view's animatable data.
+extension TickRing: Animatable {
+    var animatableData: Double {
+        get { activeFraction ?? 0 }
+        set { activeFraction = newValue }
+    }
+}
+
 /// Parametric radial tick instrument — the workhorse of the RonLab language.
 /// Covers the onboarding loop ring (gap + edge ticks), the panic breathing dial
 /// (full circle, butter progress), and the recovery gauge (270° sweep + position
