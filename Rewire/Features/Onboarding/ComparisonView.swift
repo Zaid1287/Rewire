@@ -18,7 +18,7 @@ struct ComparisonView: View {
                                 .font(Theme.Typography.title())
                                 .foregroundStyle(Theme.Colors.textPrimary)
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.white, Theme.Colors.green)
+                                .foregroundStyle(.white, Theme.Colors.butter)
                                 .font(.system(size: 26))
                         }
                     }
@@ -33,7 +33,7 @@ struct ComparisonView: View {
                                        points: SampleData.withoutPoints, positive: false)
                             .padding(.top, 56)
                         ComparisonCard(title: "with Rewire",
-                                       titleColor: Theme.Colors.greenMint,
+                                       titleColor: Theme.Colors.butter,
                                        points: SampleData.withPoints, positive: true)
                             .zIndex(1)
                     }
@@ -47,7 +47,7 @@ struct ComparisonView: View {
                 .screenPadding()
                 .padding(.bottom, Theme.Spacing.md)
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
     }
 }
 

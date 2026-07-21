@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// Shared paywall sheet (reused by the Panic Button, Settings, and other tabs'
-/// "Unlock Premium" entry points). Plan list + subscribe CTA; mock purchase,
-/// no StoreKit. Shows a simple "You're Premium" state once unlocked.
+/// Shared paywall sheet (reused by Settings, the post-crisis debrief, and other
+/// "Unlock Premium" entry points). RonLab Void scene: benefits first, plan radio
+/// rows, one honest CTA. Mock purchase, no StoreKit yet.
+/// No auto-charging trial and no crisis-moment trigger — the two patterns
+/// competitors' 1★ reviews cluster on.
 struct PaywallSheet: View {
     @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
@@ -20,19 +22,19 @@ struct PaywallSheet: View {
     }
 
     private var isUpgrade: Bool { gems.isPremium && !didSubscribe && !availablePlans.isEmpty }
+    private var isDone: Bool { didSubscribe || (gems.isPremium && availablePlans.isEmpty) }
 
-    private var title: String {
-        if didSubscribe || (gems.isPremium && availablePlans.isEmpty) { return "You're Premium" }
-        return isUpgrade ? "Upgrade Your Plan" : "Unlock Premium"
-    }
+    private let benefits = [
+        "Unlimited panic & breathing tools",
+        "Full history, stats & recovery",
+        "Website blocker across every browser",
+        "No ads. No account. Local & private."
+    ]
 
     var body: some View {
-        SheetScaffold(topIcon: "crown.fill", title: title) {
-            if didSubscribe || (gems.isPremium && availablePlans.isEmpty) {
-                premiumState
-            } else {
-                plansState
-            }
+        ZStack {
+            SceneBackground(kind: .void)
+            if isDone { premiumState } else { plansState }
         }
         .onAppear {
             Analytics.capture("paywall_viewed")
@@ -43,42 +45,97 @@ struct PaywallSheet: View {
     }
 
     private var premiumState: some View {
-        SuccessView(
-            title: "You're Premium",
-            subtitle: "All premium features are unlocked. Enjoy the full Rewire experience.",
-            buttonTitle: "Done",
-            action: { dismiss() }
-        )
-        .frame(height: 320)
+        VStack(spacing: Theme.Spacing.lg) {
+            Spacer()
+            TickRing(count: 64, activeFraction: 1,
+                     inactiveColor: .white.opacity(0.2),
+                     activeColor: Theme.Colors.butter)
+                .frame(width: 150, height: 150)
+                .overlay {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 34, weight: .light))
+                        .foregroundStyle(Theme.Colors.textHi)
+                }
+            VStack(spacing: 8) {
+                Text("You're Premium")
+                    .font(Theme.Typography.title())
+                    .foregroundStyle(Theme.Colors.textHi)
+                Text("Everything is unlocked. Nothing else to buy, ever.")
+                    .font(Theme.Typography.subtitle())
+                    .foregroundStyle(Theme.Colors.textLo)
+                    .multilineTextAlignment(.center)
+            }
+            Spacer()
+            PrimaryButton(title: "Done") { dismiss() }
+                .screenPadding()
+                .padding(.bottom, Theme.Spacing.lg)
+        }
     }
 
     private var plansState: some View {
-        VStack(spacing: Theme.Spacing.lg) {
-            VStack(spacing: Theme.Spacing.sm) {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("Rewire Premium".uppercased())
+                    .font(Theme.Typography.caption())
+                    .tracking(1.4)
+                    .foregroundStyle(Theme.Colors.textXlo)
+                Spacer()
+                Button { Haptics.tap(); dismiss() } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Theme.Colors.textLo)
+                        .frame(width: 36, height: 36)
+                        .background(Color.white.opacity(0.06), in: Circle())
+                }
+            }
+            .padding(.top, Theme.Spacing.lg)
+
+            (Text(isUpgrade ? "Move up a plan,\n" : "Everything unlocked,\n")
+                .foregroundStyle(Theme.Colors.textHi)
+             + Text("one honest price.").foregroundStyle(Theme.Colors.butter))
+                .font(Theme.Typography.title())
+                .padding(.top, 12)
+
+            VStack(alignment: .leading, spacing: 13) {
+                ForEach(benefits, id: \.self) { benefit in
+                    HStack(spacing: 13) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Theme.Colors.butter)
+                            .frame(width: 22, height: 22)
+                            .background(Theme.Colors.butter.opacity(0.16), in: Circle())
+                        Text(benefit)
+                            .font(Theme.Typography.subtitle())
+                            .foregroundStyle(Theme.Colors.textHi)
+                    }
+                }
+            }
+            .padding(.top, 22)
+
+            VStack(spacing: 10) {
                 ForEach(availablePlans) { plan in
                     PlanCard(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
                 }
             }
-            .screenPadding()
+            .padding(.top, 26)
 
-            PrimaryButton(title: isUpgrade ? "Upgrade" : "Subscribe", trailingEmoji: "🙌") {
+            Spacer(minLength: Theme.Spacing.lg)
+
+            PrimaryButton(title: isUpgrade ? "Upgrade" : "Continue") {
                 Haptics.success()
                 gems.unlockPremium(plan: selectedPlan.title)
                 didSubscribe = true
             }
-            .screenPadding()
 
-            Button {
-                Haptics.success()
-                gems.unlockPremium(plan: "1 year")
-                didSubscribe = true
-            } label: {
-                Text("Restore Purchase")
-                    .font(Theme.Typography.body())
-                    .foregroundStyle(Theme.Colors.textSecondary)
-            }
-            .padding(.bottom, Theme.Spacing.lg)
+            Text("No auto-charging trial · cancel anytime · restore in Settings")
+                .font(Theme.Typography.caption())
+                .foregroundStyle(Theme.Colors.textXlo)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 12)
+                .padding(.bottom, Theme.Spacing.lg)
         }
+        .padding(.horizontal, 26)
     }
 }
 

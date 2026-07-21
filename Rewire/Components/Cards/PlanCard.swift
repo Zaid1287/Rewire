@@ -1,91 +1,87 @@
 import SwiftUI
 
-/// Vertical pricing card (ChatGPT-plans style): plan name + tag, big price,
-/// blurb, and a short feature list. Tap to select — the green border and tint
-/// carry the selection. Replaces the old compact PlanRow everywhere plans are
-/// chosen (onboarding paywall, PaywallSheet, Settings).
+/// Plan radio row (RonLab): quiet glass row, butter ring + fill when selected,
+/// price on the right, per-month equivalent underneath. A "BEST VALUE" tab
+/// rides the top edge of the popular plan. Used by the paywall sheet, the
+/// onboarding paywall, and Settings.
 struct PlanCard: View {
     let plan: Plan
     let isSelected: Bool
     var onTap: () -> Void = {}
 
     /// Per-plan sell copy — presentation-only, so it lives here, not on the model.
-    private var per: String {
+    private var cadence: String {
         switch plan.title {
-        case "1 month":  "/ month"
-        case "1 year":   "/ year"
-        default:         "one time"
+        case "1 month":  "/mo"
+        case "1 year":   "/yr"
+        default:         "once"
         }
     }
-    private var blurb: String {
+    private var subline: String {
         switch plan.title {
-        case "1 month":  "A flexible start."
-        case "1 year":   "7-day free trial, then \(plan.subtitle.replacingOccurrences(of: "only ", with: ""))."
-        default:         "Pay once, keep it forever."
-        }
-    }
-    private var features: [String] {
-        switch plan.title {
-        case "1 month":  ["All premium tools", "Cancel any month"]
-        case "1 year":   ["7-day free trial", "Save 77% vs monthly", "Cancel anytime"]
-        default:         ["Everything in annual", "No renewals, ever"]
+        case "1 month":  "billed monthly"
+        case "1 year":   plan.subtitle.replacingOccurrences(of: "only ", with: "")
+        default:         "pay once"
         }
     }
 
     var body: some View {
         Button(action: { Haptics.select(); onTap() }) {
-            VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                HStack {
-                    Text(plan.title)
-                        .font(Theme.Typography.cardTitle())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Spacer()
-                    if plan.isPopular {
-                        Text("RECOMMENDED")
-                            .font(Theme.Typography.sectionHeader())
-                            .foregroundStyle(Theme.Colors.green)
-                            .padding(.horizontal, Theme.Spacing.sm)
-                            .padding(.vertical, 4)
-                            .background(Theme.Colors.green.opacity(0.14), in: Capsule())
-                    }
-                }
-
-                HStack(alignment: .firstTextBaseline, spacing: Theme.Spacing.xs) {
-                    Text(plan.price)
-                        .font(Theme.Typography.statNumber())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Text(per)
-                        .font(Theme.Typography.subtitle())
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                }
-
-                Text(blurb)
-                    .font(Theme.Typography.subtitle())
-                    .foregroundStyle(Theme.Colors.textSecondary)
-
-                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    ForEach(features, id: \.self) { feature in
-                        HStack(spacing: Theme.Spacing.xs) {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(Theme.Colors.green)
-                            Text(feature)
-                                .font(Theme.Typography.caption())
-                                .foregroundStyle(Theme.Colors.textSecondary)
+            HStack(spacing: 14) {
+                // Radio
+                Circle()
+                    .strokeBorder(isSelected ? Theme.Colors.butter : Color.white.opacity(0.3),
+                                  lineWidth: 1.5)
+                    .frame(width: 20, height: 20)
+                    .overlay {
+                        if isSelected {
+                            Circle().fill(Theme.Colors.butter).frame(width: 10, height: 10)
                         }
                     }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(plan.title.capitalized == "1 Month" ? "Monthly"
+                         : plan.title.capitalized == "1 Year" ? "Yearly" : "Lifetime")
+                        .font(Theme.Typography.value())
+                        .foregroundStyle(Theme.Colors.textHi)
+                    Text(subline)
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textXlo)
                 }
-                .padding(.top, 2)
+
+                Spacer(minLength: 0)
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(plan.price)
+                        .font(Theme.Typography.value())
+                        .foregroundStyle(Theme.Colors.textHi)
+                        .monospacedDigit()
+                    Text(cadence)
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textXlo)
+                }
             }
-            .padding(Theme.Spacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(isSelected ? Theme.Colors.green.opacity(0.08) : Theme.Colors.surface,
-                        in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
+            .padding(.horizontal, 20)
+            .frame(height: 62)
+            .background(isSelected ? Theme.Colors.butter.opacity(0.07) : Color.white.opacity(0.05),
+                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous)
-                    .stroke(isSelected ? Theme.Colors.green : Theme.Colors.divider,
-                            lineWidth: isSelected ? 1.5 : 1)
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(isSelected ? Theme.Colors.butter : Color.white.opacity(0.10),
+                                  lineWidth: isSelected ? 1.5 : 1)
             )
+            .overlay(alignment: .topTrailing) {
+                if plan.isPopular {
+                    Text("BEST VALUE")
+                        .font(Theme.Typography.unitSuffix(10))
+                        .tracking(0.6)
+                        .foregroundStyle(Color(hex: 0x141416))
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Theme.Colors.butter, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .offset(x: -16, y: -9)
+                }
+            }
         }
         .buttonStyle(PressableButtonStyle())
         .animation(Theme.Motion.quick, value: isSelected)
@@ -93,11 +89,13 @@ struct PlanCard: View {
 }
 
 #Preview {
-    VStack(spacing: 12) {
-        ForEach(SampleData.plans) { plan in
-            PlanCard(plan: plan, isSelected: plan.isPopular)
+    ZStack {
+        SceneBackground(kind: .void)
+        VStack(spacing: 10) {
+            ForEach(SampleData.plans) { plan in
+                PlanCard(plan: plan, isSelected: plan.isPopular)
+            }
         }
+        .padding()
     }
-    .padding()
-    .background(Theme.Colors.background)
 }

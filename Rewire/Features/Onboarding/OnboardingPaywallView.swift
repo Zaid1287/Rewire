@@ -35,7 +35,7 @@ struct OnboardingPaywallView: View {
 
             footer
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .onAppear { Analytics.capture("onboarding_paywall_shown") }
     }
 
@@ -47,7 +47,7 @@ struct OnboardingPaywallView: View {
             HStack(spacing: 6) {
                 ForEach(0..<3, id: \.self) { i in
                     Capsule()
-                        .fill(i == page ? Theme.Colors.green : Theme.Colors.surface3)
+                        .fill(i == page ? Theme.Colors.butter : Theme.Colors.surface3)
                         .frame(width: i == page ? 24 : 14, height: 5)
                 }
             }
@@ -156,7 +156,7 @@ struct OnboardingPaywallView: View {
                     featureRow("camera.fill", "Appearance Tracker",
                                "Watch the change happen, photo by photo.")
                 }
-                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
+                .smokedGlass(radius: 24)
             }
             .screenPadding()
             .padding(.top, Theme.Spacing.lg)
@@ -167,7 +167,7 @@ struct OnboardingPaywallView: View {
         HStack(alignment: .top, spacing: Theme.Spacing.md) {
             Image(systemName: symbol)
                 .font(.system(size: 22))
-                .foregroundStyle(Theme.Colors.green)
+                .foregroundStyle(Theme.Colors.butter)
                 .frame(width: 32)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)

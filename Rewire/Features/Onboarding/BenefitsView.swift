@@ -44,7 +44,7 @@ struct BenefitsView: View {
                 .padding(.bottom, Theme.Spacing.md)
             }
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
     }
 }
 

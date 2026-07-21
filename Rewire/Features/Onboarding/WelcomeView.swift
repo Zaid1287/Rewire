@@ -23,7 +23,7 @@ struct WelcomeView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
         .onAppear {
             spin = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) { onFinish() }

@@ -58,7 +58,7 @@ struct SocialProofView: View {
             .screenPadding()
             .padding(.bottom, Theme.Spacing.md)
         }
-        .background(Theme.Colors.background)
+        .background { SceneBackground(kind: .void) }
     }
 }
 
@@ -68,7 +68,7 @@ struct LaurelBranch: View {
     var body: some View {
         Image(systemName: "laurel.leading")
             .font(.system(size: 60))
-            .foregroundStyle(Theme.Colors.green)
+            .foregroundStyle(Theme.Colors.butter)
             .scaleEffect(x: mirrored ? -1 : 1)
     }
 }

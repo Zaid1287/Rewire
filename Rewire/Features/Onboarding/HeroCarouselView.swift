@@ -1,169 +1,136 @@
 import SwiftUI
 
-/// Onboarding hero (IMG_5426): full-bleed photo, gradient scrim, headline with
-/// green emphasis, page dots, and a Continue CTA.
+/// Onboarding hero — RonLab Void scene with the broken-loop instrument: a tick
+/// ring with a gap in it and one dot escaping through the break. Four rotating
+/// value-prop lines share the same instrument, so the dots change words, not
+/// stock imagery. No paywall lives anywhere in this funnel.
 struct HeroCarouselView: View {
     var onContinue: () -> Void
     @State private var page = 0
-    private let totalPages = 4
-    /// The original app cycles hero photos (not recreatable — see
-    /// PLACEHOLDERS.md); we cycle four brand-motif scenes instead, so every
-    /// dot corresponds to a real visual. Continue always moves on.
-    private let autoAdvance = Timer.publish(every: 2.5, on: .main, in: .common).autoconnect()
+    @State private var escape: CGFloat = 0
+    private let autoAdvance = Timer.publish(every: 3.4, on: .main, in: .common).autoconnect()
 
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.35), Theme.Colors.background],
-                startPoint: .center, endPoint: .bottom
-            )
-            .ignoresSafeArea()
+    /// Each page: eyebrow, headline lead, butter emphasis, support line.
+    private let pages: [(lead: String, accent: String, support: String)] = [
+        ("Break the loop.", "Rewire the reward.",
+         "A calm, private way back to control — your streak, your urges, your recovery, one honest screen at a time."),
+        ("Urges peak,", "then they pass.",
+         "One tap opens a breathing tool built for the worst four minutes. Free, forever, no upsell mid-crisis."),
+        ("A slip is data,", "not a verdict.",
+         "Log the pattern, keep the days you earned. Your record only ever grows."),
+        ("Everything stays", "on this phone.",
+         "No account, no cloud, no name attached. Private by construction.")
+    ]
 
-            VStack(alignment: .leading, spacing: Theme.Spacing.md) {
-                // Announcement chips
-                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
-                    HStack(spacing: Theme.Spacing.sm) {
-                        Circle().fill(Theme.Colors.red).frame(width: 22, height: 22)
-                        Text("July challenge is live!")
-                            .font(Theme.Typography.headline())
-                            .foregroundStyle(.white)
-                    }
-                    HStack(spacing: Theme.Spacing.sm) {
-                        AppLogoSmall()
-                        Text("#1 Quit Porn Addiction App")
-                            .font(Theme.Typography.headline())
-                            .foregroundStyle(.white)
-                    }
-                }
-
-                // Headline — scale down slightly rather than overflow the
-                // screen edge on narrower devices.
-                (Text("This will be the best\n")
-                    .foregroundStyle(.white)
-                 + Text("decision in your life")
-                    .foregroundStyle(Theme.Colors.green))
-                    .font(Theme.Typography.hero())
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.85)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Text("Quit porn addiction. Start to change your life. Boost your success everywhere.")
-                    .font(Theme.Typography.body())
-                    .foregroundStyle(.white.opacity(0.9))
-                    .fixedSize(horizontal: false, vertical: true)
-
-                // Page dots
-                HStack(spacing: Theme.Spacing.xs) {
-                    ForEach(0..<totalPages, id: \.self) { i in
-                        Capsule()
-                            .fill(i == page ? Theme.Colors.green : Theme.Colors.surface3)
-                            .frame(width: i == page ? 28 : 22, height: 6)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, Theme.Spacing.md)
-
-                PrimaryButton(title: "Continue", action: onContinue)
-
-                // Agreement-on-entry: shown where the user first taps into the
-                // app, so no blocking ToS popup is needed.
-                Text("By continuing, you agree to our [Terms of Service](\(Legal.termsURL.absoluteString)) and [Privacy Policy](\(Legal.privacyURL.absoluteString)).")
-                    .font(Theme.Typography.caption())
-                    .foregroundStyle(Theme.Colors.textSecondary)
-                    .tint(Theme.Colors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
-            }
-            .screenPadding()
-            .padding(.bottom, Theme.Spacing.xl)
-        }
-        // Hero art lives in .background so scaledToFill overflow can't
-        // inflate the layout width and push content off-screen.
-        // (Real photos not recreatable — see PLACEHOLDERS.md.)
-        .background {
-            ZStack {
-                heroBackdrop
-                    .id(page)
-                    .transition(.opacity)
-            }
-            .animation(Theme.Motion.standard, value: page)
-            .ignoresSafeArea()
-        }
-        .onReceive(autoAdvance) { _ in
-            withAnimation(Theme.Motion.standard) { page = (page + 1) % totalPages }
-        }
-    }
-
-    /// One drawn scene per carousel page — page 0 keeps the produced asset,
-    /// the rest are motif variations on it (flame streak, level-up, habit
-    /// calendar) so the auto-advancing dots show real content.
-    @ViewBuilder private var heroBackdrop: some View {
-        switch page {
-        case 0:  HeroImagePlaceholder()
-        case 1:  HeroMotif(symbol: "flame.fill", glow: Theme.Colors.flame,
-                           iconColor: Theme.Colors.flame)
-        case 2:  HeroMotif(symbol: "trophy.fill", glow: Theme.Colors.gold,
-                           iconColor: Theme.Colors.gold)
-        default: HeroMotif(symbol: "calendar", glow: Theme.Colors.blue,
-                           iconColor: Theme.Colors.blueLight)
-        }
-    }
-}
-
-/// Onboarding hero — produced brand-motif graphic (green rings + shield, dark
-/// scrim). Falls back to a gradient if the asset is missing.
-struct HeroImagePlaceholder: View {
-    var body: some View {
-        Image("onboarding_hero")
-            .resizable()
-            .scaledToFill()
-    }
-}
-
-/// Drawn hero variant matching the produced asset's language: concentric
-/// rings and a soft glow around a single large symbol on near-black.
-struct HeroMotif: View {
-    let symbol: String
-    let glow: Color
-    let iconColor: Color
+    private var totalPages: Int { pages.count }
 
     var body: some View {
         ZStack {
-            Theme.Colors.background
+            SceneBackground(kind: .void)
 
-            RadialGradient(colors: [glow.opacity(0.30), .clear],
-                           center: UnitPoint(x: 0.5, y: 0.32),
-                           startRadius: 30, endRadius: 420)
-
-            ZStack {
-                ForEach(0..<3, id: \.self) { ring in
-                    Circle()
-                        .stroke(glow.opacity(0.14 - Double(ring) * 0.04), lineWidth: 1.5)
-                        .frame(width: 190 + CGFloat(ring) * 130,
-                               height: 190 + CGFloat(ring) * 130)
-                }
-                Circle()
-                    .fill(glow.opacity(0.16))
-                    .frame(width: 150, height: 150)
-                Image(systemName: symbol)
-                    .font(.system(size: 64, weight: .semibold))
-                    .foregroundStyle(iconColor)
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
+                loopInstrument
+                Spacer(minLength: 0)
+                copyBlock
             }
-            .frame(maxHeight: .infinity, alignment: .top)
-            .padding(.top, 150)
+        }
+        .onReceive(autoAdvance) { _ in
+            withAnimation(Theme.Motion.enter) { page = (page + 1) % totalPages }
+        }
+        .onAppear {
+            // The escaping dot drifts out through the gap, forever.
+            withAnimation(.easeInOut(duration: 3.6).repeatForever(autoreverses: false)) {
+                escape = 1
+            }
         }
     }
-}
 
-/// Small green shield mark used inline in the hero chips.
-struct AppLogoSmall: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 7, style: .continuous)
-            .fill(Theme.Colors.pastelLime)
-            .frame(width: 26, height: 26)
-            .overlay(Image(systemName: "checkmark.shield.fill")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(Theme.Colors.greenDark))
+    // MARK: The instrument
+
+    private var loopInstrument: some View {
+        ZStack {
+            // Broken loop: ticks with a gap, butter edges marking the break.
+            TickRing(count: 72, gap: 7..<14,
+                     inactiveColor: .white.opacity(0.30),
+                     edgeColor: Theme.Colors.butter)
+                .frame(width: 300, height: 300)
+
+            // Escaping dot + fading trail through the gap.
+            GeometryReader { geo in
+                let c = CGPoint(x: geo.size.width / 2, y: geo.size.height / 2)
+                let angle = (10.0 / 72.0) * 2 * .pi - .pi / 2
+                ForEach(0..<4, id: \.self) { k in
+                    let r = 128 + CGFloat(k) * 18 + escape * 26
+                    Circle()
+                        .fill(Theme.Colors.butter.opacity(Double(1 - Double(k) * 0.26) * (1 - escape * 0.55)))
+                        .frame(width: 9 - CGFloat(k) * 1.8, height: 9 - CGFloat(k) * 1.8)
+                        .position(x: c.x + cos(angle) * r, y: c.y + sin(angle) * r)
+                }
+            }
+            .frame(width: 300, height: 300)
+            .allowsHitTesting(false)
+
+            // Inner well + brand mark.
+            Circle()
+                .fill(Color.white.opacity(0.035))
+                .overlay(Circle().strokeBorder(Color.white.opacity(0.12), lineWidth: 1))
+                .frame(width: 196, height: 196)
+            BrandDots(size: 34, color: Theme.Colors.textHi)
+        }
+        .frame(height: 320)
+    }
+
+    // MARK: Copy + CTA
+
+    private var copyBlock: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
+            Text("Rewire".uppercased())
+                .font(Theme.Typography.caption())
+                .tracking(1.6)
+                .foregroundStyle(Theme.Colors.textXlo)
+
+            (Text(pages[page].lead + "\n").foregroundStyle(Theme.Colors.textHi)
+             + Text(pages[page].accent).foregroundStyle(Theme.Colors.butter))
+                .font(Theme.Typography.hero())
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .id(page)
+                .transition(.opacity)
+
+            Text(pages[page].support)
+                .font(Theme.Typography.subtitle())
+                .foregroundStyle(Theme.Colors.textLo)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(height: 66, alignment: .top)
+                .id(page)
+                .transition(.opacity)
+
+            // Page dots — plain, left-aligned; the ring is the hero, not these.
+            HStack(spacing: 8) {
+                ForEach(0..<totalPages, id: \.self) { i in
+                    Circle()
+                        .fill(i == page ? Color.white : Color.white.opacity(0.25))
+                        .frame(width: 6, height: 6)
+                }
+            }
+            .padding(.top, 4)
+
+            PrimaryButton(title: "Begin", action: onContinue)
+                .padding(.top, 6)
+
+            // Agreement-on-entry: shown where the user first taps into the
+            // app, so no blocking ToS popup is needed.
+            Text("By continuing you agree to our [Terms](\(Legal.termsURL.absoluteString)) & [Privacy Policy](\(Legal.privacyURL.absoluteString)). No account needed.")
+                .font(Theme.Typography.caption())
+                .foregroundStyle(Theme.Colors.textXlo)
+                .tint(Theme.Colors.textLo)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, 30)
+        .padding(.bottom, Theme.Spacing.xl)
     }
 }
 

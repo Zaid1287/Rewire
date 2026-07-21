@@ -1,96 +1,96 @@
 import SwiftUI
 
-/// Addiction-score result (IMG_5433): full red screen, big 80% pill, warning
-/// copy, an Average-vs-You bar comparison with mood faces, and the commit CTA.
+/// Addiction-score result — RonLab Ember: the score is delivered as an
+/// instrument reading (fan gauge + dot-matrix numeral), not a red scare screen
+/// with sad faces. Same tiered honesty, none of the theatre.
 struct ScoreResultView: View {
     var onReady: () -> Void
     @Environment(AppState.self) private var appState
     @State private var appeared = false
 
-    /// Days to recover, derived from score and rounded to the nearest 10
-    /// (default score 80 -> 200, matching the original screenshot copy).
+    /// Days to recover, derived from score and rounded to the nearest 10.
     private var recoveryDays: Int {
         let raw = appState.addictionScore * 5 / 2
         return (raw + 5) / 10 * 10
     }
 
-    /// Warning copy tiered by score — a 35% answer set shouldn't read the
-    /// same as an 80% one. The >=70 tier matches the reference screenshot.
-    private var warningCopy: String {
+    /// Tier label + copy — a 35% answer set shouldn't read like an 80% one.
+    private var tier: (word: String, color: Color, copy: String) {
         switch appState.addictionScore {
-        case ..<40: "Your porn addiction level is mild. Now is the perfect time to take control.*"
-        case ..<70: "Your porn addiction level is moderate. Please take action soon.*"
-        default:    "Your porn addiction level is serious. Please take action immediately.*"
+        case ..<40:
+            ("Mild", Theme.Colors.good,
+             "Your dependency reads mild. This is the easiest it will ever be to stop.")
+        case ..<70:
+            ("Moderate", Theme.Colors.butter,
+             "Your dependency reads moderate. Acting now is far easier than acting later.")
+        default:
+            ("Heavy", Theme.Colors.critical,
+             "Your dependency reads heavy. That's not a verdict — it's a starting point with a known path out.")
         }
-    }
-
-    /// "You" bar height scaled by score — 80 renders 150pt, matching the
-    /// reference shot; lower scores shrink toward the 60pt average bar.
-    private var yourBarHeight: CGFloat {
-        60 + CGFloat(appState.addictionScore) * 1.125
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: Theme.Spacing.huge)
+        ZStack {
+            SceneBackground(kind: .ember)
 
-            Text("\(appState.addictionScore)%")
-                .font(.system(size: 56, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
-                .padding(.horizontal, Theme.Spacing.xxl)
-                .padding(.vertical, Theme.Spacing.sm)
-                .background(.white.opacity(0.15), in: Capsule())
+            VStack(alignment: .leading, spacing: 0) {
+                Spacer().frame(height: 40)
 
-            VStack(spacing: Theme.Spacing.xs) {
-                Text(warningCopy)
-                    .font(Theme.Typography.cardTitle())
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                Text("* This is only an estimate.")
-                    .font(Theme.Typography.body())
-                    .foregroundStyle(.white.opacity(0.8))
+                Text("Your result".uppercased())
+                    .font(Theme.Typography.caption())
+                    .tracking(1.4)
+                    .foregroundStyle(Theme.Colors.textXlo)
+
+                // The instrument reading
+                HStack(alignment: .center, spacing: 10) {
+                    HeroNumeral(value: "\(appState.addictionScore)", unit: "%", size: 92)
+                    Spacer(minLength: 0)
+                    VStack(alignment: .trailing, spacing: 8) {
+                        DotMatrixNumeral(text: String(format: "%02d", appState.addictionScore),
+                                         color: Theme.Colors.textHi.opacity(0.75))
+                        StatusLabel(color: tier.color, text: tier.word)
+                    }
+                }
+                .padding(.top, 10)
+
+                FanGauge(value: Double(appState.addictionScore) / 100,
+                         ink: Theme.Colors.textHi.opacity(0.9),
+                         faint: .white.opacity(0.18),
+                         glow: tier.color)
+                    .frame(height: 130)
+                    .padding(.top, 18)
+
+                HStack {
+                    Text("mild"); Spacer(); Text("heavy")
+                }
+                .font(Theme.Typography.caption())
+                .foregroundStyle(Theme.Colors.textXlo)
+
+                Text(tier.copy)
+                    .font(Theme.Typography.subtitle())
+                    .foregroundStyle(Theme.Colors.textLo)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 24)
+
+                Text("Estimate: about \(recoveryDays) days of clean time before the pull fades.")
+                    .font(Theme.Typography.subtitle())
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 12)
+
+                Text("Based on your answers. Not a diagnosis.")
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(Theme.Colors.textXlo)
+                    .padding(.top, 8)
+
+                Spacer()
+
+                PrimaryButton(title: "I'm ready to start", action: onReady)
+                    .padding(.bottom, Theme.Spacing.xl)
             }
-            .padding(.top, Theme.Spacing.lg)
-            .screenPadding()
-
-            Spacer()
-
-            // Bar comparison
-            HStack(alignment: .bottom, spacing: Theme.Spacing.huge) {
-                barColumn(title: "Average", height: 60, happy: true)
-                barColumn(title: "You", height: yourBarHeight, happy: false)
-            }
-
-            Spacer()
-
-            Text("It may take more than \(recoveryDays) days for you to recover completely.")
-                .font(Theme.Typography.cardTitle())
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-                .screenPadding()
-
-            SolidPillButton(title: "I'm ready to quit my addiction", action: onReady)
-                .screenPadding()
-                .padding(.vertical, Theme.Spacing.md)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.Colors.scoreRed.ignoresSafeArea())
-    }
-
-    private func barColumn(title: String, height: CGFloat, happy: Bool) -> some View {
-        VStack(spacing: Theme.Spacing.md) {
-            RoundedRectangle(cornerRadius: Theme.Radius.md)
-                .fill(Theme.Colors.scoreBar)
-                .frame(width: 110, height: height)
-            Text(title)
-                .font(Theme.Typography.cardTitle())
-                .foregroundStyle(.white)
-            Image(systemName: happy ? "face.smiling" : "face.dashed")
-                .font(.system(size: 40))
-                .foregroundStyle(.white)
+            .padding(.horizontal, 30)
         }
     }
 }
 
-#Preview { ScoreResultView(onReady: {}) }
+#Preview { ScoreResultView(onReady: {}).environment(AppState()) }
