@@ -3,8 +3,7 @@ import SwiftUI
 /// Panic Button (flow-redesign Phase 3, plan §5 + decision #2).
 /// The crisis tool is FREE for every user — guided breathing, urge timer,
 /// rotating encouragement, and the "I'm Safe Now" exit. Premium extends it
-/// with urge-wave mode: the ~10-minute wave visualization and per-minute
-/// scaled rewards. There is NO upsell anywhere in the crisis path — the only
+/// with per-minute scaled rewards. There is NO upsell anywhere in the crisis path — the only
 /// premium pitch lives in the post-crisis debrief, after the user is safe.
 struct PanicSheet: View {
     @Environment(GemStore.self) private var gems
@@ -20,9 +19,9 @@ struct PanicSheet: View {
     }
 }
 
-/// The panic tool: breathing + urge timer (free), urge-wave mode (premium),
-/// ending in a post-crisis debrief. Riding out the urge pays a gem reward —
-/// flat for free, per-minute for premium.
+/// The panic tool: breathing + urge timer, ending in a post-crisis debrief.
+/// Riding out the urge pays a gem reward — flat for free, per-minute for
+/// premium.
 struct PanicModeView: View {
     @Environment(GemStore.self) private var gems
     @Environment(AppState.self) private var appState
@@ -197,14 +196,11 @@ struct PanicModeView: View {
             Spacer()
 
             // The breathing circle is the centre of attention on BOTH tiers —
-            // it's the thing that actually calms someone down. Premium's wave
-            // rides below it as secondary context, never above it.
+            // it's the thing that actually calms someone down, and now the
+            // only instrument on screen.
             breathingCircle
 
             if gems.isPremium {
-                UrgeWaveView(elapsed: elapsed)
-                    .screenPadding()
-
                 Text("💎 +10 gems for every minute you hold")
                     .font(Theme.Typography.bodyMedium())
                     .foregroundStyle(Theme.Colors.butter)
@@ -328,7 +324,7 @@ struct PanicModeView: View {
                     Text("Go further next time")
                         .font(Theme.Typography.headline())
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Full wave mode, per-minute rewards, and slip-pattern insights — in Rewire Premium.")
+                    Text("Per-minute rewards and slip-pattern insights — in Rewire Premium.")
                         .font(Theme.Typography.subtitle())
                         .foregroundStyle(Theme.Colors.textSecondary)
                     PrimaryButton(title: "See Premium") { showPaywall = true }
@@ -360,73 +356,6 @@ struct PanicModeView: View {
             .screenPadding()
             .padding(.bottom, Theme.Spacing.lg)
         }
-    }
-}
-
-/// The ~10-minute urge wave (premium): a crest the user's dot rides in real
-/// time. Seeing your position on a curve that *ends* reframes the urge as
-/// finite — the design answer to "urges peak and pass" (Reddit finding #5).
-struct UrgeWaveView: View {
-    let elapsed: Int   // seconds
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    /// The wave spans 15 minutes; the dot clamps at the end.
-    private let total: Double = 15 * 60
-
-    /// Normalized wave height (0 = flat, 1 = crest) — gaussian peaking at
-    /// t = 0.4 (~minute 6 of 15).
-    private func crest(_ t: Double) -> Double {
-        exp(-pow(t - 0.4, 2) / (2 * 0.18 * 0.18))
-    }
-    private func point(_ t: Double, in size: CGSize) -> CGPoint {
-        CGPoint(x: t * size.width,
-                y: (0.88 - 0.72 * crest(t)) * size.height)
-    }
-
-    var body: some View {
-        VStack(spacing: Theme.Spacing.xs) {
-            GeometryReader { geo in
-                let t = min(1, Double(elapsed) / total)
-                ZStack {
-                    Path { p in
-                        p.move(to: point(0, in: geo.size))
-                        for step in 1...60 {
-                            p.addLine(to: point(Double(step) / 60, in: geo.size))
-                        }
-                    }
-                    .stroke(
-                        LinearGradient(colors: [Theme.Colors.critical, Theme.Colors.butter, Theme.Colors.good],
-                                       startPoint: .leading, endPoint: .trailing),
-                        style: StrokeStyle(lineWidth: 4, lineCap: .round)
-                    )
-
-                    Text("crest ~min 6")
-                        .font(Theme.Typography.caption())
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                        .position(point(0.4, in: geo.size).applying(.init(translationX: 0, y: -14)))
-                    Text("it passes")
-                        .font(Theme.Typography.caption())
-                        .foregroundStyle(Theme.Colors.good)
-                        .position(point(0.93, in: geo.size).applying(.init(translationX: 0, y: -14)))
-
-                    Circle()
-                        .fill(Theme.Colors.textPrimary)
-                        .frame(width: 14, height: 14)
-                        .position(point(t, in: geo.size))
-                        .animation(reduceMotion ? nil : .linear(duration: 1), value: elapsed)
-                }
-            }
-            .frame(height: 90)
-
-            HStack {
-                Text("min 0")
-                Spacer()
-                Text("most urges are done by min 10–15")
-            }
-            .font(Theme.Typography.caption())
-            .foregroundStyle(Theme.Colors.textTertiary)
-        }
-        .padding(Theme.Spacing.md)
-        .smokedGlass(radius: 20)
     }
 }
 
