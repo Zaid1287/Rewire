@@ -36,17 +36,59 @@ struct CheckInFlow: View {
         }
     }
 
+    /// How far into today we are — what the tick ruler reads. The mockup's
+    /// ruler tracked "step 1 of 4" of a four-screen flow; this is one screen,
+    /// so it carries the day's own progress instead of faking flow steps.
+    /// (Goal progress was the other candidate and is wrong: a 2-hour goal
+    /// against a 14-day run pins to 1.0 and draws a solid bar.)
+    private var dayProgress: Double {
+        let start = Calendar.current.startOfDay(for: Date())
+        return min(1, Date().timeIntervalSince(start) / 86_400)
+    }
+
     private var ask: some View {
-        VStack(spacing: Theme.Spacing.lg) {
+        VStack(alignment: .leading, spacing: 0) {
             Capsule().fill(Theme.Colors.ink.opacity(0.2))
                 .frame(width: 40, height: 5)
+                .frame(maxWidth: .infinity)
                 .padding(.top, Theme.Spacing.sm)
 
-            Text("Did you stay porn-free today?")
-                .font(Theme.Typography.title())
-                .foregroundStyle(Theme.Colors.ink)
-                .multilineTextAlignment(.center)
-                .padding(.top, Theme.Spacing.sm)
+            // check-top: today's date left, run position right
+            HStack {
+                Text(Date(), format: .dateTime.weekday(.abbreviated).month(.abbreviated).day())
+                Spacer()
+                Text("Check-in · ") + Text("Day \(streak.currentRunDays + 1)")
+                    .foregroundStyle(Theme.Colors.ink)
+            }
+            .font(Theme.Typography.label())
+            .foregroundStyle(Theme.Colors.inkLo)
+            .padding(.top, Theme.Spacing.lg)
+
+            TickRuler(progress: dayProgress)
+                .padding(.top, Theme.Spacing.md)
+
+            // milk-glass question card
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Daily check-in")
+                    .font(Theme.Typography.caption())
+                    .tracking(1.3)
+                    .textCase(.uppercase)
+                    .foregroundStyle(Theme.Colors.inkLo)
+                Text("Did you stay porn-free today?")
+                    .font(Theme.Typography.title())
+                    .foregroundStyle(Theme.Colors.ink)
+                    .padding(.top, Theme.Spacing.sm)
+                (Text("Goal: ") + Text(streak.goal.label).foregroundStyle(Theme.Colors.ink)
+                    + Text(" · answering keeps your history honest"))
+                    .font(Theme.Typography.label())
+                    .foregroundStyle(Theme.Colors.inkLo)
+                    .padding(.top, Theme.Spacing.md)
+            }
+            .padding(.horizontal, 28)
+            .padding(.vertical, 30)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .milkGlass(radius: 32)
+            .padding(.top, Theme.Spacing.lg)
 
             VStack(spacing: Theme.Spacing.sm) {
                 Button { saveClean() } label: {
@@ -74,18 +116,26 @@ struct CheckInFlow: View {
                 }
                 .buttonStyle(PressableButtonStyle())
             }
+            .padding(.top, Theme.Spacing.lg)
 
-            TextField("Anything worth remembering about today? (optional)",
-                      text: $note, axis: .vertical)
+            // Not in the mockup frame (that flow spread the note over later
+            // steps), but it feeds DailyReport.note — kept, toned to the scene.
+            TextField("", text: $note,
+                      prompt: Text("Anything worth remembering about today?")
+                        .foregroundColor(Theme.Colors.inkLo),
+                      axis: .vertical)
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.ink)
                 .lineLimit(1...3)
                 .padding(Theme.Spacing.md)
                 .background(Color.white.opacity(0.32), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .padding(.top, Theme.Spacing.md)
 
             Text("Three seconds. Honesty beats streaks.")
                 .font(Theme.Typography.caption())
                 .foregroundStyle(Theme.Colors.inkLo)
+                .frame(maxWidth: .infinity)
+                .padding(.top, Theme.Spacing.md)
 
             Spacer(minLength: 0)
         }

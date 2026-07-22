@@ -31,11 +31,14 @@ struct PillRow: View {
     }
 }
 
-/// Big quiet glass surface button (`−1 min` / `+1 min`) — no border emphasis,
-/// actions that look like calm surfaces.
+/// Quiet capsule action on a dark scene — the mockup's `cap-btn.ghost`:
+/// 62pt tall, blur + white 6% fill, hairline white 12% outline, no shadow.
+/// Deliberately flat: these sit under the primary white capsule (Panic) and
+/// must stay quieter than it, so the card recipe's gradient border and drop
+/// shadow are wrong here.
 struct QuietGlassButton: View {
     var title: String
-    var height: CGFloat = 74
+    var height: CGFloat = 62
     var action: () -> Void
 
     var body: some View {
@@ -45,8 +48,15 @@ struct QuietGlassButton: View {
                 .foregroundStyle(Theme.Colors.textHi)
                 .frame(maxWidth: .infinity)
                 .frame(height: height)
+                .background {
+                    Capsule()
+                        .fill(.ultraThinMaterial)
+                        .environment(\.colorScheme, .dark)
+                        .overlay(Capsule().fill(Color.white.opacity(0.06)))
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.12),
+                                                        lineWidth: 1))
+                }
         }
         .buttonStyle(PressableButtonStyle())
-        .smokedGlass(radius: 26)
     }
 }

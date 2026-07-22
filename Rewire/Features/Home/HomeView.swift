@@ -92,7 +92,9 @@ struct HomeView: View {
             // is needed — backing out of it costs nothing.
             .fullScreenCover(isPresented: $showSlipLog) { SlipLogFlow() }
             .sheet(isPresented: $showCheckIn) {
-                CheckInFlow().presentationDetents([.medium])
+                // Frame 3 is a full screen (ruler + question card + buttons);
+                // the old .medium detent clipped it.
+                CheckInFlow().presentationDetents([.large])
             }
             .fullScreenCover(isPresented: $showRewardBox) { RewardBoxView() }
             .onReceive(offerTimer) { now = $0 }
@@ -315,9 +317,10 @@ struct HomeView: View {
 
     private var quietActions: some View {
         HStack(spacing: 12) {
-            QuietGlassButton(title: streak.checkedInToday ? "Checked in ✓" : "Check-in",
-                             height: 56) { showCheckIn = true }
-            QuietGlassButton(title: "Log a slip", height: 56) { showSlipLog = true }
+            QuietGlassButton(title: streak.checkedInToday ? "Checked in ✓" : "Check-in") {
+                showCheckIn = true
+            }
+            QuietGlassButton(title: "Log a slip") { showSlipLog = true }
         }
         .screenPadding()
         .padding(.top, 12)
