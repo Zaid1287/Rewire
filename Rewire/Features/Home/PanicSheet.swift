@@ -46,29 +46,27 @@ struct PanicModeView: View {
     @State private var showPaywall = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    /// Haptic pacer clock. 6 Hz is the coarsest rate that lands exactly on both
+    /// cadences (1/s inhale, 3/s exhale) so no pulse drifts off the beat; the
+    /// 1s `timer` above is far too coarse to carry the exhale flutter.
+    private let pulseClock = Timer.publish(every: 1.0 / 6.0, on: .main, in: .common).autoconnect()
+    /// Wall-clock origin of the breath cycle — the pacer needs sub-second
+    /// position, which the integer `elapsed` counter can't give it.
+    @State private var breathStart = Date()
+    /// What the pacer last delivered, so a 6 Hz clock still fires each beat once.
+    @State private var pacer = BreathPacer.State()
 
     enum Stage { case riding, debrief }
 
-    /// Seconds per breath phase — 5-5-5 coherent breathing.
-    private let phaseLength = 5
-
-    /// 5-5-5 breathing: inhale, hold full, exhale.
-    private enum BreathPhase: Int, CaseIterable {
-        case breatheIn, hold, breatheOut
-
-        var label: String {
-            switch self {
-            case .breatheIn:  "Breathe in"
-            case .hold:       "Hold"
-            case .breatheOut: "Breathe out"
-            }
-        }
-        /// Lungs full while inhaling and holding; empty on the exhale.
-        var lungsFull: Bool { self != .breatheOut }
+    /// Phase table and beat schedule live in `BreathPacer` — pure logic, kept
+    /// out of the view so the 5-2-4 cadence can be checked on its own.
+    private var phase: BreathPhase {
+        BreathPacer.locate(Double(elapsed % BreathPacer.cycleSeconds)).phase
     }
 
-    private var phase: BreathPhase {
-        BreathPhase.allCases[(elapsed / phaseLength) % BreathPhase.allCases.count]
+    /// Whole seconds already spent in the current phase.
+    private var secondsIntoPhase: Int {
+        Int(BreathPacer.locate(Double(elapsed % BreathPacer.cycleSeconds)).into)
     }
 
     /// Breathing scale ranges — shrunk (not removed) under Reduce Motion:
@@ -83,7 +81,8 @@ struct PanicModeView: View {
     private func syncBreath() {
         let inflate = phase.lungsFull
         guard inflate != lungsInflated else { return }
-        withAnimation(.easeInOut(duration: Double(phaseLength))) { lungsInflated = inflate }
+        // The swell must last as long as the phase driving it — 5s in, 4s out.
+        withAnimation(.easeInOut(duration: Double(phase.seconds))) { lungsInflated = inflate }
     }
 
     /// Restart the dial sweep: snap to empty, then fill over the whole phase.
@@ -91,7 +90,18 @@ struct PanicModeView: View {
         var snap = Transaction()
         snap.disablesAnimations = true
         withTransaction(snap) { ringFill = 0 }
-        withAnimation(.linear(duration: Double(phaseLength))) { ringFill = 1 }
+        withAnimation(.linear(duration: Double(phase.seconds))) { ringFill = 1 }
+    }
+
+    /// Drive the breath haptics off the 6 Hz clock. All the scheduling lives in
+    /// `BreathPacer.advance`; this only turns a beat into a feeling.
+    private func pulseBreathIfDue() {
+        guard stage == .riding else { return }
+        switch BreathPacer.advance(&pacer, at: Date().timeIntervalSince(breathStart)) {
+        case .none:                  break
+        case .mark:                  Haptics.breathPhaseMark()
+        case .pulse(let intensity):  Haptics.breathPulse(intensity: intensity)
+        }
     }
 
     /// Urge-focused lines, rotated every 8 seconds.
@@ -114,7 +124,7 @@ struct PanicModeView: View {
         String(format: "%d:%02d", elapsed / 60, elapsed % 60)
     }
 
-    /// ~1.5 breath cycles (15s each) before the reward unlocks — long enough
+    /// ~2 breath cycles (11s each) before the reward unlocks — long enough
     /// to matter, short enough not to trap someone mid-crisis.
     private let minimumSeconds = 24
     private var canFinish: Bool { elapsed >= minimumSeconds }
@@ -142,15 +152,19 @@ struct PanicModeView: View {
         }
         .animation(Theme.Motion.enter, value: stage)
         .onAppear {
+            breathStart = Date()
+            Haptics.prepareBreathing()
             syncBreath()          // first motion = the inhale, immediately
             startRingSweep()
         }
+        .onReceive(pulseClock) { _ in pulseBreathIfDue() }
         .onReceive(timer) { _ in
             guard stage == .riding else { return }
             elapsed += 1
             syncBreath()
-            // New phase → the dial resets to empty and sweeps again.
-            if elapsed % phaseLength == 0 { startRingSweep() }
+            // New phase → the dial resets to empty and sweeps again. Phases are
+            // unequal now, so this can't be an `elapsed % length` test.
+            if secondsIntoPhase == 0 { startRingSweep() }
             // The earned moment: haptic + one spring pulse when the reward unlocks.
             if elapsed == minimumSeconds {
                 Haptics.success()
@@ -234,11 +248,11 @@ struct PanicModeView: View {
 
     /// Seconds left in the current breath phase, shown as the hero countdown.
     private var phaseCountdown: String {
-        String(format: "%02d", phaseLength - (elapsed % phaseLength))
+        String(format: "%02d", phase.seconds - secondsIntoPhase)
     }
 
     /// The breathing pacer — RonLab tick dial: butter progress sweeps one full
-    /// 12s cycle; the whole instrument breathes with the 4-4-4 pace.
+    /// sweep per phase; the whole instrument breathes with the 5-2-4 pace.
     private var breathingCircle: some View {
         ZStack {
             Circle()
