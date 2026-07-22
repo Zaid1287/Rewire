@@ -69,6 +69,12 @@ final class StreakStore {
     /// Current run length in whole days (the resettable layer).
     var currentRunDays: Int { Int(elapsed / 86_400) }
 
+    /// True once a clean check-in has been logged today. Gates the daily ritual
+    /// so it can't be spammed for repeat gems / duplicate reports.
+    var checkedInToday: Bool {
+        reports.contains { !$0.relapsed && Calendar.current.isDateInToday($0.date) }
+    }
+
     /// Every completed run's clean time plus the live run, in whole days.
     /// Only grows: each relapse banks the finished run into `streaks`, which
     /// stays in this sum forever. `isOngoing` sample rows are excluded so the

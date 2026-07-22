@@ -23,7 +23,9 @@ struct CheckInFlow: View {
         ZStack {
             SceneBackground(kind: .fog)
             Group {
-                if savedClean { celebration } else { ask }
+                if savedClean { celebration }
+                else if streak.checkedInToday { alreadyLogged }
+                else { ask }
             }
             .transition(.opacity)
         }
@@ -132,6 +134,28 @@ struct CheckInFlow: View {
         }
     }
 
+    /// Shown when today's check-in is already done — no second award, no
+    /// duplicate report. Honest state instead of a repeatable +5.
+    private var alreadyLogged: some View {
+        VStack(spacing: Theme.Spacing.lg) {
+            Spacer()
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 80))
+                .foregroundStyle(.white, Theme.Colors.good)
+            Text("Already logged today ✓")
+                .font(Theme.Typography.title())
+                .foregroundStyle(Theme.Colors.ink)
+            Text("You're checked in. See you tomorrow.")
+                .font(Theme.Typography.body())
+                .foregroundStyle(Theme.Colors.inkLo)
+                .multilineTextAlignment(.center)
+            Spacer()
+            PrimaryButton(title: "Done") { dismiss() }
+                .screenPadding()
+                .padding(.bottom, Theme.Spacing.lg)
+        }
+    }
+
     /// Request permission + schedule the 9 PM default. Full time control lives
     /// in Settings → Daily Reminders; this is the one-tap contextual version.
     private func enableNightlyReminder() {
@@ -146,6 +170,9 @@ struct CheckInFlow: View {
     }
 
     private func saveClean() {
+        // Guard the award path: if today's already logged, just show the
+        // celebration without a second +5 / duplicate report.
+        guard !streak.checkedInToday else { savedClean = true; return }
         streak.saveReport(DailyReport(
             dayNumber: streak.currentRunDays + 1, date: Date(),
             watchedPorn: false, masturbated: false, relapsed: false, note: note))

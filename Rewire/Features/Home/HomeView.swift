@@ -315,7 +315,8 @@ struct HomeView: View {
 
     private var quietActions: some View {
         HStack(spacing: 12) {
-            QuietGlassButton(title: "Check-in", height: 56) { showCheckIn = true }
+            QuietGlassButton(title: streak.checkedInToday ? "Checked in ✓" : "Check-in",
+                             height: 56) { showCheckIn = true }
             QuietGlassButton(title: "Log a slip", height: 56) { showSlipLog = true }
         }
         .screenPadding()
