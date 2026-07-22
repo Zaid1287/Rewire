@@ -18,7 +18,7 @@ struct OnboardingFlow: View {
     /// nothing is gated. Cut from the original 10: fake loader, second
     /// testimonials, in-onboarding reminders ask (now contextual post-check-in).
     enum Step: Equatable {
-        case hero, socialProof, quiz, score, paywall, comparison, benefits, welcome
+        case hero, socialProof, quiz, score, paywall, benefits, welcome
     }
 
     var body: some View {
@@ -37,12 +37,10 @@ struct OnboardingFlow: View {
                     ScoreResultView { advance(to: .paywall) }
                 case .paywall:
                     OnboardingPaywallView(
-                        onSkip: { advance(to: .comparison) },
+                        onSkip: { advance(to: .benefits) },
                         // Already sold — skip the remaining sell, go straight in.
                         onPurchased: { advance(to: .welcome) }
                     )
-                case .comparison:
-                    ComparisonView { advance(to: .benefits) }
                 case .benefits:
                     BenefitsView { advance(to: .welcome) }
                 case .welcome:
