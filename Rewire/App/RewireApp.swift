@@ -16,6 +16,7 @@ struct RewireApp: App {
         // loudly rather than shipping a broken pacer or an unlockable lock.
         BreathPacer.selfCheck()
         CommitmentLock.selfCheck()
+        DomainInput.selfCheck()
         #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(

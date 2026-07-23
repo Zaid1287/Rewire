@@ -31,6 +31,14 @@ final class ShieldController {
     /// hands us an already-mutated selection.
     private var committedSelection: FamilyActivitySelection?
 
+    /// Sites the user vouched for after the filter got one wrong. Without this,
+    /// a false positive leaves only one way out — switching the whole blocker
+    /// off — and reviewers of the app we're replacing describe exactly that
+    /// ending in it staying off for good.
+    private(set) var allowedDomains: Set<String> = []
+    /// Sites to block on top of Apple's list, for what it misses.
+    private(set) var blockedDomains: Set<String> = []
+
     // ponytail: the default store. Named stores only matter once schedules need
     // to shield different sets at different times — that's S3's problem.
     private let store = ManagedSettingsStore()
@@ -39,6 +47,8 @@ final class ShieldController {
     private static let enabledKey = "guard.enabled"
     private static let lockKey = "guard.lock"
     private static let committedSelectionKey = "guard.lock.selection"
+    private static let allowedKey = "guard.allowed"
+    private static let blockedKey = "guard.blocked"
 
     init() { load() }
 
@@ -81,9 +91,10 @@ final class ShieldController {
         }
     }
 
-    /// True when the user picked at least one thing to guard. An empty selection
-    /// with the toggle on would shield nothing while claiming to be protecting
-    /// them — worse than being off.
+    /// True when the user picked specific apps or sites to shield on top of the
+    /// filter. It no longer gates turning the blocker on: the web filter
+    /// protects an empty selection perfectly well, and requiring a pick first
+    /// meant a user could switch the blocker "on" and be given nothing.
     var hasSelection: Bool {
         if Self.fakeGuard { return true }
         return !selection.applicationTokens.isEmpty
@@ -100,7 +111,6 @@ final class ShieldController {
     /// Start a commitment. Snapshots what's guarded so the picker can't be used
     /// to quietly empty the selection instead of flipping the toggle.
     func commit(for duration: TimeInterval) {
-        guard hasSelection else { return }
         // Committing implies the blocker is on. Returning silently when it
         // wasn't made "Lock it in" a button that could do nothing at all,
         // with no feedback — turn it on instead.
@@ -112,6 +122,62 @@ final class ShieldController {
 
     func requestUnlock() { lock.requestUnlock(); save() }
     func cancelUnlockRequest() { lock.cancelUnlockRequest(); save() }
+
+    // MARK: Site exceptions
+
+    enum ExceptionResult: Equatable {
+        case ok
+        /// The input wasn't a usable host.
+        case invalidDomain
+        /// Refused because a commitment is running.
+        case locked
+    }
+
+    /// Vouch for a site the filter got wrong.
+    ///
+    /// This is a *weakening* edit, so a commitment refuses it. That isn't
+    /// pedantry: the app we're replacing shipped a free-form allow list and
+    /// earned a one-star review for it — *"there's an allowed website? Just
+    /// place the porn website you want and you get complete access."* Allowing
+    /// arbitrary hosts mid-commitment would rebuild exactly that hole.
+    @discardableResult
+    func allow(_ raw: String) -> ExceptionResult {
+        guard let domain = DomainInput.normalize(raw) else { return .invalidDomain }
+        if isBound { return .locked }
+        allowedDomains.insert(domain)
+        blockedDomains.remove(domain)
+        if enabled { apply() }
+        save()
+        return .ok
+    }
+
+    /// Withdraw a vouch — strengthening, so always permitted.
+    func removeAllowed(_ domain: String) {
+        allowedDomains.remove(domain)
+        if enabled { apply() }
+        save()
+    }
+
+    /// Block something Apple's list misses — strengthening, always permitted.
+    @discardableResult
+    func block(_ raw: String) -> ExceptionResult {
+        guard let domain = DomainInput.normalize(raw) else { return .invalidDomain }
+        blockedDomains.insert(domain)
+        allowedDomains.remove(domain)
+        if enabled { apply() }
+        save()
+        return .ok
+    }
+
+    /// Stop blocking an extra site — weakening, so a commitment refuses it.
+    @discardableResult
+    func removeBlocked(_ domain: String) -> ExceptionResult {
+        if isBound { return .locked }
+        blockedDomains.remove(domain)
+        if enabled { apply() }
+        save()
+        return .ok
+    }
 
     /// Drop the commitment. Only legal once the wait has been served (or the
     /// commitment has run out) — `setEnabled` is the gate, this is the effect.
@@ -125,7 +191,7 @@ final class ShieldController {
         if !on && isBound { return }
         // Switching off during the open window spends the commitment.
         if !on { releaseLock() }
-        enabled = on && hasSelection
+        enabled = on
         enabled ? apply() : clear()
         save()
     }
@@ -139,7 +205,6 @@ final class ShieldController {
             selection.categoryTokens.formUnion(committed.categoryTokens)
             selection.webDomainTokens.formUnion(committed.webDomainTokens)
         }
-        if enabled && !hasSelection { enabled = false }
         enabled ? apply() : clear()
         save()
     }
@@ -147,6 +212,19 @@ final class ShieldController {
     func apply() {
         // Without real authorization the store rejects writes, so skip it.
         if Self.fakeGuard { return }
+
+        // Apple's adult-content filter. This is the blocker: it works at the OS
+        // level, so it covers Chrome, Brave, Firefox and in-app browsers rather
+        // than one Safari extension, there is no extension for a user to switch
+        // off, and the list is curated instead of keyword-guessed — which is
+        // what stops legitimate sites being caught. Everything below only
+        // shields what the user explicitly picked; without this line the blocker
+        // blocks nothing at all unless they enumerate every site by hand.
+        store.webContent.blockedByFilter = .auto(
+            Set(blockedDomains.map { WebDomain(domain: $0) }),
+            except: Set(allowedDomains.map { WebDomain(domain: $0) })
+        )
+
         // nil, not an empty set: an empty set is a valid "shield exactly these
         // zero things" and leaves the previous shield in place on some paths.
         store.shield.applications =
@@ -159,6 +237,7 @@ final class ShieldController {
 
     func clear() {
         if Self.fakeGuard { return }
+        store.webContent.blockedByFilter = nil
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
@@ -176,6 +255,8 @@ final class ShieldController {
         if let data = try? JSONEncoder().encode(lock) {
             defaults?.set(data, forKey: Self.lockKey)
         }
+        defaults?.set(Array(allowedDomains), forKey: Self.allowedKey)
+        defaults?.set(Array(blockedDomains), forKey: Self.blockedKey)
         if let committedSelection, let data = try? JSONEncoder().encode(committedSelection) {
             defaults?.set(data, forKey: Self.committedSelectionKey)
         } else if committedSelection == nil {
@@ -194,6 +275,8 @@ final class ShieldController {
            let saved = try? JSONDecoder().decode(CommitmentLock.self, from: data) {
             lock = saved
         }
+        allowedDomains = Set(defaults?.stringArray(forKey: Self.allowedKey) ?? [])
+        blockedDomains = Set(defaults?.stringArray(forKey: Self.blockedKey) ?? [])
         if let data = defaults?.data(forKey: Self.committedSelectionKey),
            let saved = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data) {
             committedSelection = saved
