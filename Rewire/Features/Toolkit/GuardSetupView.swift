@@ -57,7 +57,7 @@ struct GuardSetupView: View {
                 guardController.commit(for: duration)
                 Haptics.success()
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.large])
         }
     }
 
