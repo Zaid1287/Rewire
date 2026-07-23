@@ -23,12 +23,22 @@ final class ShieldController {
     var selection = FamilyActivitySelection()
     private(set) var enabled = false
 
+    /// Self-binding commitment (see `CommitmentLock`). While it binds, the
+    /// blocker can't be switched off or narrowed — only strengthened.
+    private(set) var lock = CommitmentLock()
+    /// What was guarded when the commitment started. Restoring from this is how
+    /// "you may add, you may not remove" is enforced against the picker, which
+    /// hands us an already-mutated selection.
+    private var committedSelection: FamilyActivitySelection?
+
     // ponytail: the default store. Named stores only matter once schedules need
     // to shield different sets at different times — that's S3's problem.
     private let store = ManagedSettingsStore()
 
     private static let selectionKey = "guard.selection"
     private static let enabledKey = "guard.enabled"
+    private static let lockKey = "guard.lock"
+    private static let committedSelectionKey = "guard.lock.selection"
 
     init() { load() }
 
@@ -67,7 +77,36 @@ final class ShieldController {
             || !selection.webDomainTokens.isEmpty
     }
 
+    // MARK: Commitment lock
+
+    var lockState: CommitmentLock.State { lock.state() }
+    /// True while the blocker may not be switched off or narrowed.
+    var isBound: Bool { lock.binds() }
+
+    /// Start a commitment. Snapshots what's guarded so the picker can't be used
+    /// to quietly empty the selection instead of flipping the toggle.
+    func commit(for duration: TimeInterval) {
+        guard enabled, hasSelection else { return }
+        lock.commit(for: duration)
+        committedSelection = selection
+        save()
+    }
+
+    func requestUnlock() { lock.requestUnlock(); save() }
+    func cancelUnlockRequest() { lock.cancelUnlockRequest(); save() }
+
+    /// Drop the commitment. Only legal once the wait has been served (or the
+    /// commitment has run out) — `setEnabled` is the gate, this is the effect.
+    private func releaseLock() {
+        lock.release()
+        committedSelection = nil
+    }
+
     func setEnabled(_ on: Bool) {
+        // Turning ON is never restricted — strengthening is always allowed.
+        if !on && isBound { return }
+        // Switching off during the open window spends the commitment.
+        if !on { releaseLock() }
         enabled = on && hasSelection
         enabled ? apply() : clear()
         save()
@@ -75,6 +114,13 @@ final class ShieldController {
 
     /// Re-apply after a selection change, but only while the guard is on.
     func selectionChanged() {
+        // While bound, additions stick and removals are undone: union the
+        // current pick back over the committed one.
+        if isBound, let committed = committedSelection {
+            selection.applicationTokens.formUnion(committed.applicationTokens)
+            selection.categoryTokens.formUnion(committed.categoryTokens)
+            selection.webDomainTokens.formUnion(committed.webDomainTokens)
+        }
         if enabled && !hasSelection { enabled = false }
         enabled ? apply() : clear()
         save()
@@ -105,6 +151,15 @@ final class ShieldController {
         if let data = try? JSONEncoder().encode(selection) {
             defaults?.set(data, forKey: Self.selectionKey)
         }
+        // The lock is only a commitment if it outlives a force-quit.
+        if let data = try? JSONEncoder().encode(lock) {
+            defaults?.set(data, forKey: Self.lockKey)
+        }
+        if let committedSelection, let data = try? JSONEncoder().encode(committedSelection) {
+            defaults?.set(data, forKey: Self.committedSelectionKey)
+        } else if committedSelection == nil {
+            defaults?.removeObject(forKey: Self.committedSelectionKey)
+        }
     }
 
     private func load() {
@@ -113,6 +168,14 @@ final class ShieldController {
         if let data = defaults?.data(forKey: Self.selectionKey),
            let saved = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data) {
             selection = saved
+        }
+        if let data = defaults?.data(forKey: Self.lockKey),
+           let saved = try? JSONDecoder().decode(CommitmentLock.self, from: data) {
+            lock = saved
+        }
+        if let data = defaults?.data(forKey: Self.committedSelectionKey),
+           let saved = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data) {
+            committedSelection = saved
         }
     }
 }
