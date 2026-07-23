@@ -14,7 +14,39 @@ struct CommitSheet: View {
     @State private var selected = 2      // 1 week — the reviewer's own example
 
     var body: some View {
+        // The options scroll and the CTA is pinned. Laid out as one plain
+        // VStack, the content overflows a medium detent (or any smaller device,
+        // or larger Dynamic Type) and pushes "Lock it in" off the bottom, where
+        // it can't be tapped — the button looks present and does nothing.
         VStack(alignment: .leading, spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    content
+                }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+
+            PrimaryButton(title: "Lock it in") {
+                onCommit(CommitmentLock.options[selected].duration)
+                dismiss()
+            }
+
+            Text("You can always add more to block — you just can't take it away until the commitment ends.")
+                .font(Theme.Typography.caption())
+                .foregroundStyle(Theme.Colors.textXlo)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+                .padding(.top, Theme.Spacing.sm)
+                .padding(.bottom, Theme.Spacing.lg)
+        }
+        .screenPadding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background { SceneBackground(kind: .void) }
+    }
+
+    private var content: some View {
+        Group {
             Text("Commitment")
                 .font(Theme.Typography.caption())
                 .tracking(1.6)
@@ -38,26 +70,8 @@ struct CommitSheet: View {
                 }
             }
             .padding(.top, Theme.Spacing.lg)
-
-            Spacer(minLength: Theme.Spacing.lg)
-
-            PrimaryButton(title: "Lock it in") {
-                onCommit(CommitmentLock.options[selected].duration)
-                dismiss()
-            }
-
-            Text("You can always add more to block — you just can't take it away until the commitment ends.")
-                .font(Theme.Typography.caption())
-                .foregroundStyle(Theme.Colors.textXlo)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity)
-                .padding(.top, Theme.Spacing.sm)
-                .padding(.bottom, Theme.Spacing.lg)
+            .padding(.bottom, Theme.Spacing.lg)
         }
-        .screenPadding()
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background { SceneBackground(kind: .void) }
     }
 
     private func optionRow(_ label: String, index: Int) -> some View {

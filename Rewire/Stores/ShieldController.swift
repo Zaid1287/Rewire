@@ -42,11 +42,24 @@ final class ShieldController {
 
     init() { load() }
 
+    #if DEBUG
+    /// Simulator escape hatch. Screen Time authorization needs a device
+    /// passcode the Simulator can't supply, which otherwise makes the whole
+    /// guarded UI — and every commitment-lock state — unreachable outside a
+    /// real device. Launch with `REWIRE_FAKE_GUARD=1` to walk the real flow.
+    /// Only fakes the *system* edges (auth, selection, applying shields); all
+    /// lock logic below runs exactly as it does in production.
+    static let fakeGuard = ProcessInfo.processInfo.environment["REWIRE_FAKE_GUARD"] != nil
+    #else
+    static let fakeGuard = false
+    #endif
+
     var isAuthorized: Bool { auth == .approved }
 
     /// Reflects the real state — a user can revoke Screen Time in Settings at
     /// any time, so trusting a stored flag would strand us shielding nothing.
     func refreshAuth() {
+        if Self.fakeGuard { auth = .approved; return }
         switch AuthorizationCenter.shared.authorizationStatus {
         case .approved: auth = .approved
         case .denied: auth = .denied("Screen Time access was denied.")
@@ -72,7 +85,8 @@ final class ShieldController {
     /// with the toggle on would shield nothing while claiming to be protecting
     /// them — worse than being off.
     var hasSelection: Bool {
-        !selection.applicationTokens.isEmpty
+        if Self.fakeGuard { return true }
+        return !selection.applicationTokens.isEmpty
             || !selection.categoryTokens.isEmpty
             || !selection.webDomainTokens.isEmpty
     }
@@ -86,7 +100,11 @@ final class ShieldController {
     /// Start a commitment. Snapshots what's guarded so the picker can't be used
     /// to quietly empty the selection instead of flipping the toggle.
     func commit(for duration: TimeInterval) {
-        guard enabled, hasSelection else { return }
+        guard hasSelection else { return }
+        // Committing implies the blocker is on. Returning silently when it
+        // wasn't made "Lock it in" a button that could do nothing at all,
+        // with no feedback — turn it on instead.
+        if !enabled { setEnabled(true) }
         lock.commit(for: duration)
         committedSelection = selection
         save()
@@ -127,6 +145,8 @@ final class ShieldController {
     }
 
     func apply() {
+        // Without real authorization the store rejects writes, so skip it.
+        if Self.fakeGuard { return }
         // nil, not an empty set: an empty set is a valid "shield exactly these
         // zero things" and leaves the previous shield in place on some paths.
         store.shield.applications =
@@ -138,6 +158,7 @@ final class ShieldController {
     }
 
     func clear() {
+        if Self.fakeGuard { return }
         store.shield.applications = nil
         store.shield.applicationCategories = nil
         store.shield.webDomains = nil
