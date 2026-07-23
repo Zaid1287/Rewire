@@ -10,6 +10,13 @@ struct RewireApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        #if DEBUG
+        // Cheap invariant checks for the two pure state machines. The project
+        // has no test target, so this is where they run — a debug launch fails
+        // loudly rather than shipping a broken pacer or an unlockable lock.
+        BreathPacer.selfCheck()
+        CommitmentLock.selfCheck()
+        #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(
             appState: appState, streak: streakStore, gems: gemStore

@@ -17,6 +17,10 @@ struct GuardSetupView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var showPicker = false
+    @State private var showCommitSheet = false
+    /// Ticks the countdown copy while a cooling-off wait is running.
+    @State private var now = Date()
+    private let clock = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         @Bindable var guardController = guardController
@@ -47,6 +51,14 @@ struct GuardSetupView: View {
         .onChange(of: guardController.selection) { guardController.selectionChanged() }
         // Screen Time access can be revoked in Settings while we're backgrounded.
         .onAppear { guardController.refreshAuth() }
+        .onReceive(clock) { now = $0 }
+        .sheet(isPresented: $showCommitSheet) {
+            CommitSheet { duration in
+                guardController.commit(for: duration)
+                Haptics.success()
+            }
+            .presentationDetents([.large])
+        }
     }
 
     // MARK: States
@@ -113,20 +125,30 @@ struct GuardSetupView: View {
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
                 Spacer(minLength: 0)
-                Toggle("", isOn: Binding(
-                    get: { guardController.enabled },
-                    set: { guardController.setEnabled($0) }
-                ))
-                .labelsHidden()
-                .tint(Theme.Colors.good)
+                if guardController.isBound {
+                    // Not a disabled toggle: a disabled control reads as broken.
+                    // The lock is the reason, so show the reason.
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 17))
+                        .foregroundStyle(Theme.Colors.butter)
+                } else {
+                    Toggle("", isOn: Binding(
+                        get: { guardController.enabled },
+                        set: { guardController.setEnabled($0) }
+                    ))
+                    .labelsHidden()
+                    .tint(Theme.Colors.good)
+                }
             }
             .padding(Theme.Spacing.md)
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
 
+            commitmentSection
+
             Button { showPicker = true } label: {
                 HStack(spacing: Theme.Spacing.xs) {
                     Image(systemName: "slider.horizontal.3")
-                    Text("Edit what's blocked")
+                    Text(guardController.isBound ? "Add more to block" : "Edit what's blocked")
                 }
                 .font(Theme.Typography.button())
                 .foregroundStyle(Theme.Colors.textPrimary)
@@ -137,6 +159,23 @@ struct GuardSetupView: View {
             .buttonStyle(PressableButtonStyle())
 
             privacyNote
+        }
+    }
+
+    // MARK: Commitment lock
+
+    /// Shown only once the blocker is actually on — committing to a blocker
+    /// that isn't running would be theatre.
+    @ViewBuilder
+    private var commitmentSection: some View {
+        if guardController.enabled {
+            CommitmentCard(
+                state: guardController.lockState,
+                now: now,
+                onCommit: { showCommitSheet = true },
+                onRequestUnlock: { guardController.requestUnlock(); Haptics.warning() },
+                onCancelRequest: { guardController.cancelUnlockRequest(); Haptics.success() }
+            )
         }
     }
 
