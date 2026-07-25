@@ -38,7 +38,22 @@ final class StreakStore {
     func syncWidget() {
         WidgetBridge.publish(startDate: startDate,
                              goalSeconds: goal.seconds,
-                             bestRunDays: bestRunDays)
+                             bestRunDays: bestRunDays,
+                             checkedInToday: checkedInToday,
+                             cleanDays30: cleanDays(30))
+    }
+
+    /// Last `n` days oldest→newest, true = no logged relapse that day. Same
+    /// basis as the Home morse strip, exposed for the widgets.
+    func cleanDays(_ n: Int) -> [Bool] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let relapseDays = Set(events.filter { $0.type == .relapse }
+            .map { cal.startOfDay(for: $0.date) })
+        return (0..<n).reversed().map { offset in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { return true }
+            return !relapseDays.contains(day)
+        }
     }
 
     init(startSecondsAgo: TimeInterval = 57) {
