@@ -10,6 +10,10 @@ struct RewireApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        #if DEBUG
+        // No test target; streak-critical logic checks itself on debug launch.
+        StreakStore.selfCheck()
+        #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(
             appState: appState, streak: streakStore, gems: gemStore
