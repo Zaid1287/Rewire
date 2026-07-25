@@ -32,6 +32,30 @@ final class StreakStore {
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
+    /// Push the streak primitives to the widget. Called only from the points
+    /// where the start or the record actually move — never from the per-second
+    /// `elapsed` tick, which would hammer WidgetCenter.
+    func syncWidget() {
+        WidgetBridge.publish(startDate: startDate,
+                             goalSeconds: goal.seconds,
+                             bestRunDays: bestRunDays,
+                             checkedInToday: checkedInToday,
+                             cleanDays30: cleanDays(30))
+    }
+
+    /// Last `n` days oldest→newest, true = no logged relapse that day. Same
+    /// basis as the Home morse strip, exposed for the widgets.
+    func cleanDays(_ n: Int) -> [Bool] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let relapseDays = Set(events.filter { $0.type == .relapse }
+            .map { cal.startOfDay(for: $0.date) })
+        return (0..<n).reversed().map { offset in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { return true }
+            return !relapseDays.contains(day)
+        }
+    }
+
     init(startSecondsAgo: TimeInterval = 57) {
         startDate = Date().addingTimeInterval(-startSecondsAgo)
         elapsed = startSecondsAgo
@@ -118,6 +142,7 @@ final class StreakStore {
         streaks.insert(Streak(index: nextIndex, duration: elapsed, isOngoing: false), at: 0)
         startDate = Date()
         elapsed = 0
+        syncWidget()
     }
 
     // MARK: Slip Log (flow-redesign Phase 2)
@@ -151,6 +176,7 @@ final class StreakStore {
 
         startDate = date
         elapsed = Date().timeIntervalSince(date)
+        syncWidget()
         return event
     }
 
@@ -192,6 +218,7 @@ final class StreakStore {
         if let start = event.preStartDate {
             startDate = start
             elapsed = Date().timeIntervalSince(start)
+            syncWidget()
         }
         if let rec = event.preRecordSeconds { recordSeconds = rec }
         if let bankedID = event.bankedStreakID {
@@ -232,11 +259,28 @@ final class StreakStore {
         streaks.removeAll { $0.id == streak.id }
     }
 
-    /// Shift the streak start back `n` days (the "add days" cheat in the screenshots).
-    func addDays(_ n: Int) {
-        startDate -= TimeInterval(n * 86_400)
-        elapsed = Date().timeIntervalSince(startDate)
+    /// Set the current run's start to an exact instant.
+    ///
+    /// `addDays` can only shift back in whole days, so it can't fix "I actually
+    /// started at 9pm three days ago", can't correct an over-add, and can't set
+    /// the real start on first install. Those are the loudest concrete request
+    /// in the tracking reviews — *"won't let me change my start day and time"*,
+    /// *"just a counter and being able to adjust it for a date in the past"*.
+    ///
+    /// A future date is refused: the counter must never read negative, and
+    /// "started tomorrow" is meaningless. Returns whether it took.
+    @discardableResult
+    func setStartDate(_ date: Date) -> Bool {
+        guard date <= Date() else { return false }
+        startDate = date
+        elapsed = Date().timeIntervalSince(date)
+        // `bestRunDays` already reads max(recordSeconds, elapsed), so a longer
+        // backdated run shows up there without banking it into the permanent
+        // record — banking an unfinished run early would leave the record
+        // inflated after the next relapse.
         persist?()
+        syncWidget()
+        return true
     }
 
     // MARK: Weekly challenge
@@ -276,4 +320,29 @@ final class StreakStore {
         challengeDays = s.challengeDays
         completedPlanDays = s.completedPlanDays ?? []
     }
+
+    #if DEBUG
+    /// The start-date editor is a streak-critical path with a real guard; the
+    /// project has no test target, so it checks itself on debug launch.
+    static func selfCheck() {
+        let s = StreakStore()
+        let record = s.recordSeconds
+
+        // Future start is refused and changes nothing.
+        let before = s.startDate
+        precondition(s.setStartDate(Date().addingTimeInterval(3600)) == false)
+        precondition(s.startDate == before, "a refused edit must not move the start")
+
+        // Backdating three days is accepted and the counter follows.
+        let threeDaysAgo = Date().addingTimeInterval(-3 * 86_400)
+        precondition(s.setStartDate(threeDaysAgo) == true)
+        precondition(Int(s.elapsed / 86_400) == 3, "elapsed should read 3 days")
+
+        // A long backdated run shows in bestRunDays without banking into the
+        // permanent record — the record only moves on a real relapse.
+        precondition(s.bestRunDays >= 3)
+        precondition(s.recordSeconds == record, "setStartDate must not touch the record")
+        print("StreakStore.selfCheck passed")
+    }
+    #endif
 }

@@ -91,6 +91,7 @@ final class PersistenceController {
         appState.persist = hook
         streak.persist = hook
         gems.persist = hook
+        streak.syncWidget()   // seed the widget on launch
     }
 
     /// Debounced save — coalesces rapid mutations into a single write.

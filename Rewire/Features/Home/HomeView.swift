@@ -19,7 +19,7 @@ struct HomeView: View {
     @State private var now = Date()
     private let offerTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    enum HomeRoute: Hashable { case setGoal, addDays, challenge }
+    enum HomeRoute: Hashable { case setGoal, editStart, challenge }
 
     /// The current run's time past its whole-day count, e.g. "19h 34m 08s".
     private var subDayRemainderText: String {
@@ -80,7 +80,7 @@ struct HomeView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .setGoal:   SetGoalView()
-                case .addDays:   AddDaysView()
+                case .editStart: EditStartView()
                 case .challenge: WeeklyChallengeView()
                 }
             }
@@ -202,14 +202,19 @@ struct HomeView: View {
                     .font(Theme.Typography.caption())
                     .foregroundStyle(Theme.Colors.textXlo)
                 Spacer()
-                Button { path.append(.addDays) } label: {
-                    Text("Add days")
+                Button { path.append(.editStart) } label: {
+                    Text("Edit start")
                         .font(Theme.Typography.caption())
                         .foregroundStyle(Theme.Colors.textLo)
                         .underline()
+                        // The 13pt link was well under the 44pt touch minimum —
+                        // pad the hit area out without moving the glyphs.
+                        .padding(.vertical, 12)
+                        .padding(.leading, 16)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
-            .padding(.top, 6)
         }
     }
 
