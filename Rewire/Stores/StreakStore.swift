@@ -32,6 +32,30 @@ final class StreakStore {
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
+    /// Push the streak primitives to the widget. Called only from the points
+    /// where the start or the record actually move — never from the per-second
+    /// `elapsed` tick, which would hammer WidgetCenter.
+    func syncWidget() {
+        WidgetBridge.publish(startDate: startDate,
+                             goalSeconds: goal.seconds,
+                             bestRunDays: bestRunDays,
+                             checkedInToday: checkedInToday,
+                             cleanDays30: cleanDays(30))
+    }
+
+    /// Last `n` days oldest→newest, true = no logged relapse that day. Same
+    /// basis as the Home morse strip, exposed for the widgets.
+    func cleanDays(_ n: Int) -> [Bool] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let relapseDays = Set(events.filter { $0.type == .relapse }
+            .map { cal.startOfDay(for: $0.date) })
+        return (0..<n).reversed().map { offset in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { return true }
+            return !relapseDays.contains(day)
+        }
+    }
+
     init(startSecondsAgo: TimeInterval = 57) {
         startDate = Date().addingTimeInterval(-startSecondsAgo)
         elapsed = startSecondsAgo
@@ -118,6 +142,7 @@ final class StreakStore {
         streaks.insert(Streak(index: nextIndex, duration: elapsed, isOngoing: false), at: 0)
         startDate = Date()
         elapsed = 0
+        syncWidget()
     }
 
     // MARK: Slip Log (flow-redesign Phase 2)
@@ -151,6 +176,7 @@ final class StreakStore {
 
         startDate = date
         elapsed = Date().timeIntervalSince(date)
+        syncWidget()
         return event
     }
 
@@ -192,6 +218,7 @@ final class StreakStore {
         if let start = event.preStartDate {
             startDate = start
             elapsed = Date().timeIntervalSince(start)
+            syncWidget()
         }
         if let rec = event.preRecordSeconds { recordSeconds = rec }
         if let bankedID = event.bankedStreakID {
@@ -252,6 +279,7 @@ final class StreakStore {
         // record — banking an unfinished run early would leave the record
         // inflated after the next relapse.
         persist?()
+        syncWidget()
         return true
     }
 
