@@ -39,6 +39,24 @@ struct StreakEntry: TimelineEntry {
     let hasData: Bool
 
     var days: Int { max(0, Int(date.timeIntervalSince(start) / 86_400)) }
+
+    // Milestone the streak is climbing toward — gives the gauges something to
+    // fill and turns a bare number into progress. Standard recovery marks.
+    private static let milestones = [1, 3, 7, 14, 30, 60, 90, 180, 365]
+
+    var nextMilestone: Int {
+        Self.milestones.first { $0 > days } ?? ((days / 365) + 1) * 365
+    }
+    private var prevMilestone: Int {
+        Self.milestones.last { $0 <= days } ?? 0
+    }
+    /// Fill within the current band (prev → next), so the ring moves meaningfully
+    /// day to day instead of crawling from zero across a whole year.
+    var milestoneProgress: Double {
+        let span = Double(nextMilestone - prevMilestone)
+        guard span > 0 else { return 1 }
+        return min(1, max(0, Double(days - prevMilestone) / span))
+    }
 }
 
 struct Provider: TimelineProvider {
@@ -112,31 +130,63 @@ struct RewireWidgetView: View {
         .containerBackground(for: .widget) { Color.rwVoid }
     }
 
-    // Lock-screen accessories are monochrome — the system tints them.
-    private var rectangular: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text("REWIRE").font(.system(size: 11, weight: .semibold)).opacity(0.7)
-            Text(entry.hasData ? "\(entry.days) day\(entry.days == 1 ? "" : "s") clean" : "Open to start")
-                .font(.system(size: 20, weight: .light))
+    // Lock-screen accessories are monochrome — the system tints them, so the
+    // interest is form, not colour. The RonLab move is the instrument: a ticked
+    // radial dial (Gauge renders it natively) filling toward the next milestone,
+    // day count as the thin hero numeral in the centre.
+
+    private var circular: some View {
+        Group {
             if entry.hasData {
-                Text("best \(entry.bestDays)").font(.system(size: 12)).opacity(0.7)
+                Gauge(value: entry.milestoneProgress) {
+                    Text("d")
+                } currentValueLabel: {
+                    Text("\(entry.days)").font(.system(size: 20, weight: .light))
+                }
+                .gaugeStyle(.accessoryCircular)
+            } else {
+                Image(systemName: "circle.dashed")
+            }
+        }
+        .containerBackground(for: .widget) { Color.clear }
+    }
+
+    private var rectangular: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                BrandDots(size: 11)
+                Text("REWIRE").font(.system(size: 11, weight: .semibold)).opacity(0.6)
+                Spacer(minLength: 0)
+                if entry.hasData {
+                    Text("→ \(entry.nextMilestone)d").font(.system(size: 11)).opacity(0.6)
+                }
+            }
+            if entry.hasData {
+                HStack(alignment: .lastTextBaseline, spacing: 3) {
+                    Text("\(entry.days)").font(.system(size: 24, weight: .light))
+                    Text(entry.days == 1 ? "day clean" : "days clean")
+                        .font(.system(size: 13)).opacity(0.7)
+                }
+                // Ruler-style capacity gauge = the tick instrument, filling
+                // toward the next milestone shown in the header.
+                Gauge(value: entry.milestoneProgress) { EmptyView() }
+                    .gaugeStyle(.accessoryLinearCapacity)
+            } else {
+                Text("Open Rewire to start").font(.system(size: 15, weight: .light))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .containerBackground(for: .widget) { Color.clear }
     }
 
-    private var circular: some View {
-        VStack(spacing: -2) {
-            Text("\(entry.days)").font(.system(size: 22, weight: .light))
-            Text("days").font(.system(size: 9))
+    private var inline: some View {
+        // Inline shows next to the clock — one glanceable line with a symbol.
+        Label {
+            Text(entry.hasData ? "\(entry.days)d clean · \(entry.nextMilestone)d next" : "Rewire")
+        } icon: {
+            Image(systemName: "flame")
         }
         .containerBackground(for: .widget) { Color.clear }
-    }
-
-    private var inline: some View {
-        Text(entry.hasData ? "\(entry.days) days clean" : "Rewire")
-            .containerBackground(for: .widget) { Color.clear }
     }
 }
 
