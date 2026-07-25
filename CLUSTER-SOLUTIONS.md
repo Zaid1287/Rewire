@@ -42,7 +42,7 @@ _Source: competitor (No Nut) review analysis — 1,040 reviews across 14 cluster
 | Solution | Why (demand) | PR | Status |
 |---|---|---|---|
 | **Edit / backdate streak start** — set the start to any exact past date & time, with a live preview of the resulting streak | "won't let me change my start day and time"; "just a counter and being able to adjust it for a date in the past"; "if you relapse but forgot to adjust it, you can only reset completely" | [#4](https://github.com/Zaid1287/Rewire/pull/4) | 🟡 |
-| **Home & Lock Screen widget** — streak on the home/lock screen | 6+ 5★ reviews rave about the competitor's widget ("I keep looking at it and feeling proud"; "see my progress every time I see my Lock Screen"). Rewire has none. Pure strength-cluster demand + a daily retention touchpoint. | _in progress_ | ⚪ |
+| **Home & Lock Screen widget** — streak on the home/lock screen | 6+ 5★ reviews rave about the competitor's widget ("I keep looking at it and feeling proud"; "see my progress every time I see my Lock Screen"). Rewire had none. Pure strength-cluster demand + a daily retention touchpoint. | [#5](https://github.com/Zaid1287/Rewire/pull/5) | 🟡 |
 
 **Already solved (no work needed):** browsing past journal / daily entries — the competitor's "no way to view daily journal entries" is already handled by Rewire's Statistics → Daily reports list.
 
