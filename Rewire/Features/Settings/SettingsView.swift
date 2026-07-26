@@ -90,7 +90,7 @@ struct SettingsView: View {
                 PaywallSheet().presentationDetents([.large])
             }
             .sheet(isPresented: $showReminders) {
-                ReminderSettingsView().presentationDetents([.medium])
+                ReminderSettingsView().presentationDetents([.large])
             }
             .sheet(isPresented: $showFaceIDSettings) {
                 FaceIDSettingsView().presentationDetents([.medium])

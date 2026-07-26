@@ -13,6 +13,7 @@ struct RewireApp: App {
         #if DEBUG
         // No test target; streak-critical logic checks itself on debug launch.
         StreakStore.selfCheck()
+        ReminderScheduler.selfCheck()
         #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(
@@ -41,6 +42,9 @@ struct RewireApp: App {
                     // wiring it now means S2 is extension-side only.
                     streakStore.ingestShieldEvents()
                     shieldController.refreshAuth()
+                    // Motivation reminders are dated one-shots, not a repeating
+                    // trigger — the 7-day batch has to be re-planned or it runs dry.
+                    appState.refreshMotivationReminders()
                     if ShieldEventStore.pendingReshield {
                         shieldController.apply()
                         ShieldEventStore.pendingReshield = false

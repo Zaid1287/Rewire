@@ -143,7 +143,7 @@ struct MyShieldView: View {
             NavigationStack { GuardSetupView() }
         }
         .sheet(isPresented: $showReminders) {
-            ReminderSettingsView().presentationDetents([.medium])
+            ReminderSettingsView().presentationDetents([.large])
         }
         .sheet(isPresented: $showMotivations) {
             MotivationsView().presentationDetents([.large])

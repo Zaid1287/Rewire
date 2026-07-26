@@ -50,5 +50,47 @@ _Source: competitor (No Nut) review analysis — 1,040 reviews across 14 cluster
 
 ---
 
+## Cluster: Personalized Motivation & Reminders
+**Type:** Strength — second-highest volume in the dataset (124 mentions, 11.9% of reviews, 4.53 avg, 75% 5★, 5.6% 1–2★). The sheet's own read: *"Strength — customers love this job. Protect."* Job: deepen what fans already love.
+**Loudest praise, in a reviewer's own words:** *"I particularly like that you can put in your own motivations and your phone will randomly give them as notifications throughout the day keeping you in this conscious mindset."*
+
+| Solution | Why (demand) | PR | Status |
+|---|---|---|---|
+| **Motivation reminders** — the user's own "why I quit" notes pushed back at them 1–5× a day at unpredictable times inside a 9:00–21:00 window | The quote above is the single most specific praise in the cluster. Reinforced by "with the daily reminders it makes my urges less and less stronger each day"; "I love the daily reminders and goal setting. It keeps me motivated"; "the daily motivation notifications"; "erinnert einen oft daran wofür man das ganze macht" (reminds you often what you're doing it all for). | — | ⚪ built, not yet raised |
+
+**The gap it closes:** Rewire already stored motivations (Toolkit → My Motivations) and already had a notification pipeline — but the two were never connected. The single daily reminder sent the same fixed string forever ("Stay on track / Check in with your streak today"), and the motivations list was a screen nobody reopened. The competitor's most-praised mechanic was the wiring between them.
+
+**Design calls:**
+- **Their words, verbatim.** The notification body is the user's own motivation text; the title is a fixed "Remember why". No generic quote packs — the differentiated thing is that it's *theirs*.
+- **Unpredictable, not random-feeling-random.** Slots are evenly spaced across the window then jittered, and the rotation starts at a random offset so the same "why" isn't forever the 9am one. Clockwork is what people tune out.
+- **Never overnight.** Fixed 9:00–21:00 window, stated in the UI.
+- **Off by default, and impossible to enable empty.** The toggle is disabled until at least one motivation exists — otherwise it would silently schedule nothing and look broken. Deleting the last motivation cancels the batch but leaves the toggle on, so it resumes the moment a new one is written.
+- **Independent of the daily check-in reminder.** Separate toggle, separate identifiers — turning one off never silences the other.
+
+**Against a bug the competitor actually shipped:** one of their reviewers wrote *"My remember now just says reminder body 1,2 etc. please fix this."* — placeholder strings reaching production notifications. The scheduler's pure planner is split out from the `UNUserNotificationCenter` I/O so a debug-launch self-check can assert every body is a real, non-empty user motivation, that nothing fires outside the window or in the past, that ids are unique and cancellable, and that the batch stays under the iOS 64-pending cap.
+
+**Verified in the Simulator:** self-check asserts pass on launch, the section gates correctly on an empty motivations list, the toggle requests permission and persists, the 1–5 stepper clamps and persists, and state survives reinstall. Notification *delivery* itself is Apple's local-notification path — no physical-device caveat here, unlike the blocker work.
+
+---
+
+## Cluster: Paywall / Pricing & Monetization
+**Type:** Kill-zone — the biggest churn driver across every competitor (No Nut 53 mentions, 2.4 avg; QUITTR 38% of reviews at 1.2 avg; Seed 23% at 1.3; Brainbuddy 15% at 1.6). Job: don't become them.
+**Audited 2026-07-26, nothing shipped yet.** Full work order: [PAYWALL-CLUSTER.md](PAYWALL-CLUSTER.md).
+
+| Solution | Why (demand) | PR | Status |
+|---|---|---|---|
+| **Real StoreKit restore** — "Restore Purchase" currently grants premium to anyone who taps it, no receipt check | Free-trial / billing-trap theme, 3–5% of competitor reviews at 1.3–1.6 avg; Seed's broken restore is a named 1★ cause | — | ⚪ |
+| **One trial policy, stated once** — the sheet says "no auto-charging trial", onboarding sells a 7-day one; post-trial price never shown on the CTA | Same billing-trap theme; also an Apple disclosure requirement | — | ⚪ |
+| **Drop the fake urgency** — a 6-min "special offer" clock paints a red notification dot on the gift icon, and the gift opens the gem chest, not an offer | "Paywall aggression" theme; artificial scarcity is the pattern the 1★ reviews punish | — | ⚪ |
+| **Un-monetize the crisis** — surviving an urge pays free users 25 gems vs premium's 150, plus a "See Premium" card in the post-crisis debrief | Reddit gap table names "upsell inside crisis moment" as a risk with "remove paywall from the panic path" as the action | — | ⚪ |
+| **Drop unsubstantiated claims** — "#1 Quit Porn Addiction App" plus fabricated testimonials on the onboarding paywall | App Store 1.4.1 / 2.3.1 / 3.1.2 exposure; not demand-driven, submission-driven | — | ⚪ |
+| **Make the paywall true** — no feature in the app is actually gated, yet both paywalls sell eight free features as premium (including the blocker) | This *is* the parked "blocker-behind-paywall" item (28 reviews) — it was a symptom, not a copy fix | — | 🔴 blocked on the free/premium decision |
+
+**Decision needed from the lead:** what Premium actually is — supporter tier (everything stays free), free core + paid depth, or real gates matching today's claims. Trade-offs in [PAYWALL-CLUSTER.md](PAYWALL-CLUSTER.md#open-decision-what-premium-actually-is). The first five rows above are independent of that call and could ship as one PR.
+
+**Also unresolved:** prices are hardcoded ₹ with no StoreKit products behind them, so every non-India storefront sees rupees.
+
+---
+
 ## Cross-cutting: not a cluster, flagged for the lead
 - **Feedback-to-Slack system** (lead request): needs a backend — a Slack token can't ship in the app, replies arrive by webhook, and the user↔thread map must persist server-side. Also conflicts with the current privacy policy + App Store data label, and feedback in a recovery app is GDPR special-category data. Recommend scoping as its own project with the policy/manifest updates in the same release.

@@ -55,6 +55,11 @@ struct AppSnapshot: Codable {
     /// Purchased plan title. Optional with a default so snapshots written
     /// before this field existed still decode.
     var premiumPlan: String? = nil
+
+    // AppState — motivation reminders. Optional with defaults so snapshots
+    // written before these fields existed still decode.
+    var motivationRemindersEnabled: Bool? = nil
+    var motivationsPerDay: Int? = nil
 }
 
 /// Lightweight synchronous JSON persistence. `PersistenceController.shared`
@@ -131,7 +136,9 @@ final class PersistenceController {
             currentLevel: gems.currentLevel,
             offerDeadline: gems.offerDeadline,
             achievements: gems.achievements,
-            premiumPlan: gems.premiumPlan
+            premiumPlan: gems.premiumPlan,
+            motivationRemindersEnabled: appState.motivationRemindersEnabled,
+            motivationsPerDay: appState.motivationsPerDay
         )
     }
 
