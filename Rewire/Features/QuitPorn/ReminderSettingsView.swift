@@ -17,54 +17,9 @@ struct ReminderSettingsView: View {
             SheetChrome(title: "Daily Reminder")
 
             VStack(spacing: Theme.Spacing.sm) {
-                HStack {
-                    Text("Remind me daily")
-                        .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Spacer()
-                    Toggle("", isOn: $enabled)
-                        .labelsHidden()
-                        .tint(Theme.Colors.good)
-                        .onChange(of: enabled) { _, newValue in toggleChanged(newValue) }
-                }
-                .padding(Theme.Spacing.md)
-                .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-
-                if enabled {
-                    HStack {
-                        Text("Time")
-                            .font(Theme.Typography.body())
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                        Spacer()
-                        DatePicker("", selection: $time, displayedComponents: .hourAndMinute)
-                            .labelsHidden()
-                            .datePickerStyle(.compact)
-                            .colorScheme(.dark)
-                            .onChange(of: time) { _, newValue in reschedule(newValue) }
-                    }
-                    .padding(Theme.Spacing.md)
-                    .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-                }
-
+                dailySection
                 motivationSection
-
-                if permissionDenied {
-                    VStack(spacing: Theme.Spacing.sm) {
-                        Text("Notifications are disabled for Rewire")
-                            .font(Theme.Typography.body())
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                            .multilineTextAlignment(.center)
-                        Button("Open Settings") {
-                            Haptics.tap()
-                            ReminderScheduler.openSystemSettings()
-                        }
-                        .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.good)
-                    }
-                    .padding(Theme.Spacing.md)
-                    .frame(maxWidth: .infinity)
-                    .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-                }
+                if permissionDenied { permissionCard }
             }
             .screenPadding()
 
@@ -75,66 +30,133 @@ struct ReminderSettingsView: View {
         .onAppear(perform: onAppear)
     }
 
+    // MARK: Daily check-in reminder
+
+    private var dailySection: some View {
+        VStack(spacing: Theme.Spacing.md) {
+            HStack {
+                Text("Remind me daily")
+                    .font(Theme.Typography.cardTitle())
+                    .foregroundStyle(Theme.Colors.textHi)
+                Spacer()
+                GlassSwitch(isOn: $enabled)
+                    .onChange(of: enabled) { _, newValue in toggleChanged(newValue) }
+            }
+
+            if enabled {
+                RowDivider(inset: 0)
+                HStack {
+                    Text("Time:")
+                        .font(Theme.Typography.label())
+                        .foregroundStyle(Theme.Colors.textLo)
+                    Spacer()
+                    DatePicker("", selection: $time, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                        .datePickerStyle(.compact)
+                        .colorScheme(.dark)
+                        .onChange(of: time) { _, newValue in reschedule(newValue) }
+                }
+            }
+        }
+        .padding(Theme.Spacing.lg)
+        .smokedGlass(radius: Theme.Radius.glass)
+        .animation(Theme.Motion.enter, value: enabled)
+    }
+
     // MARK: Motivation reminders
 
     /// The differentiated half of this screen: their own words, back at them,
     /// at unpredictable times. Disabled until there's at least one motivation
     /// to send — an empty list would otherwise silently schedule nothing.
+    ///
+    /// Family A treatment: smoked glass over the Void scene, a butter glow
+    /// behind the card once it's armed (the state tint is light behind the
+    /// glass, never a tinted fill), and the frequency set on a tick ruler
+    /// instead of a system stepper.
     @ViewBuilder private var motivationSection: some View {
         let hasMotivations = !appState.motivations.isEmpty
+        let isArmed = motivationsOn && hasMotivations
 
-        VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+        VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Remind me why")
-                        .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.textPrimary)
+                        .font(Theme.Typography.cardTitle())
+                        .foregroundStyle(Theme.Colors.textHi)
                     Text(hasMotivations
                          ? "Your own motivations, at random times through the day."
                          : "Add a motivation first — these send your own words back to you.")
                         .font(Theme.Typography.caption())
-                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .foregroundStyle(Theme.Colors.textXlo)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: Theme.Spacing.sm)
-                Toggle("", isOn: $motivationsOn)
-                    .labelsHidden()
-                    .tint(Theme.Colors.good)
-                    .disabled(!hasMotivations)
+                GlassSwitch(isOn: $motivationsOn, isEnabled: hasMotivations)
                     .onChange(of: motivationsOn) { _, newValue in motivationsToggled(newValue) }
             }
 
-            if motivationsOn && hasMotivations {
+            if isArmed {
                 RowDivider(inset: 0)
-                HStack {
-                    Text("How many a day")
-                        .font(Theme.Typography.body())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    Spacer()
-                    // The count is its own Text: `.labelsHidden()` is what keeps
-                    // the stepper from rendering a second, stretched label, and
-                    // it would hide the number too if it lived inside.
-                    Text("\(appState.motivationsPerDay)")
-                        .font(Theme.Typography.bodyMedium())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .monospacedDigit()
-                        .padding(.trailing, Theme.Spacing.sm)
-                    Stepper("Motivation reminders per day", value: Binding(
+
+                Text("How often:")
+                    .font(Theme.Typography.label())
+                    .foregroundStyle(Theme.Colors.textLo)
+
+                TickCountPicker(
+                    value: Binding(
                         get: { appState.motivationsPerDay },
                         set: { appState.setMotivationReminders(enabled: true, perDay: $0) }
-                    ), in: ReminderScheduler.motivationRange)
-                    .labelsHidden()
-                    .fixedSize()
+                    ),
+                    range: ReminderScheduler.motivationRange,
+                    unit: "a day")
+
+                HStack(spacing: 6) {
+                    Text("Window:")
+                        .foregroundStyle(Theme.Colors.textLo)
+                    Text("\(ReminderScheduler.motivationWindow.start):00 — \(ReminderScheduler.motivationWindow.end):00")
+                        .foregroundStyle(Theme.Colors.textHi)
+                    Text("· never overnight")
+                        .foregroundStyle(Theme.Colors.textXlo)
                 }
-                Text("Between \(ReminderScheduler.motivationWindow.start):00 and \(ReminderScheduler.motivationWindow.end):00 — never overnight.")
-                    .font(Theme.Typography.caption())
-                    .foregroundStyle(Theme.Colors.textTertiary)
+                .font(Theme.Typography.caption())
             }
         }
-        .padding(Theme.Spacing.md)
-        .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
-        .opacity(hasMotivations ? 1 : 0.6)
-        .animation(Theme.Motion.enter, value: motivationsOn)
+        .padding(Theme.Spacing.lg)
+        // State tint = a glow that BLEEDS past one corner of the glass. A glow
+        // sized to the card just washes the whole fill yellow through the
+        // material, which is the tinted-fill anti-pattern wearing a blur.
+        .background(alignment: .topTrailing) {
+            Circle()
+                .fill(Theme.Colors.butter)
+                .frame(width: 150, height: 150)
+                .blur(radius: 70)
+                .offset(x: 60, y: -50)
+                .opacity(isArmed ? 0.30 : 0)
+                .allowsHitTesting(false)
+        }
+        .smokedGlass(radius: Theme.Radius.glass)
+        .opacity(hasMotivations ? 1 : 0.55)
+        .animation(Theme.Motion.enter, value: isArmed)
+    }
+
+    // MARK: Permission fallback
+
+    private var permissionCard: some View {
+        VStack(spacing: Theme.Spacing.sm) {
+            Text("Notifications are off for Rewire")
+                .font(Theme.Typography.cardTitle())
+                .foregroundStyle(Theme.Colors.textHi)
+                .multilineTextAlignment(.center)
+            Button("Open Settings") {
+                Haptics.tap()
+                ReminderScheduler.openSystemSettings()
+            }
+            .font(Theme.Typography.subtitle())
+            .foregroundStyle(Theme.Colors.butter)
+        }
+        .padding(Theme.Spacing.lg)
+        .frame(maxWidth: .infinity)
+        .smokedGlass(radius: Theme.Radius.glass)
     }
 
     private func motivationsToggled(_ newValue: Bool) {
