@@ -56,7 +56,7 @@ _Source: competitor (No Nut) review analysis — 1,040 reviews across 14 cluster
 
 | Solution | Why (demand) | PR | Status |
 |---|---|---|---|
-| **Motivation reminders** — the user's own "why I quit" notes pushed back at them 1–5× a day at unpredictable times inside a 9:00–21:00 window | The quote above is the single most specific praise in the cluster. Reinforced by "with the daily reminders it makes my urges less and less stronger each day"; "I love the daily reminders and goal setting. It keeps me motivated"; "the daily motivation notifications"; "erinnert einen oft daran wofür man das ganze macht" (reminds you often what you're doing it all for). | — | ⚪ built, not yet raised |
+| **Motivation reminders** — the user's own "why I quit" notes pushed back at them 1–5× a day at unpredictable times inside a 9:00–21:00 window | The quote above is the single most specific praise in the cluster. Reinforced by "with the daily reminders it makes my urges less and less stronger each day"; "I love the daily reminders and goal setting. It keeps me motivated"; "the daily motivation notifications"; "erinnert einen oft daran wofür man das ganze macht" (reminds you often what you're doing it all for). | [#7](https://github.com/Zaid1287/Rewire/pull/7) | 🟡 |
 
 **The gap it closes:** Rewire already stored motivations (Toolkit → My Motivations) and already had a notification pipeline — but the two were never connected. The single daily reminder sent the same fixed string forever ("Stay on track / Check in with your streak today"), and the motivations list was a screen nobody reopened. The competitor's most-praised mechanic was the wiring between them.
 
