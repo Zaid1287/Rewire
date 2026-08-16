@@ -1,8 +1,10 @@
 import SwiftUI
 
 /// Post-quiz multipage paywall (Zaid, Jul 16). Fires right after the score
-/// reveal — peak motivation — and pitches across three swipeable pages:
-/// 1. the personalized plan (score-aware), 2. social proof, 3. plans.
+/// reveal — peak motivation — and pitches across two swipeable pages:
+/// 1. the personalized plan (score-aware), 2. plans. (A fabricated "social
+/// proof" page with a "#1 app" claim + invented testimonials was cut — App
+/// Store 1.4.1/2.3.1 risk and dishonest before the app has shipped.)
 ///
 /// Deliberately SOFT, unlike QUITTR's (their #1 complaint source, 70% 1★):
 /// skippable from page one via the X, an explicit "Continue with free version"
@@ -19,7 +21,7 @@ struct OnboardingPaywallView: View {
     /// Annual preselected — the trial carrier and the anchor.
     @State private var selectedPlan: Plan = SampleData.plans[1]
 
-    private var isLastPage: Bool { page == 2 }
+    private var isLastPage: Bool { page == 1 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -27,8 +29,7 @@ struct OnboardingPaywallView: View {
 
             TabView(selection: $page) {
                 planReadyPage.tag(0)
-                proofPage.tag(1)
-                plansPage.tag(2)
+                plansPage.tag(1)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .animation(Theme.Motion.enter, value: page)
@@ -45,7 +46,7 @@ struct OnboardingPaywallView: View {
         HStack {
             // Custom dots (the system page indicator is invisible on dark).
             HStack(spacing: 6) {
-                ForEach(0..<3, id: \.self) { i in
+                ForEach(0..<2, id: \.self) { i in
                     Capsule()
                         .fill(i == page ? Theme.Colors.butter : Theme.Colors.surface3)
                         .frame(width: i == page ? 24 : 14, height: 5)
@@ -183,33 +184,7 @@ struct OnboardingPaywallView: View {
         .padding(Theme.Spacing.md)
     }
 
-    // MARK: Page 2 — proof
-
-    private var proofPage: some View {
-        ScrollView {
-            VStack(spacing: Theme.Spacing.lg) {
-                VStack(spacing: Theme.Spacing.xs) {
-                    Text("🏆")
-                        .font(.system(size: 44))
-                    Text("It works. They'll tell you.")
-                        .font(Theme.Typography.title())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                        .multilineTextAlignment(.center)
-                    Text("#1 Quit Porn Addiction App")
-                        .font(Theme.Typography.subtitle())
-                        .foregroundStyle(Theme.Colors.textSecondary)
-                }
-
-                ForEach(SampleData.quoteTestimonials.prefix(3)) { quote in
-                    TestimonialQuoteCard(item: quote)
-                }
-            }
-            .screenPadding()
-            .padding(.top, Theme.Spacing.lg)
-        }
-    }
-
-    // MARK: Page 3 — plans
+    // MARK: Page 2 — plans
 
     private var plansPage: some View {
         ScrollView {

@@ -100,8 +100,8 @@ struct SettingsView: View {
             }
             .rewireAlert(isPresented: showRestoredAlert) {
                 RewireAlert(
-                    title: "Purchases Restored",
-                    message: "Your premium access has been restored.",
+                    title: "Nothing to Restore",
+                    message: "We couldn't find a previous purchase on this Apple ID.",
                     confirmTitle: "OK",
                     confirmIsDestructive: false,
                     onCancel: { showRestoredAlert = false },
@@ -113,8 +113,10 @@ struct SettingsView: View {
     }
 
     private func restorePurchase() {
-        gems.unlockPremium(plan: "1 year")   // mock restore — real plan comes with StoreKit
-        Haptics.success()
+        // No StoreKit yet — restore must never grant premium for free. Real
+        // AppStore.sync() + Transaction.currentEntitlements lands with StoreKit;
+        // until then this is honestly a no-op with a "nothing to restore" notice.
+        Haptics.tap()
         showRestoredAlert = true
     }
 

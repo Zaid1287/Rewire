@@ -34,25 +34,6 @@ enum SampleData {
                         name: "Gareth", isRight: true)
     ]
 
-    // MARK: Quote testimonials (IMG_5436)
-    static let quoteTestimonials: [QuoteTestimonial] = [
-        QuoteTestimonial(title: "Massive boost in confidence 💯",
-                         body: "My confidence is back, and people notice. Girls at school keep complimenting me and I'm loving it.",
-                         name: "Gareth", daysClean: 55),
-        QuoteTestimonial(title: "Women find reasons to touch me. It's crazy! 🔥",
-                         body: "Women hold eye contact, smile, move closer, and touch me for no reason. It's crazy and proof that I've changed.",
-                         name: "Eric", daysClean: 41),
-        QuoteTestimonial(title: "Fully cured sexual health 🔥",
-                         body: "After 30 days Rewire streak, I feel fully cured. Sex is incredible, erections stronger than ever, and my control is on another level. The sensation is unreal. Thank you so much 🙏",
-                         name: "Louis", daysClean: 30),
-        QuoteTestimonial(title: "My social skills are back 🤝",
-                         body: "Since quitting porn, every smile feels genuine and full of life. People, especially women feel it too.",
-                         name: "Robert", daysClean: 17),
-        QuoteTestimonial(title: "My daily energy is unstoppable ⚡️",
-                         body: "Even with 5 hours of sleep, I feel unstoppable. My lifts are heavier and my head is clear all day.",
-                         name: "James", daysClean: 12)
-    ]
-
     // MARK: Comparison (IMG_5434)
     static let withoutPoints: [ComparisonPoint] = [
         .init(text: "Get stuck in a relapse loop"),
