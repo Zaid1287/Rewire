@@ -3,11 +3,9 @@ import SwiftUI
 /// 21-day Personal Plan (Quit Porn → "21-day Personal Plan"): a day-by-day
 /// checklist for quitting porn. No dedicated screenshot, so this follows the
 /// WeeklyChallengeView push idiom — header, progress bar, then tappable rows.
-/// Days can be completed in any order; completing awards 10 gems (once, not
-/// on uncomplete).
+/// Days can be completed in any order.
 struct PersonalPlanView: View {
     @Environment(StreakStore.self) private var streak
-    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
 
     private let days = SampleData.personalPlan
@@ -60,14 +58,12 @@ struct PersonalPlanView: View {
         .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
         .contentShape(Rectangle())
         .onTapGesture {
-            let wasIncomplete = !isDone
             Haptics.success()
             streak.togglePlanDay(day.day)
-            if wasIncomplete { gems.award(10) }
         }
     }
 }
 
 #Preview {
-    PersonalPlanView().environment(StreakStore()).environment(GemStore())
+    PersonalPlanView().environment(StreakStore())
 }

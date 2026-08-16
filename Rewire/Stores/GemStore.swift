@@ -1,13 +1,10 @@
 import SwiftUI
 
-/// Gamification currency shown in the top-right pill across the app
-/// (gems + coins). Onboarding awards gems as the quiz progresses (100 → 750).
-/// Also holds the small pieces of recovery progress (claimed badges, liked
-/// superpowers, current level) — one gamification store rather than three.
+/// Recovery progress and premium state (claimed badges, liked superpowers,
+/// achievements, subscription) — no longer a currency store; levels are
+/// earned from real clean time (see SampleData.level(forDays:)), not bought.
 @Observable
 final class GemStore {
-    var gems: Int = 750 { didSet { persist?() } }     // ends onboarding at 750 per the Home header
-    var coins: Int = 0 { didSet { persist?() } }
     /// Whether the premium subscription is unlocked.
     private(set) var isPremium: Bool = false { didSet { persist?() } }
 
@@ -21,8 +18,6 @@ final class GemStore {
     /// Recovery progress. Stable keys: badge `title`, superpower `title`.
     private(set) var claimedBadges: Set<String> = [] { didSet { persist?() } }
     private(set) var likedSuperpowers: Set<String> = [] { didSet { persist?() } }
-    /// Current level rank (see SampleData.levels — stable Int, never regenerated).
-    private(set) var currentLevel: Int = 1 { didSet { persist?() } }
 
     /// One-time special-offer deadline — set on first Home visit, never reset.
     /// The Home banner shows while `Date() < offerDeadline`.
@@ -35,37 +30,6 @@ final class GemStore {
 
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
-
-    // MARK: Gems
-
-    func award(_ amount: Int) {
-        withAnimation(Theme.Motion.emphasized) {
-            gems += amount
-        }
-    }
-
-    /// Spend gems. Returns false (no-op) when the balance can't cover it.
-    @discardableResult
-    func spend(_ amount: Int) -> Bool {
-        guard gems >= amount else { return false }
-        gems -= amount
-        return true
-    }
-
-    // MARK: Coins
-
-    func awardCoins(_ amount: Int) {
-        withAnimation(Theme.Motion.emphasized) {
-            coins += amount
-        }
-    }
-
-    @discardableResult
-    func spendCoins(_ amount: Int) -> Bool {
-        guard coins >= amount else { return false }
-        coins -= amount
-        return true
-    }
 
     // MARK: Premium
 
@@ -91,20 +55,15 @@ final class GemStore {
         else { likedSuperpowers.insert(key) }
     }
 
-    func advanceLevel() { currentLevel += 1 }
-
     /// Record a one-off achievement. No-op if already recorded.
     func recordAchievement(_ key: String) { achievements.insert(key) }
 
     // MARK: Persistence
 
     func restore(from s: AppSnapshot) {
-        gems = s.gems
-        coins = s.coins
         isPremium = s.isPremium
         claimedBadges = s.claimedBadges
         likedSuperpowers = s.likedSuperpowers
-        currentLevel = s.currentLevel
         offerDeadline = s.offerDeadline
         achievements = s.achievements ?? []
         premiumPlan = s.premiumPlan

@@ -8,9 +8,6 @@ struct OnboardingFlow: View {
     @State private var step: Step = .hero
     @State private var quizIndex = 0
 
-    /// Gem totals shown in the quiz header per question (IMG_5428–5431).
-    private let quizGems = [100, 150, 250, 350]
-
     /// Funnel (flow-redesign Phase 5 + paywall, Jul 16): hero → social proof →
     /// quiz → score → PAYWALL (soft, multipage, skippable) → comparison →
     /// commit → welcome. The paywall fires at peak motivation (right after the
@@ -59,7 +56,6 @@ struct OnboardingFlow: View {
         return QuestionScaffold(
             showsBack: quizIndex > 0,
             onBack: { withAnimation(Theme.Motion.standard) { quizIndex -= 1 } },
-            gemCount: quizGems[min(quizIndex, quizGems.count - 1)],
             progress: quizIndex == 0 ? nil : Double(quizIndex) / Double(SampleData.quizQuestions.count),
             question: q.prompt
         ) {

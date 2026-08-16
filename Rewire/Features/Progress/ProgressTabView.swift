@@ -150,7 +150,7 @@ struct ProgressTabView: View {
                 collectionCard(icon: "trophy", iconColor: Theme.Colors.textLo,
                                title: "Levels",
                                badge: nil,
-                               value: SampleData.levels.first(where: { $0.rank == gems.currentLevel })?.name ?? "Newcomer",
+                               value: SampleData.level(forDays: streak.bestRunDays).name,
                                unit: nil) {
                     path.append(.levels)
                 }

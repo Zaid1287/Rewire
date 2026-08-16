@@ -82,7 +82,7 @@ struct SettingsView: View {
             }
             // Floating glass header — content scrolls underneath.
             .safeAreaInset(edge: .top) {
-                NavHeader(title: "Settings") { CoinPill(count: gems.coins) }
+                NavHeader(title: "Settings")
                     .background { TopFadeScrim() }
             }
             .toolbar(.hidden, for: .navigationBar)

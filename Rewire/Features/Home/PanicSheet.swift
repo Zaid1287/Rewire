@@ -2,9 +2,9 @@ import SwiftUI
 
 /// Panic Button (flow-redesign Phase 3, plan §5 + decision #2).
 /// The crisis tool is FREE for every user — guided breathing, urge timer,
-/// rotating encouragement, and the "I'm Safe Now" exit. Premium extends it
-/// with per-minute scaled rewards. There is NO upsell anywhere in the crisis path — the only
-/// premium pitch lives in the post-crisis debrief, after the user is safe.
+/// rotating encouragement, and the "I'm Safe Now" exit. There is NO upsell
+/// anywhere in the crisis path — the only premium pitch lives in the
+/// post-crisis debrief, after the user is safe.
 struct PanicSheet: View {
     @Environment(GemStore.self) private var gems
 
@@ -20,10 +20,11 @@ struct PanicSheet: View {
 }
 
 /// The panic tool: breathing + urge timer, ending in a post-crisis debrief.
-/// Riding out the urge pays a gem reward — flat for free, per-minute for
-/// premium.
+/// Surviving the urge logs a resisted-urge event — the user's evidence they
+/// can say no.
 struct PanicModeView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(StreakStore.self) private var streak
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
@@ -40,7 +41,6 @@ struct PanicModeView: View {
     /// 0→1 across the current breath phase; drives the dial sweep. Animated
     /// directly (the 1s timer is too coarse to read as motion).
     @State private var ringFill: Double = 0
-    @State private var earned = 0
     @State private var whatHelped: String?
     @State private var showPaywall = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -133,11 +133,6 @@ struct PanicModeView: View {
     }
 
     private var minutesRidden: Int { max(1, elapsed / 60) }
-    /// Premium rides the wave: +10 gems per minute held, capped at the 15-min
-    /// wave end. Free keeps the flat reward.
-    private var rewardIfSafeNow: Int {
-        gems.isPremium ? min(150, minutesRidden * 10) : 25
-    }
 
     var body: some View {
         ZStack {
@@ -200,12 +195,6 @@ struct PanicModeView: View {
             // only instrument on screen.
             breathingCircle
 
-            if gems.isPremium {
-                Text("💎 +10 gems for every minute you hold")
-                    .font(Theme.Typography.bodyMedium())
-                    .foregroundStyle(Theme.Colors.butter)
-            }
-
             // .id + .transition drive the crossfade — a bare .animation on a
             // Text can't animate a string swap (not animatable), it just snaps.
             ZStack {
@@ -226,8 +215,7 @@ struct PanicModeView: View {
             // first two full breath cycles. In panic mode (full screen,
             // no swipe-to-dismiss) this button is the only way out, by design.
             PrimaryButton(title: safeButtonTitle, trailingEmoji: canFinish ? "💪" : nil) {
-                earned = rewardIfSafeNow
-                gems.award(earned)
+                streak.logResisted()
                 gems.recordAchievement("breathing")
                 Haptics.success()
                 Analytics.capture("panic_survived")   // duration stays private
@@ -310,10 +298,6 @@ struct PanicModeView: View {
             }
             .screenPadding()
 
-            Text("💎 +\(earned) gems earned")
-                .font(Theme.Typography.headline())
-                .foregroundStyle(Theme.Colors.butter)
-
             ChipGroup(title: "What helped most?",
                       options: ["Breathing", "My motivations", "The urge timer"],
                       selection: $whatHelped)
@@ -324,7 +308,7 @@ struct PanicModeView: View {
                     Text("Go further next time")
                         .font(Theme.Typography.headline())
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Per-minute rewards and slip-pattern insights — in Rewire Premium.")
+                    Text("Deeper recovery tools and insights — in Rewire Premium.")
                         .font(Theme.Typography.subtitle())
                         .foregroundStyle(Theme.Colors.textSecondary)
                     PrimaryButton(title: "See Premium") { showPaywall = true }
@@ -359,4 +343,4 @@ struct PanicModeView: View {
     }
 }
 
-#Preview { PanicSheet().environment(GemStore()).environment(AppState()) }
+#Preview { PanicSheet().environment(GemStore()).environment(StreakStore()).environment(AppState()) }

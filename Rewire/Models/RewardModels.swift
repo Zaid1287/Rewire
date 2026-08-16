@@ -9,13 +9,12 @@ struct Badge: Identifiable {
     let state: State
 }
 
-/// A level tier (Recovery → Levels).
+/// A level tier (Recovery → Levels). Earned from real clean days, not bought.
 struct Level: Identifiable {
     let id = UUID()
     let rank: Int
     let name: String
-    let gemCost: Int?          // nil ⇒ current level ("You are here")
-    let isCurrent: Bool
+    let dayThreshold: Int      // clean days required to reach this level
 }
 
 /// A feature-hub row (Quit Porn tab, Recovery "make streaks easier").

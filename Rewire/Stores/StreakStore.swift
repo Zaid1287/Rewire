@@ -94,7 +94,7 @@ final class StreakStore {
     var currentRunDays: Int { Int(elapsed / 86_400) }
 
     /// True once a clean check-in has been logged today. Gates the daily ritual
-    /// so it can't be spammed for repeat gems / duplicate reports.
+    /// so it can't be spammed for duplicate reports.
     var checkedInToday: Bool {
         reports.contains { !$0.relapsed && Calendar.current.isDateInToday($0.date) }
     }

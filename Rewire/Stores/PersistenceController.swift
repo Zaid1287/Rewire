@@ -40,12 +40,9 @@ struct AppSnapshot: Codable {
     var completedPlanDays: Set<Int>? = nil
 
     // GemStore
-    var gems: Int
-    var coins: Int
     var isPremium: Bool
     var claimedBadges: Set<String>
     var likedSuperpowers: Set<String>
-    var currentLevel: Int
     /// One-time special-offer deadline. Optional with a default so snapshots
     /// written before this field existed still decode.
     var offerDeadline: Date? = nil
@@ -123,12 +120,9 @@ final class PersistenceController {
             challengeJoined: streak.challengeJoined,
             challengeDays: streak.challengeDays,
             completedPlanDays: streak.completedPlanDays,
-            gems: gems.gems,
-            coins: gems.coins,
             isPremium: gems.isPremium,
             claimedBadges: gems.claimedBadges,
             likedSuperpowers: gems.likedSuperpowers,
-            currentLevel: gems.currentLevel,
             offerDeadline: gems.offerDeadline,
             achievements: gems.achievements,
             premiumPlan: gems.premiumPlan

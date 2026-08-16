@@ -1,12 +1,11 @@
 import SwiftUI
 
-/// Shared layout for question screens: optional back button, optional gem pill,
-/// optional progress bar, a large left-aligned question title with optional
+/// Shared layout for question screens: optional back button, optional
+/// progress bar, a large left-aligned question title with optional
 /// subtitle, then the options pinned toward the bottom.
 struct QuestionScaffold<Options: View>: View {
     var showsBack: Bool = false
     var onBack: (() -> Void)? = nil
-    var gemCount: Int? = nil
     var progress: Double? = nil
     let question: String
     var subtitle: String? = nil
@@ -16,11 +15,10 @@ struct QuestionScaffold<Options: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Top bar: back + gems
+            // Top bar: back
             HStack {
                 if showsBack { CircleBackButton { onBack?() } }
                 Spacer()
-                if let gemCount { GemPill(count: gemCount) }
             }
             .padding(.horizontal, Theme.Spacing.screen)
             .padding(.top, Theme.Spacing.xs)

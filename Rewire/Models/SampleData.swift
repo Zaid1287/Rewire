@@ -186,24 +186,34 @@ enum SampleData {
         Badge(title: "Personal Plan Level 3", requirement: "You must complete 7 days in your plan.", state: .locked)
     ]
 
-    // MARK: Levels (IMG_5465)
+    // MARK: Levels (IMG_5465) — earned from real clean days, never bought.
     static let levels: [Level] = [
-        Level(rank: 1, name: "Newcomer", gemCost: nil, isCurrent: true),
-        Level(rank: 2, name: "Initiate", gemCost: 750, isCurrent: false),
-        Level(rank: 3, name: "Apprentice", gemCost: 1000, isCurrent: false),
-        Level(rank: 4, name: "Journeyman", gemCost: 1250, isCurrent: false),
-        Level(rank: 5, name: "Adept", gemCost: 1500, isCurrent: false),
-        Level(rank: 6, name: "Expert", gemCost: 2000, isCurrent: false),
-        Level(rank: 7, name: "Professional", gemCost: 3000, isCurrent: false),
-        Level(rank: 8, name: "Master", gemCost: 4000, isCurrent: false),
-        Level(rank: 9, name: "Enlightened", gemCost: 5000, isCurrent: false),
-        Level(rank: 10, name: "Sage", gemCost: 7500, isCurrent: false),
-        Level(rank: 11, name: "Guardian", gemCost: 10000, isCurrent: false),
-        Level(rank: 12, name: "Visionary", gemCost: 15000, isCurrent: false),
-        Level(rank: 13, name: "Legend", gemCost: 17500, isCurrent: false),
-        Level(rank: 14, name: "Pathfinder", gemCost: 20000, isCurrent: false),
-        Level(rank: 15, name: "Pioneer", gemCost: 22500, isCurrent: false)
+        Level(rank: 1, name: "Newcomer", dayThreshold: 0),
+        Level(rank: 2, name: "Initiate", dayThreshold: 3),
+        Level(rank: 3, name: "Apprentice", dayThreshold: 7),
+        Level(rank: 4, name: "Journeyman", dayThreshold: 14),
+        Level(rank: 5, name: "Adept", dayThreshold: 30),
+        Level(rank: 6, name: "Expert", dayThreshold: 60),
+        Level(rank: 7, name: "Professional", dayThreshold: 90),
+        Level(rank: 8, name: "Master", dayThreshold: 120),
+        Level(rank: 9, name: "Enlightened", dayThreshold: 180),
+        Level(rank: 10, name: "Sage", dayThreshold: 270),
+        Level(rank: 11, name: "Guardian", dayThreshold: 365),
+        Level(rank: 12, name: "Visionary", dayThreshold: 500),
+        Level(rank: 13, name: "Legend", dayThreshold: 730),
+        Level(rank: 14, name: "Pathfinder", dayThreshold: 1000),
+        Level(rank: 15, name: "Pioneer", dayThreshold: 1500)
     ]
+
+    /// The highest-rank level whose threshold is already reached.
+    static func level(forDays days: Int) -> Level {
+        levels.last { $0.dayThreshold <= days } ?? levels[0]
+    }
+
+    /// The next tier up, or nil once at the max level.
+    static func nextLevel(forDays days: Int) -> Level? {
+        levels.first { $0.dayThreshold > days }
+    }
 
     // MARK: Weekly challenge (IMG_5457)
     static let challengeDays: [ChallengeDay] = [
