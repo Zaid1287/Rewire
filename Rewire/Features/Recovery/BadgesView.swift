@@ -90,7 +90,6 @@ struct BadgesView: View {
             ForEach(Array(badges.enumerated()), id: \.element.id) { idx, badge in
                 BadgeRow(badge: Badge(title: badge.title, requirement: badge.requirement, state: state(for: badge))) {
                     gems.claimBadge(badge.title)
-                    gems.award(50)
                     justClaimed = true
                     Analytics.capture("badge_claimed", ["badge": badge.title])
                 }

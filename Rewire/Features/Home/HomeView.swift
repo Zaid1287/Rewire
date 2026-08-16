@@ -7,17 +7,12 @@ import Combine
 /// from the flow redesign.
 struct HomeView: View {
     @Environment(StreakStore.self) private var streak
-    @Environment(GemStore.self) private var gems
 
     @State private var path: [HomeRoute] = []
     @State private var showStreakSheet = false
     @State private var showPanicSheet = false
     @State private var showSlipLog = false
     @State private var showCheckIn = false
-    @State private var showRewardBox = false
-    /// Drives the offer countdown re-render; the deadline itself lives in GemStore.
-    @State private var now = Date()
-    private let offerTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     enum HomeRoute: Hashable { case setGoal, editStart, challenge }
 
@@ -25,12 +20,6 @@ struct HomeView: View {
     private var subDayRemainderText: String {
         let rem = Int(streak.elapsed) % 86_400
         return String(format: "%dh %02dm %02ds", rem / 3600, (rem % 3600) / 60, rem % 60)
-    }
-
-    /// Seconds left on the one-time special offer (0 once expired or never started).
-    private var offerRemaining: Int {
-        guard let deadline = gems.offerDeadline else { return 0 }
-        return max(0, Int(deadline.timeIntervalSince(now)))
     }
 
     /// 90-day rewiring fraction (same basis as the Recovery gauge).
@@ -96,14 +85,11 @@ struct HomeView: View {
                 // the old .medium detent clipped it.
                 CheckInFlow().presentationDetents([.large])
             }
-            .fullScreenCover(isPresented: $showRewardBox) { RewardBoxView() }
-            .onReceive(offerTimer) { now = $0 }
-            .onAppear { if !gems.isPremium { gems.startOfferIfNeeded() } }
         }
         .tint(Theme.Colors.butter)
     }
 
-    // MARK: Top row — brand squircle left, gift right (offer badge)
+    // MARK: Top row — brand squircle
 
     private var topRow: some View {
         HStack {
@@ -111,17 +97,6 @@ struct HomeView: View {
                 BrandDots(size: 20, color: Theme.Colors.textHi)
             }
             Spacer()
-            squircleButton { showRewardBox = true } content: {
-                Image(systemName: "gift")
-                    .font(.system(size: 17, weight: .regular))
-                    .foregroundStyle(Theme.Colors.textHi)
-            }
-            .overlay(alignment: .topTrailing) {
-                if offerRemaining > 0 && !gems.isPremium {
-                    Circle().fill(Color(hex: 0xE8352E)).frame(width: 7, height: 7)
-                        .offset(x: -9, y: 9)
-                }
-            }
         }
         .padding(.horizontal, Theme.Spacing.screen)
         .padding(.top, Theme.Spacing.xs)

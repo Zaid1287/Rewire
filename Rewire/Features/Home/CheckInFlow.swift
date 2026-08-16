@@ -7,7 +7,6 @@ import SwiftUI
 /// as a medium-detent sheet, not a full-screen takeover.
 struct CheckInFlow: View {
     @Environment(StreakStore.self) private var streak
-    @Environment(GemStore.self) private var gems
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
@@ -153,7 +152,7 @@ struct CheckInFlow: View {
             Text("Clean day logged 💪")
                 .font(Theme.Typography.title())
                 .foregroundStyle(Theme.Colors.ink)
-            Text("+5 gems · come back tomorrow to keep the run alive.")
+            Text("Come back tomorrow to keep the run alive.")
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.inkLo)
                 .multilineTextAlignment(.center)
@@ -226,7 +225,6 @@ struct CheckInFlow: View {
         streak.saveReport(DailyReport(
             dayNumber: streak.currentRunDays + 1, date: Date(),
             watchedPorn: false, masturbated: false, relapsed: false, note: note))
-        gems.award(5)
         Analytics.capture("checkin_clean")
         Haptics.success()
         savedClean = true
