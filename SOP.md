@@ -18,41 +18,56 @@ handling their most private data. Two consequences that override every other ins
    reviews + ~500 Reddit posts) is that QUITTR/Seed/Brainbuddy lost their users to exactly
    these tricks. Our moat is being the app that doesn't. If a change would look good in a
    growth deck but bad to a person mid-relapse, it's wrong.
-2. **Privacy is sacred until a human decides otherwise.** Sensitive data (relapse reasons,
-   photos, quiz answers) is special-category health data. Default to on-device. Any change
-   that sends it somewhere is a product decision for the lead, not an implementation detail.
+2. **Privacy is sacred until we deliberately decide otherwise.** Sensitive data (relapse
+   reasons, photos, quiz answers) is special-category health data. Default to on-device. Any
+   change that sends it somewhere is a deliberate, documented product decision (now ours to
+   make — §1), never a silent implementation detail.
 
 Everything below is machinery for keeping that promise while moving fast.
 
 ---
 
-## 1. The async workflow (how work flows)
+## 1. The operating model — who decides, and the three tracks
 
-Two people, different hours, no live syncs. The **board is the single source of truth**
-(GitHub Projects, columns: **Next → In Progress → In Review → Done**).
+**Decision authority (changed 2026-08-16): we make every call.** The lead (Nirmal) has,
+by his own choice, stepped out of the day-to-day loop. He **funds the project and approves
+spend — nothing more.** There is no external ranking of work and no external review gate.
+The build team owns product, design, engineering, and marketing decisions end to end.
 
-**Ownership split — this is the whole trick:**
-- The **lead owns the ORDER**: ranks the *Next* column. That's their input, on their time.
-- The **builder owns the STATUS**: pulls the top card, moves it across as it progresses.
+- **The only thing that goes to the lead is money:** "we need to pay for X" (Apple Developer
+  fees, Supabase / PostHog tiers, assets, third-party services). Package those clearly and
+  infrequently.
+- **Everything else we decide, document, and proceed.** Because no one else reviews, the
+  quality bar (§4) and honest self-review ARE the review. **Default-to-proceed is now total** —
+  but every non-trivial decision gets written down (in the PR, the [product-cut-list](research/design/product-cut-list.md),
+  or a research doc) so it's auditable and the lead could weigh in later if he ever chooses to.
+  Big product calls that used to be "ask the lead" (what Premium is, the privacy-messaging
+  change, which social feature ships first) are now ours — make them deliberately, record the
+  rationale, don't wait.
 
-So the lead decides *what* and *in what order*; the builder handles *how* and keeps *where*
-visible. Neither waits on the other.
+### Every card advances exactly ONE of three tracks — tag it
 
-**The loop, per card:**
-1. Pull the top of *Next* → move to *In Progress* (max 1–2 at a time so the lead always
-   knows exactly what you're touching).
-2. Build it (§3), verify it live (§4), open a PR against `dev` (§2).
-3. Cut an internal TestFlight build at a checkpoint, **tag it** (`git tag build-N && git push
-   --tags`), write a one-line "what to look at" note. Move card → *In Review*.
-4. **Immediately pull the next card.** A build out for review NEVER blocks the next task.
-5. Lead reviews on their phone whenever, comments on the card → *Done* or back to *In Progress*.
+| Track | It improves… | Examples |
+|---|---|---|
+| **Design** | how the app looks and feels | RonLab visual polish, motion, information architecture / flows, premium-feel, the "is this placement intentional?" work |
+| **Engineering** | how the app works and scales | backend (CloudKit sync, Supabase social), StoreKit, performance, stability, the Screen Time shield, tech debt |
+| **Marketing** | how people find, try, and pay | App Store listing / ASO, onboarding-as-conversion, paywall packaging, honest positioning + the privacy moat, real (never fabricated) social proof |
 
-**Two habits that make async actually work:**
-- **Batch questions; default-to-proceed on reversible calls.** Never halt mid-task waiting for
-  a reply. Collect open questions for one async answer; for anything reversible, decide, note
-  it in the PR, and let review correct it.
-- **Keep risky/controversial work OFF a build until the lead thumbs-ups the direction.** A
-  one-line "yes" on the idea before you invest a day beats a "revert that" after.
+- **A card that advances none of the three is not worth doing** — cut it or reshape it until it does.
+- **A cut counts.** Removing fluff usually advances Design or Marketing (less noise, more trust).
+- **Keep the three roughly balanced over time.** A beautiful app no one finds, and a
+  well-marketed app that crashes, both fail. Don't let one track starve.
+
+### The board and the loop
+
+The board (GitHub Projects: **Next → In Progress → In Review → Done**) is now **ours** — we rank
+*Next* ourselves, choosing the highest-value card across the three tracks. *In Review* means
+**self-review** plus a tagged TestFlight build we sanity-check, not a wait on anyone.
+
+1. Pick the next card (highest value across the three tracks) → *In Progress*.
+2. Build it (§3), **verify it live** (§4), open a PR against `dev` (§2), read your own diff critically.
+3. Checkpoint → cut an internal TestFlight build, **tag it** (`git tag build-N && git push --tags`).
+4. Merge once the bar (§4) is met → *Done*. Pull the next card. Nothing ever waits on the lead.
 
 ---
 
@@ -131,7 +146,7 @@ Shadow, **Motion**. Rules:
 
 ---
 
-## 6. Product-thinking (the standard the lead cares most about)
+## 6. Product-thinking (the standard we hold ourselves to)
 
 Before building — and again on your own diff — apply the lens to every feature/element:
 
