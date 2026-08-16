@@ -19,10 +19,6 @@ final class GemStore {
     private(set) var claimedBadges: Set<String> = [] { didSet { persist?() } }
     private(set) var likedSuperpowers: Set<String> = [] { didSet { persist?() } }
 
-    /// One-time special-offer deadline — set on first Home visit, never reset.
-    /// The Home banner shows while `Date() < offerDeadline`.
-    private(set) var offerDeadline: Date? = nil { didSet { persist?() } }
-
     /// Misc one-off unlocks (e.g. "community") — stable string keys, checked
     /// with `contains`. Separate from badges/superpowers since not every
     /// achievement maps to a Recovery tile.
@@ -38,12 +34,6 @@ final class GemStore {
     func unlockPremium(plan: String? = nil) {
         isPremium = true
         if let plan { premiumPlan = plan }
-    }
-
-    /// Start the one-time special offer (6 minutes) if it never ran.
-    func startOfferIfNeeded() {
-        guard offerDeadline == nil else { return }
-        offerDeadline = Date().addingTimeInterval(6 * 60)
     }
 
     // MARK: Recovery progress
@@ -64,7 +54,6 @@ final class GemStore {
         isPremium = s.isPremium
         claimedBadges = s.claimedBadges
         likedSuperpowers = s.likedSuperpowers
-        offerDeadline = s.offerDeadline
         achievements = s.achievements ?? []
         premiumPlan = s.premiumPlan
     }

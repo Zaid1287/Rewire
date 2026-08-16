@@ -18,22 +18,6 @@ enum SampleData {
                      options: ["Frequently", "Sometimes", "Rarely or never"])
     ]
 
-    // MARK: Chat testimonials (IMG_5427)
-    static let chatTestimonials: [ChatTestimonial] = [
-        ChatTestimonial(text: " I felt free after the first 21 days.",
-                        boldPrefix: "Helped me in my journey to quit porn addiction.",
-                        name: "Louis", isRight: false),
-        ChatTestimonial(text: "I started to enjoy my life.",
-                        boldPrefix: "\"I feel that I am completely free now.\"",
-                        name: "Robert", isRight: true),
-        ChatTestimonial(text: "Before Rewire, my streaks lasted a maximum of 5 days. ",
-                        boldPrefix: nil,
-                        name: "Anonymous", isRight: false),
-        ChatTestimonial(text: " Thanks to everyone in this community.",
-                        boldPrefix: "\"Changed my life completely.",
-                        name: "Gareth", isRight: true)
-    ]
-
     // MARK: Comparison (IMG_5434)
     static let withoutPoints: [ComparisonPoint] = [
         .init(text: "Get stuck in a relapse loop"),
@@ -66,24 +50,15 @@ enum SampleData {
         Benefit(symbol: "lightbulb.fill", isEmoji: false, iconTint: Color(hex: 0xD9A72E),
                 iconBackground: Theme.Colors.pastelAmber, title: "Clearer mind",
                 subtitle: "Think sharper and stay focused all day."),
-        Benefit(symbol: "message.fill", isEmoji: false, iconTint: Theme.Colors.greenDark,
-                iconBackground: Theme.Colors.pastelMint, title: "More attention from women",
-                subtitle: "Turn heads and attract women effortlessly."),
-        Benefit(symbol: "dumbbell.fill", isEmoji: false, iconTint: Color(hex: 0x444444),
-                iconBackground: Theme.Colors.pastelGray, title: "Faster muscle growth",
-                subtitle: "Build strength and muscle faster than ever."),
         Benefit(symbol: "heart.fill", isEmoji: false, iconTint: Color(hex: 0xE0555F),
-                iconBackground: Theme.Colors.pastelRose, title: "Better libido",
-                subtitle: "Enjoy a strong and healthy sex life."),
+                iconBackground: Theme.Colors.pastelRose, title: "Healthier libido",
+                subtitle: "Rebuild a natural, present sex drive."),
         Benefit(symbol: "moon.fill", isEmoji: false, iconTint: Color(hex: 0x6A5AE0),
                 iconBackground: Theme.Colors.pastelLav, title: "Deeper sleep",
                 subtitle: "Sleep deeply, wake up fully recharged."),
-        Benefit(symbol: "comb.fill", isEmoji: false, iconTint: Color(hex: 0xB5793E),
-                iconBackground: Theme.Colors.pastelPeach, title: "Thicker hair",
-                subtitle: "Get thicker, fuller hair that looks great."),
         Benefit(symbol: "airplane.departure", isEmoji: false, iconTint: Color(hex: 0x6A5AE0),
-                iconBackground: Theme.Colors.pastelLav, title: "PIED Recovery",
-                subtitle: "Recover fully from porn-induced erectile dysfunction.")
+                iconBackground: Theme.Colors.pastelLav, title: "PIED recovery",
+                subtitle: "Recover from porn-induced erectile dysfunction.")
     ]
 
     // MARK: Relapse reasons (IMG_5445)
