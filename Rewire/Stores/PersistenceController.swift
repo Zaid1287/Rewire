@@ -43,9 +43,6 @@ struct AppSnapshot: Codable {
     var isPremium: Bool
     var claimedBadges: Set<String>
     var likedSuperpowers: Set<String>
-    /// One-time special-offer deadline. Optional with a default so snapshots
-    /// written before this field existed still decode.
-    var offerDeadline: Date? = nil
     /// Misc one-off unlocks. Optional with a default so snapshots written
     /// before this field existed still decode.
     var achievements: Set<String>? = nil
@@ -123,7 +120,6 @@ final class PersistenceController {
             isPremium: gems.isPremium,
             claimedBadges: gems.claimedBadges,
             likedSuperpowers: gems.likedSuperpowers,
-            offerDeadline: gems.offerDeadline,
             achievements: gems.achievements,
             premiumPlan: gems.premiumPlan
         )
