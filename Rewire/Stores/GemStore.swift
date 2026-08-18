@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Recovery progress and premium state (claimed badges, liked superpowers,
-/// achievements, subscription) — no longer a currency store; levels are
+/// Recovery progress and premium state (claimed badges, achievements,
+/// subscription) — no longer a currency store; levels are
 /// earned from real clean time (see SampleData.level(forDays:)), not bought.
 @Observable
 final class GemStore {
@@ -20,13 +20,12 @@ final class GemStore {
     /// Lifetime owners have nothing left to buy.
     var canUpgrade: Bool { !isPremium || premiumPlan != Purchases.ProductID.lifetime }
 
-    /// Recovery progress. Stable keys: badge `title`, superpower `title`.
+    /// Recovery progress. Stable key: badge `title`.
     private(set) var claimedBadges: Set<String> = [] { didSet { persist?() } }
-    private(set) var likedSuperpowers: Set<String> = [] { didSet { persist?() } }
 
     /// Misc one-off unlocks (e.g. "community") — stable string keys, checked
-    /// with `contains`. Separate from badges/superpowers since not every
-    /// achievement maps to a Recovery tile.
+    /// with `contains`. Separate from badges since not every achievement maps
+    /// to a Recovery tile.
     private(set) var achievements: Set<String> = [] { didSet { persist?() } }
 
     /// Saver injected by RewireApp so mutations flush to disk.
@@ -46,11 +45,6 @@ final class GemStore {
 
     func claimBadge(_ key: String) { claimedBadges.insert(key) }
 
-    func toggleLike(_ key: String) {
-        if likedSuperpowers.contains(key) { likedSuperpowers.remove(key) }
-        else { likedSuperpowers.insert(key) }
-    }
-
     /// Record a one-off achievement. No-op if already recorded.
     func recordAchievement(_ key: String) { achievements.insert(key) }
 
@@ -59,7 +53,6 @@ final class GemStore {
     func restore(from s: AppSnapshot) {
         isPremium = s.isPremium
         claimedBadges = s.claimedBadges
-        likedSuperpowers = s.likedSuperpowers
         achievements = s.achievements ?? []
         premiumPlan = s.premiumPlan
     }

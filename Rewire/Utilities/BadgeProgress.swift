@@ -27,15 +27,16 @@ enum BadgeProgress {
         case "Responsible":             return streak.events.contains { $0.type == .relapse }
         case "Pattern Finder":          return streak.events.filter { $0.type == .relapse }.count >= 3
         case "Loyal Member":            return !streak.events.isEmpty
-        case "Feedback Master":         return gems.achievements.contains("feedback")
         case "Share Supporter":         return gems.achievements.contains("share")
-        case "Community Member":        return gems.achievements.contains("community")
-        case "Premium Member", "Mentor Owner": return gems.isPremium
+        case "Premium Member":          return gems.isPremium
         case "Personal Plan Level 1":   return streak.completedPlanDays.count >= 1
         case "Personal Plan Level 2":   return streak.completedPlanDays.count >= 3
         case "Personal Plan Level 3":   return streak.completedPlanDays.count >= 7
         case "Appearance Booster":      return gems.achievements.contains("appearance")
-        default:                        return false   // Content Blocker, Researcher, Rewire Supporter
+        // Recorded by GuardSetupView the first time the shield actually turns
+        // on. Used to sit in the default arm below, so it could never be earned.
+        case "Content Blocker":         return gems.achievements.contains("blocker")
+        default:                        return false
         }
     }
 }

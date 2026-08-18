@@ -9,9 +9,9 @@ import SwiftUI
 /// "Breathing Exercise" presents the shared PanicModeView; "My Motivations"
 /// presents MotivationsView; "Power up your shield" pushes MyShieldView;
 /// "Porn Blocker" pushes GuardSetupView (Screen Time shields, Phase S1).
-/// Rows with no real screen yet ("Rewire Community", "Private Support") carry
-/// `.soon` badges (dimmed, no chevron, no haptic) so they never read as
-/// working controls.
+/// **Every row here goes somewhere.** The "Soon" rows that advertised features
+/// we hadn't built ("Rewire Community", "Private Support", "Must-Watch Videos")
+/// were cut — see the review evidence in CLUSTER-SOLUTIONS.md.
 struct ToolkitView: View {
     @State private var path: [Route] = []
     @State private var showBreathing = false
@@ -78,7 +78,6 @@ struct ToolkitView: View {
     }
 
     private func rowTapped(_ item: FeatureItem) {
-        if case .soon? = item.badge { return }
         if item.title == "Power up your shield" {
             path.append(.shield)
         } else if item.title == "Challenges" {

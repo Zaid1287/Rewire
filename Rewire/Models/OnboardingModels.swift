@@ -26,7 +26,7 @@ struct QuoteTestimonial: Identifiable {
 }
 
 /// A benefit row (icon + title + subtitle) used on the benefits screen and
-/// reused as a Superpower.
+/// shown during onboarding.
 struct Benefit: Identifiable {
     let id = UUID()
     let symbol: String        // SF Symbol or emoji

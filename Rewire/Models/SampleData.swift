@@ -34,7 +34,7 @@ enum SampleData {
         .init(text: "Enjoy your life")
     ]
 
-    // MARK: Benefits / Superpowers (IMG_5435, 5461, 5462)
+    // MARK: Benefits — what recovery actually gives you (onboarding)
     // Glyphs match the produced asset board ("10 custom pastel glyphs"): crisp
     // vector SF Symbols on pastel circles, saturated tint from the same family.
     static let benefits: [Benefit] = [
@@ -97,12 +97,6 @@ enum SampleData {
     static let toolkitBoost: [FeatureItem] = [
         FeatureItem(symbol: "checkmark.shield.fill", title: "Porn Blocker",
                     subtitle: "Block porn apps and websites. Avoid unexpected relapses."),
-        FeatureItem(symbol: "person.2.fill", title: "Rewire Community",
-                    subtitle: "Join the private Telegram group. Get amazing support.",
-                    badge: .soon, showsChevron: false),
-        FeatureItem(symbol: "bubble.left.and.bubble.right.fill", title: "Private Support",
-                    subtitle: "Get private support from the mentors.",
-                    badge: .soon, showsChevron: false),
         FeatureItem(symbol: "lungs.fill", title: "Breathing Exercise",
                     subtitle: "Do your daily breathing exercises.")
     ]
@@ -119,10 +113,7 @@ enum SampleData {
     static let recoveryEasier: [FeatureItem] = [
         FeatureItem(symbol: "sparkles", title: "Slip Patterns",
                     subtitle: "Every slip you log builds your pattern insight. No penalties.",
-                    badge: .popular, showsChevron: false),
-        FeatureItem(symbol: "play.circle", title: "Must-Watch Videos",
-                    subtitle: "Watch the playlists that we curated the best video content for you.",
-                    badge: .soon, showsChevron: false)
+                    badge: .popular, showsChevron: false)
     ]
 
     // MARK: Badges (IMG_5463/5464)
@@ -134,18 +125,13 @@ enum SampleData {
         Badge(title: "Goal Setter", requirement: "You must set your new goal.", state: .locked),
         Badge(title: "Panic Breaker", requirement: "You must use the Panic Button.", state: .locked),
         Badge(title: "Content Blocker", requirement: "You must enable the porn blocker.", state: .locked),
-        Badge(title: "Community Member", requirement: "You must join the Rewire Community.", state: .locked),
         Badge(title: "Streak Guard", requirement: "You must enable notifications.", state: .locked),
-        Badge(title: "Mentor Owner", requirement: "You must get private support.", state: .locked),
         Badge(title: "Breathing Champ", requirement: "You must do a breathing exercise.", state: .locked),
         Badge(title: "Challenger", requirement: "You must accept a challenge.", state: .locked),
         Badge(title: "Motivation Master", requirement: "You must add your motivation.", state: .locked),
         Badge(title: "Responsible", requirement: "You must log a slip honestly.", state: .locked),
         Badge(title: "Pattern Finder", requirement: "Log 3 slips and unlock your pattern insight.", state: .locked),
-        Badge(title: "Researcher", requirement: "You must unlock a video playlist.", state: .locked),
         Badge(title: "Loyal Member", requirement: "You must add a new event.", state: .locked),
-        Badge(title: "Feedback Master", requirement: "You must give feedback.", state: .locked),
-        Badge(title: "Rewire Supporter", requirement: "You must write a review for Rewire.", state: .locked),
         Badge(title: "Premium Member", requirement: "You must become a premium member.", state: .locked),
         Badge(title: "Share Supporter", requirement: "You must share Rewire with your friends.", state: .locked),
         Badge(title: "Appearance Booster", requirement: "You must take your photos for tracking.", state: .locked),
