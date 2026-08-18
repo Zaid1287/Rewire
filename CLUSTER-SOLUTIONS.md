@@ -80,7 +80,7 @@ Re-ran the whole 3,299-review corpus against every feature in the app, counting 
 | "Soon" rows — Community, Private Support, Must-Watch Videos | — | — | **CUT.** Advertising unbuilt features is the "too much going on" complaint. |
 | Badges tied to those features, plus duplicates and dead ends | — | — | **CUT.** Community Member, Mentor Owner, Researcher, Rewire Supporter, Feedback Master — none could ever be earned. |
 | **Set Goal** | 76 (10 as an explicit feature ask) | **4.26** | **KEEP — reversed.** The cut-list wanted this folded away. Reviewers name it as a reason they love the app: *"the daily motivations, goal setting, and web blocker def help"*, *"I love the daily goal feature"*. |
-| **Challenges** | 19 | **4.05** | **KEEP — reversed.** *"App also gives you challenges and motivational notifications to help you stay on track."* Make it real (rotate, tie to the live streak) rather than cut it. |
+| **Challenges** | 19 | **4.05** | **KEEP — reversed**, and now rebuilt (below). *"App also gives you challenges and motivational notifications to help you stay on track."* |
 | Badges generally | 18 | **4.28** | **KEEP.** Only 11% are 1–2★. The system works; only the broken entries went. |
 | Videos / articles / courses | 72 | 2.94 | Stay cut. 39% are 1–2★. |
 | Leaderboards / avatars | 4 | — | Never build. |
@@ -88,6 +88,10 @@ Re-ran the whole 3,299-review corpus against every feature in the app, counting 
 **The evidence for cutting at all**, from a QUITTR 1★: *"recently they've added so many pointless things it's hard to find anything in the app, there's just too much going on. Please make this app simpler again."* Brainbuddy 2★ echoes it: *"it has become way more slow and way more complicated to understand."*
 
 **Also fixed while in there:** the shield checklist advertised "Add home screen widgets" as *Soon* — the widget shipped in [#5](https://github.com/Zaid1287/Rewire/pull/5). And the **Content Blocker badge could never be earned** (it sat in a default `return false` arm), despite the blocker being the single biggest review cluster; it's now wired to the shield actually turning on.
+
+---
+
+**Weekly challenge, rebuilt (follow-up to the above).** The feature reviewers praise was, in our code, a hardcoded week of Jun 28 – Jul 4 with a **pre-marked failure on day 6** — a brand-new user opened it to a red X for a day they hadn't lived — and seven rows you ticked by hand, so a perfect week cost seven taps. It now shows the real current week and every day is answered by the streak record on the same rule as the Home strip and the widget: a logged slip marks its day, a finished day without one is clean, today stays open, future days stay blank. Nothing is tappable. Joining is per week rather than a permanent bool, so it's a commitment you renew; the Challenger badge moved to a separate permanent flag so it can't un-earn itself on a Monday. Failed days render grey, never red — a logged slip is honesty, not an alarm.
 
 ---
 
