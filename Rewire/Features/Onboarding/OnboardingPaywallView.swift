@@ -8,18 +8,20 @@ import SwiftUI
 ///
 /// Deliberately SOFT, unlike QUITTR's (their #1 complaint source, 70% 1★):
 /// skippable from page one via the X, an explicit "Continue with free version"
-/// on the plans page, trial-first framing with "no payment due today · cancel
-/// anytime" spelled out, and no content gated behind it — skipping continues
-/// the normal onboarding sell (comparison → commit).
+/// on the plans page, `price → renewal period` stated next to the CTA, and
+/// **no free trial** — nothing auto-charges after a window the user forgot
+/// about. Skipping costs nothing: every crisis, streak, blocker and check-in
+/// tool is free forever, so onboarding continues normally (comparison → commit).
 struct OnboardingPaywallView: View {
     @Environment(AppState.self) private var appState
-    @Environment(GemStore.self) private var gems
+    @Environment(Purchases.self) private var purchases
     var onSkip: () -> Void
     var onPurchased: () -> Void
 
     @State private var page = 0
-    /// Annual preselected — the trial carrier and the anchor.
-    @State private var selectedPlan: Plan = SampleData.plans[1]
+    /// Yearly preselected — the anchor, and the plan marked BEST VALUE.
+    @State private var selectedPlan: Plan?
+    @State private var failureMessage: String?
 
     private var isLastPage: Bool { page == 1 }
 
@@ -37,7 +39,25 @@ struct OnboardingPaywallView: View {
             footer
         }
         .background { SceneBackground(kind: .void) }
-        .onAppear { Analytics.capture("onboarding_paywall_shown") }
+        .task {
+            Analytics.capture("onboarding_paywall_shown")
+            if purchases.loadState != .loaded { await purchases.load() }
+        }
+        .onChange(of: purchases.plans) { _, plans in
+            if selectedPlan == nil || !plans.contains(selectedPlan!) {
+                selectedPlan = plans.first(where: \.isPopular) ?? plans.first
+            }
+        }
+        .rewireAlert(isPresented: failureMessage != nil) {
+            RewireAlert(
+                title: "Purchase Didn't Go Through",
+                message: failureMessage ?? "",
+                confirmTitle: "OK",
+                confirmIsDestructive: false,
+                onCancel: { failureMessage = nil },
+                onConfirm: { failureMessage = nil }
+            )
+        }
     }
 
     // MARK: Chrome
@@ -72,11 +92,12 @@ struct OnboardingPaywallView: View {
         VStack(spacing: Theme.Spacing.sm) {
             PrimaryButton(title: ctaTitle) {
                 if isLastPage {
-                    purchase()
+                    if let plan = selectedPlan { Task { await purchase(plan) } }
                 } else {
                     withAnimation(Theme.Motion.enter) { page += 1 }
                 }
             }
+            .disabled(isLastPage && (selectedPlan == nil || purchases.isPurchasing))
 
             Text(microcopy)
                 .font(Theme.Typography.caption())
@@ -105,29 +126,34 @@ struct OnboardingPaywallView: View {
 
     private var ctaTitle: String {
         guard isLastPage else { return "Continue" }
-        switch selectedPlan.title {
-        case "1 year":   return "Start my 7-day free trial"
-        case "Lifetime": return "Unlock Lifetime"
-        default:         return "Start Monthly"
-        }
+        if purchases.isPurchasing { return "Contacting the App Store…" }
+        guard let plan = selectedPlan else { return "Continue" }
+        return plan.id == Purchases.ProductID.lifetime ? "Unlock Lifetime" : "Start \(plan.name)"
     }
 
+    /// Word-for-word the same disclosure the Settings paywall shows — the two
+    /// surfaces used to contradict each other on the trial.
     private var microcopy: String {
-        guard isLastPage else { return "Skippable anytime — the crisis tools stay free." }
-        switch selectedPlan.title {
-        case "1 year":   return "✓ No payment due today · Cancel anytime"
-        case "Lifetime": return "One-time purchase · Yours forever"
-        default:         return "✓ Cancel anytime"
-        }
+        guard isLastPage else { return "Skippable anytime — the recovery tools are free either way." }
+        guard let plan = selectedPlan else { return "Cancel anytime in the App Store." }
+        return "\(plan.disclosure) Cancel anytime in the App Store."
     }
 
-    private func purchase() {
-        // Mock purchase — StoreKit lands later; this flips the same premium
-        // flag the rest of the app already keys off.
-        gems.unlockPremium(plan: selectedPlan.title == "1 year" ? "1 year (trial)" : selectedPlan.title)
-        Haptics.success()
-        Analytics.capture("onboarding_paywall_converted", ["plan": selectedPlan.title])
-        onPurchased()
+    private func purchase(_ plan: Plan) async {
+        switch await purchases.purchase(plan) {
+        case .success:
+            Haptics.success()
+            Analytics.capture("onboarding_paywall_converted", ["plan": plan.id])
+            onPurchased()
+        case .pending:
+            // Ask-to-Buy: don't hold onboarding hostage. Premium unlocks itself
+            // through Transaction.updates when the approval lands.
+            onSkip()
+        case .cancelled:
+            break
+        case .failed(let message):
+            failureMessage = message
+        }
     }
 
     // MARK: Page 1 — the personalized plan
@@ -145,8 +171,8 @@ struct OnboardingPaywallView: View {
                 }
 
                 VStack(spacing: 0) {
-                    featureRow("waveform.path.ecg", "Urge-wave Panic mode",
-                               "Ride the full 10–15 min wave with per-minute rewards.")
+                    featureRow("chart.xyaxis.line", "Your full history",
+                               "Every stat past the last 30 days, and the trends across them.")
                     RowDivider(inset: 56)
                     featureRow("sparkles", "Slip-pattern insights",
                                "Find the fingerprint behind your slips — and break it.")
@@ -158,6 +184,11 @@ struct OnboardingPaywallView: View {
                                "Watch the change happen, photo by photo.")
                 }
                 .smokedGlass(radius: 24)
+
+                Text("Panic, the streak, the blocker and daily check-ins are free — always. Premium is the depth on top.")
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(Theme.Colors.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .screenPadding()
             .padding(.top, Theme.Spacing.lg)
@@ -193,14 +224,29 @@ struct OnboardingPaywallView: View {
                     Text("Choose your plan.")
                         .font(Theme.Typography.title())
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Annual includes a 7-day free trial — cancel before it ends and pay nothing.")
+                    // No trial to explain: monthly is the trial, and nothing
+                    // auto-charges at the end of a window you forgot about.
+                    Text("No free trial to forget about — you're charged what the button says, when you tap it.")
                         .font(Theme.Typography.body())
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
 
-                VStack(spacing: Theme.Spacing.sm) {
-                    ForEach(SampleData.plans) { plan in
-                        PlanCard(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
+                switch purchases.loadState {
+                case .loading:
+                    ProgressView().tint(Theme.Colors.butter)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Theme.Spacing.lg)
+                case .failed:
+                    // No fallback prices, ever. Free is the honest exit here.
+                    Text("Plans aren't loading — we couldn't reach the App Store. Continue free below; nothing you need is behind this.")
+                        .font(Theme.Typography.subtitle())
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                case .loaded:
+                    VStack(spacing: Theme.Spacing.sm) {
+                        ForEach(purchases.plans) { plan in
+                            PlanCard(plan: plan, isSelected: selectedPlan == plan) { selectedPlan = plan }
+                        }
                     }
                 }
 
@@ -220,5 +266,5 @@ struct OnboardingPaywallView: View {
 #Preview {
     OnboardingPaywallView(onSkip: {}, onPurchased: {})
         .environment(AppState())
-        .environment(GemStore())
+        .environment(Purchases())
 }
