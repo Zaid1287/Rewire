@@ -2,7 +2,7 @@ import SwiftUI
 import Combine
 
 /// Home tab — RonLab Void scene: goal pill, hero streak numeral with live
-/// remainder, 60-day morse strip, best-run/recovery glass cards, milk panic
+/// remainder, 60-day morse strip, best-run/clean-days glass cards, milk panic
 /// capsule. Three-state hero (first victory / post-slip / ongoing run) kept
 /// from the flow redesign.
 struct HomeView: View {
@@ -22,9 +22,11 @@ struct HomeView: View {
         return String(format: "%dh %02dm %02ds", rem / 3600, (rem % 3600) / 60, rem % 60)
     }
 
-    /// 90-day rewiring fraction (same basis as the Recovery gauge).
-    private var recoveryPercent: Int {
-        min(100, Int(streak.elapsed / 86_400 / 90 * 100))
+    /// Clean days in the last 90 — the same measure the Progress ring shows.
+    /// Was a "% recovered" figure against a 90-day rewiring window, which is a
+    /// claim about the user's brain that we can't evidence.
+    private var cleanInLast90: Int {
+        streak.cleanDays(90).filter { $0 }.count
     }
 
     /// Last 60 days as rhythm: dashes for clean runs, red dots for relapses.
@@ -232,7 +234,7 @@ struct HomeView: View {
             miniCard(title: "Best run", value: "\(streak.bestRunDays)", unit: "days") {
                 showStreakSheet = true
             }
-            miniCard(title: "Recovery", value: "\(recoveryPercent)", unit: "%") {
+            miniCard(title: "Clean days", value: "\(cleanInLast90)", unit: "/ 90") {
                 showStreakSheet = true
             }
         }

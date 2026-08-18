@@ -14,9 +14,14 @@ struct ProgressTabView: View {
     @State private var showAddEvent = false
     @State private var showDeleteAlert = false
 
-    /// Recovery % — current streak against the standard 90-day rewire window.
-    private var recoveryPercent: Int {
-        min(100, Int(streak.elapsed / 86_400 / 90 * 100))
+    /// Clean days in the last 90, from the same record the Home strip and the
+    /// widget use. Replaces a "% rewired" figure against a 90-day "rewire
+    /// window": we cannot evidence a claim about anyone's neural pathways, and
+    /// reviewers punish invented percentages harder than anything else in the
+    /// corpus (13 such complaints average 1.54★, 85% of them 1–2★ —
+    /// *"Have fun with your pseudoscientific woo"*). This counts days.
+    private var cleanInLast90: Int {
+        streak.cleanDays(90).filter { $0 }.count
     }
 
     /// Earned-but-unclaimed badges — the red bubble on the Badges card.
@@ -107,7 +112,7 @@ struct ProgressTabView: View {
         VStack(spacing: 10) {
             ZStack {
                 TickRing(count: 66,
-                         activeFraction: Double(recoveryPercent) / 100,
+                         activeFraction: Double(cleanInLast90) / 90,
                          startAngle: .degrees(135), sweep: .degrees(270),
                          tickLength: 16,
                          inactiveColor: .white.opacity(0.22),
@@ -115,22 +120,20 @@ struct ProgressTabView: View {
                          positionDot: Theme.Colors.butter)
                     .frame(width: 250, height: 250)
                 VStack(spacing: 2) {
-                    HeroNumeral(value: "\(recoveryPercent)", unit: "%", size: 76)
-                    Text("rewired")
+                    HeroNumeral(value: "\(cleanInLast90)", unit: "/ 90", size: 76)
+                    Text("clean days")
                         .font(Theme.Typography.label())
                         .foregroundStyle(Theme.Colors.textLo)
                 }
             }
-            HStack {
-                Text("day 0"); Spacer(); Text("day 90")
-            }
-            .font(Theme.Typography.caption())
-            .foregroundStyle(Theme.Colors.textXlo)
-            .frame(width: 230)
-            Text("Neural pathways weaken after ~90 clean days — you're on day \(min(90, Int(streak.elapsed / 86_400))).")
+            // Deliberately a different measure from the Home numeral: that one
+            // is the run you're on, this is how much of the last three months
+            // held. A slip dents this instead of erasing it.
+            Text("Days you stayed clean over the last 90 — a slip costs one day here, not the whole picture.")
                 .font(Theme.Typography.caption())
                 .foregroundStyle(Theme.Colors.textXlo)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, Theme.Spacing.lg)
         }
         .frame(maxWidth: .infinity)
     }

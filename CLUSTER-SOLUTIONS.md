@@ -95,5 +95,13 @@ Re-ran the whole 3,299-review corpus against every feature in the app, counting 
 
 ---
 
+**Unevidenced neuroscience cut (the last of the fluff sweep).** The app rendered a *"% rewired"* gauge against a 90-day *"rewire window"*, captioned *"Neural pathways weaken after ~90 clean days"* — on the Progress ring, the Home stat card, the Statistics "Recovery score", a whole home-screen widget, and two copy lines. It is a claim about the user's brain that we cannot evidence, expressed as a precise percentage.
+
+The corpus is unambiguous about that pattern. **Complaints about made-up numbers average 1.54★ with 85% of them 1–2★ — the harshest signal in all 3,299 reviews.** Percentage claims generally: 43 mentions, 2.86★, 49% 1–2★. Verbatim: *"Have fun with your pseudoscientific woo"* · *"Untrue — %46 addicted to porn, Dopamine baseline %35 above average"* · *"How does master bating 2 a day make me 83% addictive"*. It is also App Store 1.4.1 exposure.
+
+Everything now **counts days instead**, on the one `relapseDayStarts` basis: the Progress ring and Home card show clean days in the last 90, the widget shows clean days in its published window, and the Statistics gauge is "Clean days" captioned *"90 days is a milestone people aim for, not a finish line."* The three surfaces measure genuinely different things now — current run on Home's numeral, 90-day consistency on the ring, lifetime total in Statistics — which also resolves the "three representations of one number" redundancy the cut-list flagged.
+
+---
+
 ## Cross-cutting: not a cluster, flagged for the lead
 - **Feedback-to-Slack system** (lead request): needs a backend — a Slack token can't ship in the app, replies arrive by webhook, and the user↔thread map must persist server-side. Also conflicts with the current privacy policy + App Store data label, and feedback in a recovery app is GDPR special-category data. Recommend scoping as its own project with the policy/manifest updates in the same release.

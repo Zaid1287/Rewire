@@ -109,7 +109,7 @@ struct PanicModeView: View {
         "Urges peak and pass within minutes. Outlast this one.",
         "You've beaten this before. You'll beat it now.",
         "Picture yourself one hour from now, proud you held on.",
-        "Breathe. This feeling is your brain rewiring itself."
+        "Breathe. This feeling peaks, then it fades — every single time."
     ]
 
     /// If the user has written their own motivations, lead with those —
