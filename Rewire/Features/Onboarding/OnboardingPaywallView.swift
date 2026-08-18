@@ -43,11 +43,11 @@ struct OnboardingPaywallView: View {
             Analytics.capture("onboarding_paywall_shown")
             if purchases.loadState != .loaded { await purchases.load() }
         }
-        .onChange(of: purchases.plans) { _, plans in
-            if selectedPlan == nil || !plans.contains(selectedPlan!) {
-                selectedPlan = plans.first(where: \.isPopular) ?? plans.first
-            }
-        }
+        // Both: onChange alone misses the case where the app-level load already
+        // finished before this view appeared, which would leave the CTA
+        // permanently disabled with no row selected.
+        .onAppear { syncSelection(purchases.plans) }
+        .onChange(of: purchases.plans) { _, plans in syncSelection(plans) }
         .rewireAlert(isPresented: failureMessage != nil) {
             RewireAlert(
                 title: "Purchase Didn't Go Through",
@@ -58,6 +58,14 @@ struct OnboardingPaywallView: View {
                 onConfirm: { failureMessage = nil }
             )
         }
+    }
+
+    /// Keep the selection on a row that still exists, without stomping a choice
+    /// the user already made.
+    private func syncSelection(_ plans: [Plan]) {
+        guard !plans.isEmpty else { selectedPlan = nil; return }
+        if let current = selectedPlan, plans.contains(current) { return }
+        selectedPlan = plans.first(where: \.isPopular) ?? plans.first
     }
 
     // MARK: Chrome
