@@ -114,7 +114,7 @@ struct SlipLogFlow: View {
                 .foregroundStyle(Theme.Colors.textXlo)
                 .padding(.top, 10)
 
-            Text("The streak number resets. The rewiring doesn't — your record kept every clean day you earned.")
+            Text("The streak number resets. Your record doesn't — it kept every clean day you earned.")
                 .font(Theme.Typography.subtitle())
                 .foregroundStyle(Theme.Colors.textLo)
                 .frame(maxWidth: 300, alignment: .leading)

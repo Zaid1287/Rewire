@@ -80,7 +80,9 @@ struct StatisticsView: View {
         return Int(total / 86_400)
     }
 
-    /// Recovery score: clean days into the 90-day rewire window.
+    /// Clean days so far, capped at 90 because that's where the gauge tops
+    /// out. 90 is a milestone people aim for, not a medical threshold — the
+    /// app no longer claims anything about neural pathways.
     private var score: Int { min(90, totalDays) }
 
     /// Day-by-day history for the window, oldest → newest.
@@ -150,7 +152,7 @@ struct StatisticsView: View {
     }
 
     private var shareSummary: String {
-        "\(score) of 90 days rewired · \(cleanDaysCount) clean check-ins · Rewire"
+        "\(score) clean days · \(cleanDaysCount) clean check-ins · Rewire"
     }
 
     private var filters: some View {
@@ -179,7 +181,7 @@ struct StatisticsView: View {
     private var scoreCard: some View {
         ivoryCard {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Recovery score")
+                Text("Clean days")
                     .font(Theme.Typography.label())
                     .foregroundStyle(Theme.Colors.inkLo)
                 HStack(alignment: .center) {
@@ -193,7 +195,7 @@ struct StatisticsView: View {
                             .foregroundStyle(Theme.Colors.inkLo)
                     }
                 }
-                Text("Neural pathways weaken after ~90 clean days")
+                Text("90 days is a milestone people aim for, not a finish line")
                     .font(Theme.Typography.caption())
                     .foregroundStyle(Theme.Colors.ink.opacity(0.45))
             }
@@ -204,7 +206,9 @@ struct StatisticsView: View {
         HStack(spacing: 12) {
             ivoryCard {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Clean days")
+                    // Check-ins, not days — the gauge above already says
+                    // "Clean days" and means something else (all-time total).
+                    Text("Clean check-ins")
                         .font(Theme.Typography.label())
                         .foregroundStyle(Theme.Colors.inkLo)
                     HStack(alignment: .lastTextBaseline, spacing: 6) {

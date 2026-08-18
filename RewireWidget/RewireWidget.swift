@@ -96,7 +96,10 @@ struct StreakEntry: TimelineEntry {
     var cleanDays: [Bool] = []
 
     var days: Int { max(0, Int(date.timeIntervalSince(start) / 86_400)) }
-    var recoveryPercent: Int { min(100, days * 100 / 90) }   // 90-day rewire basis
+    /// Clean days in the published window. Replaces a "% of the 90-day rewire"
+    /// figure — the app no longer claims anything about neural rewiring.
+    var cleanDayCount: Int { cleanDays.filter { $0 }.count }
+    var cleanWindow: Int { max(cleanDays.count, 1) }
 
     // Milestone the streak is climbing toward — gives the gauges something to
     // fill and turns a bare number into progress. Standard recovery marks.
@@ -273,25 +276,27 @@ struct BrandDots: View {
 
 // MARK: Vivid glance tiles (home screen only — the mockup's sanctioned set)
 
-/// Recovery — sage tile, 90-day rewire gauge. The mockup's Recovery glance.
+/// Clean days — sage tile, how much of the recent window held. Counts days,
+/// never a percentage of anyone's recovery.
 struct RecoveryTileView: View {
     var entry: StreakEntry
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("RECOVERY").font(.system(size: 11, weight: .semibold))
+            Text("CLEAN DAYS").font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.white.opacity(0.7)).tracking(1)
             Spacer(minLength: 0)
-            Gauge(value: Double(entry.recoveryPercent) / 100) {
+            Gauge(value: Double(entry.cleanDayCount) / Double(entry.cleanWindow)) {
                 EmptyView()
             } currentValueLabel: {
-                Text("\(entry.recoveryPercent)").font(.system(size: 30, weight: .thin))
+                Text("\(entry.cleanDayCount)").font(.system(size: 30, weight: .thin))
                     .foregroundStyle(.white)
             }
             .gaugeStyle(.accessoryCircularCapacity)
             .tint(.white)
             .frame(maxWidth: .infinity, alignment: .center)
             Spacer(minLength: 0)
-            Text("of 90-day rewire").font(.system(size: 11)).foregroundStyle(.white.opacity(0.7))
+            Text("of last \(entry.cleanWindow) days").font(.system(size: 11))
+                .foregroundStyle(.white.opacity(0.7))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .containerBackground(for: .widget) { Tile.sage }
@@ -370,8 +375,8 @@ struct RewireRecoveryWidget: Widget {
         StaticConfiguration(kind: "RewireRecoveryWidget", provider: Provider()) { entry in
             RecoveryTileView(entry: entry)
         }
-        .configurationDisplayName("Recovery")
-        .description("How far into the 90-day rewiring window you are.")
+        .configurationDisplayName("Clean Days")
+        .description("How many of your recent days stayed clean.")
         .supportedFamilies([.systemSmall])
     }
 }
