@@ -169,17 +169,6 @@ enum SampleData {
         levels.first { $0.dayThreshold > days }
     }
 
-    // MARK: Weekly challenge (IMG_5457)
-    static let challengeDays: [ChallengeDay] = [
-        ChallengeDay(number: 1, dateLabel: "Sunday, Jun 28", state: .pending),
-        ChallengeDay(number: 2, dateLabel: "Monday, Jun 29", state: .pending),
-        ChallengeDay(number: 3, dateLabel: "Tuesday, Jun 30", state: .pending),
-        ChallengeDay(number: 4, dateLabel: "Wednesday, Jul 1", state: .pending),
-        ChallengeDay(number: 5, dateLabel: "Thursday, Jul 2", state: .pending),
-        ChallengeDay(number: 6, dateLabel: "Friday, Jul 3", state: .failed),
-        ChallengeDay(number: 7, dateLabel: "Saturday, Jul 4", state: .pending)
-    ]
-
     // MARK: 21-day Personal Plan (Quit Porn → "21-day Personal Plan")
     static let personalPlan: [PlanDay] = [
         PlanDay(day: 1, title: "Delete your triggers", detail: "Unfollow, block, and uninstall anything that leads you back to porn."),

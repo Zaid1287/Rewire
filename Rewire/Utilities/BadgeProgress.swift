@@ -21,7 +21,7 @@ enum BadgeProgress {
         case "Panic Breaker":           return gems.achievements.contains("panic")
         case "Streak Guard":            return appState.reminderEnabled
         case "Breathing Champ":         return gems.achievements.contains("breathing")
-        case "Challenger":              return streak.challengeJoined
+        case "Challenger":              return streak.hasEverJoinedChallenge
         case "Motivation Master":       return !appState.motivations.isEmpty
         // Slip-log era (Phase 2): honesty is the badge, not a penalty toggle.
         case "Responsible":             return streak.events.contains { $0.type == .relapse }

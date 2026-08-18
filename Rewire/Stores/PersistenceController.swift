@@ -33,8 +33,12 @@ struct AppSnapshot: Codable {
     var reports: [DailyReport]
     var streaks: [Streak]
     var events: [StreakEvent]
-    var challengeJoined: Bool
-    var challengeDays: [ChallengeDay]
+    /// Legacy: a permanent "joined once" bool, before joining became weekly.
+    /// Optional with a default so both old and new snapshots decode.
+    var challengeJoined: Bool? = nil
+    /// The week the user last joined, e.g. "2026-W34".
+    var challengeWeek: String? = nil
+    var hasEverJoinedChallenge: Bool? = nil
     /// 21-day Personal Plan completion. Optional with a default so snapshots
     /// written before this field existed still decode.
     var completedPlanDays: Set<Int>? = nil
@@ -113,8 +117,8 @@ final class PersistenceController {
             reports: streak.reports,
             streaks: streak.streaks,
             events: streak.events,
-            challengeJoined: streak.challengeJoined,
-            challengeDays: streak.challengeDays,
+            challengeWeek: streak.challengeWeek,
+            hasEverJoinedChallenge: streak.hasEverJoinedChallenge,
             completedPlanDays: streak.completedPlanDays,
             isPremium: gems.isPremium,
             claimedBadges: gems.claimedBadges,
