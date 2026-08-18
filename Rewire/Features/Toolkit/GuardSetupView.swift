@@ -14,6 +14,7 @@ import FamilyControls
 /// the "Not this time" / "I relapsed" buttons.
 struct GuardSetupView: View {
     @Environment(ShieldController.self) private var guardController
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
 
     @State private var showPicker = false
@@ -115,7 +116,12 @@ struct GuardSetupView: View {
                 Spacer(minLength: 0)
                 Toggle("", isOn: Binding(
                     get: { guardController.enabled },
-                    set: { guardController.setEnabled($0) }
+                    set: { on in
+                        guardController.setEnabled(on)
+                        // The one place the shield is armed by hand, so the one
+                        // place the Content Blocker badge can be earned.
+                        if on { gems.recordAchievement("blocker") }
+                    }
                 ))
                 .labelsHidden()
                 .tint(Theme.Colors.good)

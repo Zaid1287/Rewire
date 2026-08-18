@@ -2,11 +2,11 @@ import SwiftUI
 
 /// Progress tab (flow-redesign Phase 4, plan §1): Recovery + History merged —
 /// "how am I doing?" is one mental model. Recovery ring, badges/levels
-/// collection, superpowers preview, statistics, streak history, and events
+/// collection, statistics, streak history, and events
 /// (with slip undo), plus the floating Add Event button.
 /// Named ProgressTabView because SwiftUI owns `ProgressView`.
 struct ProgressTabView: View {
-    enum Route: Hashable { case superpowers, badges, levels, streakDetail(Int) }
+    enum Route: Hashable { case badges, levels, streakDetail(Int) }
     @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
     @Environment(StreakStore.self) private var streak
@@ -31,7 +31,6 @@ struct ProgressTabView: View {
                         VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                             recoveryHeader
                             collection
-                            superpowersPreview
                             streaksSection
                             eventsSection
                             easier
@@ -77,7 +76,6 @@ struct ProgressTabView: View {
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
                 switch route {
-                case .superpowers: SuperpowersView()
                 case .badges:      BadgesView()
                 case .levels:      LevelsView()
                 case .streakDetail(let i): StreakDetailView(index: i)
@@ -188,21 +186,6 @@ struct ProgressTabView: View {
         }
         .buttonStyle(PressableButtonStyle())
         .smokedGlass(radius: 24)
-    }
-
-    private var superpowersPreview: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            SectionHeader(title: "Superpowers") {
-                LinkButton(title: "Show All") { path.append(.superpowers) }
-            }
-            Card(padding: Theme.Spacing.md) {
-                VStack(spacing: 0) {
-                    BenefitRow(benefit: SampleData.benefits[0], showProgress: true, progress: 0.08)
-                    RowDivider()
-                    BenefitRow(benefit: SampleData.benefits[1], showProgress: true, progress: 0.08)
-                }
-            }
-        }
     }
 
     private var easier: some View {

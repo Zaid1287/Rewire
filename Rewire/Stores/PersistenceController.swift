@@ -42,7 +42,6 @@ struct AppSnapshot: Codable {
     // GemStore
     var isPremium: Bool
     var claimedBadges: Set<String>
-    var likedSuperpowers: Set<String>
     /// Misc one-off unlocks. Optional with a default so snapshots written
     /// before this field existed still decode.
     var achievements: Set<String>? = nil
@@ -119,7 +118,6 @@ final class PersistenceController {
             completedPlanDays: streak.completedPlanDays,
             isPremium: gems.isPremium,
             claimedBadges: gems.claimedBadges,
-            likedSuperpowers: gems.likedSuperpowers,
             achievements: gems.achievements,
             premiumPlan: gems.premiumPlan
         )

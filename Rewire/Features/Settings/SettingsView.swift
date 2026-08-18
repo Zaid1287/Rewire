@@ -62,9 +62,6 @@ struct SettingsView: View {
                         }
 
                         section("Support") {
-                            slateRow("paperplane", "Give Feedback",
-                                     accessory: .chevron, enabled: false) {}
-                            divider
                             inviteRow
                         }
 
