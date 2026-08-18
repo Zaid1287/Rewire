@@ -2,7 +2,7 @@
 
 _The operating manual for anyone who takes this project forward. Read this once end-to-end
 before your first change. It encodes **how we work**, not what the code is (that's
-[HANDOFF.md](HANDOFF.md)). Follow it and the quality bar holds; the goal is that the next
+`HANDOFF.md`, local). Follow it and the quality bar holds; the goal is that the next
 person is as good as us, or better._
 
 ---
@@ -39,7 +39,7 @@ The build team owns product, design, engineering, and marketing decisions end to
   infrequently.
 - **Everything else we decide, document, and proceed.** Because no one else reviews, the
   quality bar (§4) and honest self-review ARE the review. **Default-to-proceed is now total** —
-  but every non-trivial decision gets written down (in the PR, the [product-cut-list](research/design/product-cut-list.md),
+  but every non-trivial decision gets written down (in the PR, the local `research/design/product-cut-list.md`,
   or a research doc) so it's auditable and the lead could weigh in later if he ever chooses to.
   Big product calls that used to be "ask the lead" (what Premium is, the privacy-messaging
   change, which social feature ships first) are now ours — make them deliberately, record the
@@ -161,8 +161,10 @@ Concretely:
   (508-row NoFap/pornfree synthesis), and the audits in `research/design/`
   (`design-logic-audit.md` = keep/change/cut verdicts; `premium-feel-audit.md`;
   `PAYWALL-CLUSTER.md`). The consolidated board-ready index is
-  [research/design/product-cut-list.md](research/design/product-cut-list.md). Read the relevant
-  one before proposing a change to a screen it covers.
+  `research/design/product-cut-list.md`. Read the relevant one before proposing a change to a
+  screen it covers. **These live outside git** (`.git/info/exclude`) along with `HANDOFF.md`,
+  `WEEK-PLAN.md`, `SHIELD-HANDOFF.md` and `tools/` — they hold scraped corpora and working state,
+  so they stay on the machine. Get them from whoever hands the project over.
 - **Honesty in monetization.** Free things are labelled free. Crisis tools are never gated or
   monetized. Trials state price → renewal → what-happens-at-end next to the CTA. Restore never
   grants entitlement without a real receipt.
@@ -210,21 +212,6 @@ Big mechanical changes may be delegated to a subagent, but the quality stays you
   flags, relapse reasons, motivation text, or photos. This rule is not negotiable given the data class.
 - **App Store risk:** run the `greenlight` skill over onboarding + paywalls before any submission.
   Expect a 17+ rating.
-
----
-
-## 10. Where to look
-
-| Need | File |
-|------|------|
-| Current state, architecture, build specifics | [HANDOFF.md](HANDOFF.md) (private) |
-| Product brief / who it's for | [PRODUCT.md](PRODUCT.md) |
-| What to build next, ranked, with the product lens | [research/design/product-cut-list.md](research/design/product-cut-list.md) |
-| Keep/change/cut verdicts per screen | `research/design/design-logic-audit.md` |
-| Monetization findings + "what is Premium" decision | `PAYWALL-CLUSTER.md` |
-| Why users churn (competitors) / what they want | `research/reviews/` + `research/reddit/` |
-| Visual language | [DESIGN-LANGUAGE-RONLAB.md](DESIGN-LANGUAGE-RONLAB.md) |
-| Screen Time blocker workstream | `SHIELD-HANDOFF.md` |
 
 ---
 
