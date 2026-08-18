@@ -44,11 +44,18 @@ struct PlanDay: Identifiable {
     var id: Int { day }
 }
 
-/// A subscription plan row.
+/// A display-ready paywall row, built from a real StoreKit `Product` by
+/// `Purchases.orderedPlans(from:)`. Every string here is already localized by
+/// the App Store — nothing about a price is hardcoded.
 struct Plan: Identifiable, Equatable {
-    let id = UUID()
-    let title: String
-    let subtitle: String
-    let price: String
+    /// The StoreKit product ID — also the stable identity, so two rows built
+    /// from the same product compare equal.
+    let id: String
+    let name: String        // "Monthly" / "Yearly" / "Lifetime"
+    let subtitle: String    // "billed monthly" / "$2.49 a month, billed yearly"
+    let price: String       // Product.displayPrice, in the storefront's currency
+    let cadence: String     // "/mo" / "/yr" / "once"
+    /// Price → renewal period, shown next to the CTA on every paywall.
+    let disclosure: String
     let isPopular: Bool
 }

@@ -5,15 +5,20 @@ import SwiftUI
 /// earned from real clean time (see SampleData.level(forDays:)), not bought.
 @Observable
 final class GemStore {
-    /// Whether the premium subscription is unlocked.
+    /// Whether Premium is unlocked. **`Purchases` is the only writer** — this is
+    /// a cache of the StoreKit entitlement, persisted so the first frame after
+    /// launch doesn't flash "free" before `Transaction.currentEntitlements`
+    /// answers. It is corrected in both directions on every refresh, so a
+    /// cancelled or refunded subscription really does end.
     private(set) var isPremium: Bool = false { didSet { persist?() } }
 
-    /// Which plan was purchased ("1 month" / "1 year" / "Lifetime") — drives
-    /// whether upgrade entry points still show. nil on pre-plan snapshots.
+    /// The entitled StoreKit product ID — drives whether upgrade entry points
+    /// still show. nil when not entitled. (Snapshots written before StoreKit
+    /// hold a plan *title* here; the first entitlement refresh overwrites it.)
     private(set) var premiumPlan: String? = nil { didSet { persist?() } }
 
     /// Lifetime owners have nothing left to buy.
-    var canUpgrade: Bool { !isPremium || premiumPlan != "Lifetime" }
+    var canUpgrade: Bool { !isPremium || premiumPlan != Purchases.ProductID.lifetime }
 
     /// Recovery progress. Stable keys: badge `title`, superpower `title`.
     private(set) var claimedBadges: Set<String> = [] { didSet { persist?() } }
@@ -29,11 +34,12 @@ final class GemStore {
 
     // MARK: Premium
 
-    /// plan is nil when we can't know which plan was bought (Restore Purchase) —
-    /// premium unlocks but the upgrade banner stays until a Lifetime purchase.
-    func unlockPremium(plan: String? = nil) {
-        isPremium = true
-        if let plan { premiumPlan = plan }
+    /// The single entry point for premium state, called by `Purchases` after
+    /// every entitlement read. Nothing else may grant premium — that hole is
+    /// what made "Restore Purchase" a free premium button.
+    func applyEntitlement(active: Bool, productID: String?) {
+        isPremium = active
+        premiumPlan = productID
     }
 
     // MARK: Recovery progress

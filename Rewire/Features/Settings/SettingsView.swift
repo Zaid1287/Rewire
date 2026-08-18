@@ -7,11 +7,13 @@ import SwiftUI
 /// light/dark toggle has nothing left to switch.
 struct SettingsView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(Purchases.self) private var purchases
     @Environment(\.openURL) private var openURL
     /// The four bundled icons — index 0 is the primary (nil alternate name).
     @AppStorage("selectedAppIcon") private var selectedIcon = 0
     @State private var showPaywall = false
     @State private var showRestoredAlert = false
+    @State private var isRestoring = false
     // Moved here from the old Quit Porn hub (Phase 4) — they're settings.
     @State private var showReminders = false
     @State private var showFaceIDSettings = false
@@ -54,7 +56,8 @@ struct SettingsView: View {
                             slateRow("arrow.down.circle", "Export Data",
                                      accessory: .value("JSON")) { showDataBackup = true }
                             divider
-                            slateRow("arrow.clockwise", "Restore Purchase",
+                            slateRow("arrow.clockwise",
+                                     isRestoring ? "Checking with the App Store…" : "Restore Purchase",
                                      accessory: .chevron) { restorePurchase() }
                         }
 
@@ -112,12 +115,18 @@ struct SettingsView: View {
         .tint(Theme.Colors.butter)
     }
 
+    /// Real restore: AppStore.sync() + a re-read of the entitlements. It can
+    /// only ever restore something the Apple ID actually owns — the mock that
+    /// handed premium to anyone who tapped this is gone for good.
     private func restorePurchase() {
-        // No StoreKit yet — restore must never grant premium for free. Real
-        // AppStore.sync() + Transaction.currentEntitlements lands with StoreKit;
-        // until then this is honestly a no-op with a "nothing to restore" notice.
         Haptics.tap()
-        showRestoredAlert = true
+        guard !isRestoring else { return }
+        isRestoring = true
+        Task {
+            let restored = await purchases.restore()
+            isRestoring = false
+            if restored { Haptics.success() } else { showRestoredAlert = true }
+        }
     }
 
     // MARK: App icon picker
@@ -305,7 +314,7 @@ struct SettingsView: View {
                         .font(Theme.Typography.headline())
                         .foregroundStyle(Color(hex: 0x141416))
                     Text(gems.isPremium ? "Pay once, keep it forever"
-                                        : "Everything unlocked · \(SampleData.plans[1].subtitle.replacingOccurrences(of: "only ", with: ""))")
+                                        : "Full history, slip patterns, the 21-day plan & tracker")
                         .font(Theme.Typography.caption())
                         .foregroundStyle(Color(hex: 0x141416).opacity(0.72))
                 }
@@ -327,4 +336,4 @@ struct SettingsView: View {
     }
 }
 
-#Preview { SettingsView().environment(GemStore()) }
+#Preview { SettingsView().environment(GemStore()).environment(Purchases()) }

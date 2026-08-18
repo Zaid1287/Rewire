@@ -181,9 +181,9 @@ struct PanicModeView: View {
         VStack(spacing: Theme.Spacing.lg) {
             SheetChrome(title: "Urge SOS")
 
-            Text(gems.isPremium
-                 ? "You're riding minute \(minutesRidden) of the wave"
-                 : "You're resisting for \(timerText)")
+            // Identical on both tiers. The crisis screen is free core — a
+            // paying user does not get a better way through a bad night.
+            Text("You're riding minute \(minutesRidden) of the wave")
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.textSecondary)
                 .monospacedDigit()
