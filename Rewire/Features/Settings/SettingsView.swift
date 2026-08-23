@@ -9,6 +9,7 @@ struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
     @Environment(Purchases.self) private var purchases
+    @Environment(CloudSync.self) private var cloudSync
     @Environment(\.openURL) private var openURL
     /// The four bundled icons — index 0 is the primary (nil alternate name).
     @AppStorage("selectedAppIcon") private var selectedIcon = 0
@@ -62,6 +63,12 @@ struct SettingsView: View {
                                      accessory: .chevron) { restorePurchase() }
                             // Hidden entirely when no analytics key is built in
                             // — a switch that does nothing is worse than none.
+                            // Hidden until the iCloud capability exists — no
+                            // switch that does nothing.
+                            if CloudSync.containerID != nil {
+                                divider
+                                cloudSyncRow
+                            }
                             if Analytics.isAvailable {
                                 divider
                                 analyticsRow
@@ -235,6 +242,62 @@ struct SettingsView: View {
             .padding(.leading, 62)
     }
 
+    /// iCloud backup, off unless the user turns it on. The copy says whose
+    /// iCloud and who can read it, because that's the whole question for this
+    /// data — see CloudSync for why it's the private database and not a server
+    /// we operate.
+    private var cloudSyncRow: some View {
+        Button {
+            Haptics.tap()
+            let on = !appState.cloudSyncOptIn
+            appState.setCloudSyncOptIn(on)
+            Task { await cloudSync.syncIfEnabled(optedIn: on) }
+        } label: {
+            HStack(spacing: 13) {
+                Image(systemName: "icloud")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .frame(width: 34, height: 34)
+                    .background(Color.white.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("iCloud backup")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textHi)
+                    Text(cloudStatusText)
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textXlo)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Text(appState.cloudSyncOptIn ? "On" : "Off")
+                    .font(Theme.Typography.unitSuffix(14))
+                    .foregroundStyle(appState.cloudSyncOptIn
+                                     ? Theme.Colors.good : Theme.Colors.textXlo)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableButtonStyle())
+    }
+
+    private var cloudStatusText: String {
+        switch cloudSync.status {
+        case .unavailable, .off:
+            "Keep a copy in your own iCloud so a new phone picks up where you left off. Apple encrypts it — we can't read it."
+        case .noAccount:
+            "Sign in to iCloud in the Settings app to use this."
+        case .syncing:
+            "Backing up…"
+        case .synced(let date):
+            "Last backed up \(RewireDate.full.string(from: date)). Stored in your own iCloud — we can't read it."
+        case .failed(let message):
+            "Couldn't back up: \(message)"
+        }
+    }
+
     /// Anonymous usage stats, off unless the user turns it on. Sits in
     /// Privacy & data because that's what it is, and it says plainly what does
     /// and doesn't leave the phone — the honest version of a consent prompt.
@@ -383,4 +446,8 @@ struct SettingsView: View {
     }
 }
 
-#Preview { SettingsView().environment(AppState()).environment(GemStore()).environment(Purchases()) }
+#Preview {
+    SettingsView()
+        .environment(AppState()).environment(GemStore())
+        .environment(Purchases()).environment(CloudSync())
+}

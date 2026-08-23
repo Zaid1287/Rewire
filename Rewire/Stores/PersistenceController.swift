@@ -20,6 +20,8 @@ struct AppSnapshot: Codable {
     /// Analytics consent. Optional with a default so snapshots written before
     /// it existed decode — and absent means off, which is the safe direction.
     var analyticsOptIn: Bool? = nil
+    /// iCloud backup consent. Optional with a default; absent means off.
+    var cloudSyncOptIn: Bool? = nil
     var reminderHour: Int? = nil
     var reminderMinute: Int? = nil
     /// Face ID app-lock. Optional with a default so snapshots written before
@@ -55,7 +57,34 @@ struct AppSnapshot: Codable {
     /// Purchased plan title. Optional with a default so snapshots written
     /// before this field existed still decode.
     var premiumPlan: String? = nil
+
+    // MARK: Sync bookkeeping
+    /// When this snapshot was last written, used by `CloudSync.merge` to decide
+    /// which side wins for scalar fields. Optional with a default so snapshots
+    /// written before sync existed decode — `nil` sorts oldest, which is the
+    /// safe direction (a snapshot that never knew about sync never overwrites
+    /// one that did).
+    var updatedAt: Date? = nil
 }
+
+#if DEBUG
+extension AppSnapshot {
+    /// Minimal valid snapshot for `CloudSync.selfCheck`. Debug only — never a
+    /// source of app data.
+    static var selfCheckFixture: AppSnapshot {
+        AppSnapshot(phase: .main,
+                    quizAnswers: [],
+                    startDate: Date(timeIntervalSince1970: 0),
+                    goal: Goal(label: "fixture", seconds: 60),
+                    recordSeconds: 0,
+                    reports: [],
+                    streaks: [],
+                    events: [],
+                    isPremium: false,
+                    claimedBadges: [])
+    }
+}
+#endif
 
 /// Lightweight synchronous JSON persistence. `PersistenceController.shared`
 /// holds the three stores; `scheduleSave()` debounces writes so a burst of
@@ -111,6 +140,7 @@ final class PersistenceController {
             appearancePhotos: appState.appearancePhotos,
             reminderEnabled: appState.reminderEnabled,
             analyticsOptIn: appState.analyticsOptIn,
+            cloudSyncOptIn: appState.cloudSyncOptIn,
             reminderHour: appState.reminderHour,
             reminderMinute: appState.reminderMinute,
             faceIDEnabled: appState.faceIDEnabled,
@@ -127,9 +157,14 @@ final class PersistenceController {
             isPremium: gems.isPremium,
             claimedBadges: gems.claimedBadges,
             achievements: gems.achievements,
-            premiumPlan: gems.premiumPlan
+            premiumPlan: gems.premiumPlan,
+            updatedAt: Date()
         )
     }
+
+    /// The current state, for CloudSync to push. Same builder the disk write
+    /// uses, so the two can never drift apart.
+    func currentSnapshot() -> AppSnapshot? { snapshot() }
 
     /// Documents/rewire-state.json — exposed for the Data Backup export sheet.
     var backupURL: URL { url }
