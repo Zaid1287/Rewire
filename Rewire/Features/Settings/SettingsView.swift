@@ -6,6 +6,7 @@ import SwiftUI
 /// The Appearance picker is retired: scenes are fixed per screen, so a
 /// light/dark toggle has nothing left to switch.
 struct SettingsView: View {
+    @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
     @Environment(Purchases.self) private var purchases
     @Environment(\.openURL) private var openURL
@@ -59,6 +60,12 @@ struct SettingsView: View {
                             slateRow("arrow.clockwise",
                                      isRestoring ? "Checking with the App Store…" : "Restore Purchase",
                                      accessory: .chevron) { restorePurchase() }
+                            // Hidden entirely when no analytics key is built in
+                            // — a switch that does nothing is worse than none.
+                            if Analytics.isAvailable {
+                                divider
+                                analyticsRow
+                            }
                         }
 
                         section("Support") {
@@ -228,6 +235,49 @@ struct SettingsView: View {
             .padding(.leading, 62)
     }
 
+    /// Anonymous usage stats, off unless the user turns it on. Sits in
+    /// Privacy & data because that's what it is, and it says plainly what does
+    /// and doesn't leave the phone — the honest version of a consent prompt.
+    ///
+    /// Built as a Button like every other row here rather than a bare `Toggle`:
+    /// a Toggle dropped into this card never received taps at all (the setter
+    /// was verifiably never called), and the row also has to carry two lines of
+    /// consent copy, which `slateRow` can't.
+    private var analyticsRow: some View {
+        Button {
+            Haptics.tap()
+            appState.setAnalyticsOptIn(!appState.analyticsOptIn)
+        } label: {
+            HStack(spacing: 13) {
+                Image(systemName: "chart.bar")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .frame(width: 34, height: 34)
+                    .background(Color.white.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Share anonymous usage")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textHi)
+                    Text("Which screens get used, never what you wrote. No account, no profile — your slips, notes and photos never leave this phone.")
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textXlo)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Text(appState.analyticsOptIn ? "On" : "Off")
+                    .font(Theme.Typography.unitSuffix(14))
+                    .foregroundStyle(appState.analyticsOptIn
+                                     ? Theme.Colors.good : Theme.Colors.textXlo)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableButtonStyle())
+    }
+
     private enum RowAccessory { case chevron, value(String), none }
 
     private func slateRow(_ symbol: String, _ title: String,
@@ -333,4 +383,4 @@ struct SettingsView: View {
     }
 }
 
-#Preview { SettingsView().environment(GemStore()).environment(Purchases()) }
+#Preview { SettingsView().environment(AppState()).environment(GemStore()).environment(Purchases()) }

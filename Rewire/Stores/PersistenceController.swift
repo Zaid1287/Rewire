@@ -17,6 +17,9 @@ struct AppSnapshot: Codable {
     /// Daily reminder settings. Optional with a default so snapshots written
     /// before this field existed still decode.
     var reminderEnabled: Bool? = nil
+    /// Analytics consent. Optional with a default so snapshots written before
+    /// it existed decode — and absent means off, which is the safe direction.
+    var analyticsOptIn: Bool? = nil
     var reminderHour: Int? = nil
     var reminderMinute: Int? = nil
     /// Face ID app-lock. Optional with a default so snapshots written before
@@ -107,6 +110,7 @@ final class PersistenceController {
             motivations: appState.motivations,
             appearancePhotos: appState.appearancePhotos,
             reminderEnabled: appState.reminderEnabled,
+            analyticsOptIn: appState.analyticsOptIn,
             reminderHour: appState.reminderHour,
             reminderMinute: appState.reminderMinute,
             faceIDEnabled: appState.faceIDEnabled,

@@ -57,6 +57,16 @@ final class AppState {
     /// actual `UNUserNotificationCenter` scheduling happens in the view layer
     /// (ReminderScheduler) — this store is just the persisted data holder.
     private(set) var reminderEnabled: Bool = false { didSet { persist?() } }
+
+    /// Analytics consent. **Default off, and it stays off until the user turns
+    /// it on** — this app holds special-category health data, so nothing is
+    /// sent on an assumption. Read by `Analytics.start(optedIn:)`.
+    private(set) var analyticsOptIn: Bool = false { didSet { persist?() } }
+
+    func setAnalyticsOptIn(_ on: Bool) {
+        analyticsOptIn = on
+        Analytics.start(optedIn: on)
+    }
     private(set) var reminderHour: Int = 21 { didSet { persist?() } }
     private(set) var reminderMinute: Int = 0 { didSet { persist?() } }
 
@@ -196,6 +206,7 @@ final class AppState {
         motivations = s.motivations ?? []
         appearancePhotos = s.appearancePhotos ?? []
         reminderEnabled = s.reminderEnabled ?? false
+        analyticsOptIn = s.analyticsOptIn ?? false
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0
         faceIDEnabled = s.faceIDEnabled ?? false
