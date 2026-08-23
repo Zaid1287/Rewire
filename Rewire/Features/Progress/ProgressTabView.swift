@@ -2,7 +2,8 @@ import SwiftUI
 
 /// Progress tab (flow-redesign Phase 4, plan §1): Recovery + History merged —
 /// "how am I doing?" is one mental model. Recovery ring, badges/levels
-/// collection, statistics, streak history, and events
+/// collection, the two counts the old Stats tab owned, streak history, and
+/// events — one Recovery tab instead of two that answered the same question
 /// (with slip undo), plus the floating Add Event button.
 /// Named ProgressTabView because SwiftUI owns `ProgressView`.
 struct ProgressTabView: View {
@@ -35,6 +36,7 @@ struct ProgressTabView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                             recoveryHeader
+                            statPair
                             collection
                             streaksSection
                             eventsSection
@@ -136,6 +138,43 @@ struct ProgressTabView: View {
                 .padding(.horizontal, Theme.Spacing.lg)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    /// Urges ridden out — every logged event that isn't a relapse. Was the one
+    /// number the old Stats tab owned outright.
+    private var urgesBeaten: Int {
+        streak.events.filter { $0.type != .relapse }.count
+    }
+
+    /// Check-ins where nothing was flagged. The other number worth keeping.
+    private var cleanCheckIns: Int {
+        streak.reports.filter { !$0.watchedPorn && !$0.masturbated && !$0.relapsed }.count
+    }
+
+    /// The two counts the Stats tab existed for. Its clean-days gauge duplicated
+    /// the ring above, and its check-ins barcode duplicated Home's morse strip,
+    /// so only these came across.
+    private var statPair: some View {
+        HStack(spacing: 12) {
+            countCard("Urges beaten", urgesBeaten)
+            countCard("Clean check-ins", cleanCheckIns)
+        }
+    }
+
+    private func countCard(_ title: String, _ value: Int) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(Theme.Typography.label())
+                .foregroundStyle(Theme.Colors.textLo)
+            Text("\(value)")
+                .font(Theme.Typography.unitSuffix(34))
+                .foregroundStyle(Theme.Colors.textHi)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(Theme.Spacing.md)
+        .smokedGlass(radius: 24)
     }
 
     private var collection: some View {
