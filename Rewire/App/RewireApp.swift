@@ -16,12 +16,15 @@ struct RewireApp: App {
         // debug launch.
         StreakStore.selfCheck()
         Purchases.selfCheck()
+        Analytics.selfCheck()
         #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(
             appState: appState, streak: streakStore, gems: gemStore
         )
-        Analytics.start()
+        // Consent is restored from the snapshot by configure() above, so this
+        // reads the user's actual answer rather than defaulting to on.
+        Analytics.start(optedIn: appState.analyticsOptIn)
 
         // StoreKit is the only writer of premium state — GemStore just caches
         // its answer so the rest of the app has one thing to read.
