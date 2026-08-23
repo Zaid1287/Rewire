@@ -18,22 +18,6 @@ enum SampleData {
                      options: ["Frequently", "Sometimes", "Rarely or never"])
     ]
 
-    // MARK: Comparison (IMG_5434)
-    static let withoutPoints: [ComparisonPoint] = [
-        .init(text: "Get stuck in a relapse loop"),
-        .init(text: "Waste a lot of time"),
-        .init(text: "Feel tired every day"),
-        .init(text: "Lose money, stay poor"),
-        .init(text: "Ruin your life")
-    ]
-    static let withPoints: [ComparisonPoint] = [
-        .init(text: "Quit porn addiction forever"),
-        .init(text: "Reach your goals faster"),
-        .init(text: "Level up in every part of life"),
-        .init(text: "Be unstoppable, feel confident"),
-        .init(text: "Enjoy your life")
-    ]
-
     // MARK: Benefits — what recovery actually gives you (onboarding)
     // Glyphs match the produced asset board ("10 custom pastel glyphs"): crisp
     // vector SF Symbols on pastel circles, saturated tint from the same family.
@@ -194,9 +178,4 @@ enum SampleData {
         PlanDay(day: 21, title: "Celebrate day 21", detail: "You finished the plan — treat yourself to something small and set your next goal.")
     ]
 
-    // MARK: History streaks (IMG_5466)
-    static let streaks: [Streak] = [
-        Streak(index: 2, duration: 60, isOngoing: true),
-        Streak(index: 1, duration: 60, isOngoing: false)
-    ]
 }

@@ -2,22 +2,27 @@ import SwiftUI
 import Combine
 
 /// Drives the live streak timer, current goal, progress, and saved reports.
-/// The screenshots show a brand-new user (streak measured in seconds/minutes),
-/// so the timer starts near zero and ticks up live.
+/// A new install starts at genuine zero: no prior streaks, no personal best,
+/// no seconds already on the clock. The old defaults were screenshot-era
+/// sample data, which meant a first launch showed history the user never had.
 @Observable
 final class StreakStore {
     /// When the current streak began. Settable internally so `addDays` can shift it.
     private(set) var startDate: Date
     /// Selected goal (defaults to the "2 hours" option shown selected).
     var goal: Goal = SampleData.goals[0] { didSet { persist?() } }
-    /// Best streak so far, for the "1 minute left to break your record" line.
-    private(set) var recordSeconds: TimeInterval = 60 { didSet { persist?() } }
+    /// Best streak so far. Zero until the user actually banks one.
+    private(set) var recordSeconds: TimeInterval = 0 { didSet { persist?() } }
 
-    private(set) var elapsed: TimeInterval = 57   // matches "57 seconds" first-victory shot
+    private(set) var elapsed: TimeInterval = 0
     private var timer: AnyCancellable?
 
     var reports: [DailyReport] = [] { didSet { persist?() } }
-    var streaks: [Streak] = SampleData.streaks { didSet { persist?() } }
+    /// The run in progress, and every run banked before it. Starts as the one
+    /// real run this install is on — not two sample rows from the screenshots.
+    var streaks: [Streak] = [Streak(index: 1, duration: 0, isOngoing: true)] {
+        didSet { persist?() }
+    }
 
     /// History events (History → Add Event).
     private(set) var events: [StreakEvent] = [] { didSet { persist?() } }
@@ -58,7 +63,7 @@ final class StreakStore {
                              goalSeconds: goal.seconds,
                              bestRunDays: bestRunDays,
                              checkedInToday: checkedInToday,
-                             cleanDays30: cleanDays(30))
+                             cleanDays30: cleanDays(trackedDayCount(inLast: 30)))
     }
 
     /// The days a relapse was logged on, normalised to midnight. The single
@@ -67,6 +72,32 @@ final class StreakStore {
     private var relapseDayStarts: Set<Date> {
         let cal = Calendar.current
         return Set(events.filter { $0.type == .relapse }.map { cal.startOfDay(for: $0.date) })
+    }
+
+    /// The earliest day we have any basis to speak about — the current run's
+    /// start, or the oldest thing the user ever logged. Days before this are
+    /// not "clean", they are days we know nothing about.
+    var trackedSince: Date {
+        let cal = Calendar.current
+        let candidates = [startDate] + events.map(\.date) + reports.map(\.date)
+        return cal.startOfDay(for: candidates.min() ?? startDate)
+    }
+
+    /// How many days we have actually tracked, capped at `n` and never below 1
+    /// (today always counts). This is the honest denominator: a user who
+    /// installed this morning has been tracked for one day, not ninety.
+    func trackedDayCount(inLast n: Int) -> Int {
+        let cal = Calendar.current
+        let elapsedDays = cal.dateComponents([.day], from: trackedSince,
+                                             to: cal.startOfDay(for: Date())).day ?? 0
+        return max(1, min(n, elapsedDays + 1))
+    }
+
+    /// Clean days *among the days we have tracked*. Counting the full window
+    /// would hand a brand-new install 90 clean days it never lived — the same
+    /// fabrication the "% rewired" gauge was cut for.
+    func cleanDayCount(inLast n: Int) -> Int {
+        cleanDays(trackedDayCount(inLast: n)).filter { $0 }.count
     }
 
     /// Last `n` days oldest→newest, true = no logged relapse that day. Same
@@ -81,7 +112,7 @@ final class StreakStore {
         }
     }
 
-    init(startSecondsAgo: TimeInterval = 57) {
+    init(startSecondsAgo: TimeInterval = 0) {
         startDate = Date().addingTimeInterval(-startSecondsAgo)
         elapsed = startSecondsAgo
         start()

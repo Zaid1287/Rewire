@@ -66,9 +66,11 @@ struct MyStreakSheet: View {
         let remaining = streak.recordSeconds - streak.elapsed
         return HStack(spacing: Theme.Spacing.sm) {
             Image(systemName: "star.fill").foregroundStyle(Theme.Colors.butter)
-            Text(remaining <= 0
-                 ? "New record! You've beaten your own streak record."
-                 : "\(remaining.humanShort()) left to break your own streak record.")
+            Text(streak.recordSeconds <= 0
+                 ? "No record yet — this run is setting it."
+                 : remaining <= 0
+                   ? "New record! You've beaten your own streak record."
+                   : "\(remaining.humanShort()) left to break your own streak record.")
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.textPrimary)
         }

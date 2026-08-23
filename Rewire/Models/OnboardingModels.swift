@@ -36,9 +36,3 @@ struct Benefit: Identifiable {
     let title: String
     let subtitle: String
 }
-
-/// The pros/cons rows on the "without / with Rewire" comparison screen.
-struct ComparisonPoint: Identifiable {
-    let id = UUID()
-    let text: String
-}

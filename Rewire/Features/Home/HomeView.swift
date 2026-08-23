@@ -25,9 +25,7 @@ struct HomeView: View {
     /// Clean days in the last 90 — the same measure the Progress ring shows.
     /// Was a "% recovered" figure against a 90-day rewiring window, which is a
     /// claim about the user's brain that we can't evidence.
-    private var cleanInLast90: Int {
-        streak.cleanDays(90).filter { $0 }.count
-    }
+    private var cleanInLast90: Int { streak.cleanDayCount(inLast: 90) }
 
     /// Last 60 days as rhythm: dashes for clean runs, red dots for relapses.
     private var morseMarks: [MorseMark] {
@@ -234,7 +232,8 @@ struct HomeView: View {
             miniCard(title: "Best run", value: "\(streak.bestRunDays)", unit: "days") {
                 showStreakSheet = true
             }
-            miniCard(title: "Clean days", value: "\(cleanInLast90)", unit: "/ 90") {
+            miniCard(title: "Clean days", value: "\(cleanInLast90)",
+                     unit: "/ \(streak.trackedDayCount(inLast: 90))") {
                 showStreakSheet = true
             }
         }
