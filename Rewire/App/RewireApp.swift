@@ -7,6 +7,7 @@ struct RewireApp: App {
     @State private var gemStore = GemStore()
     @State private var shieldController = ShieldController()
     @State private var purchases = Purchases()
+    @State private var cloudSync = CloudSync()
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -17,6 +18,7 @@ struct RewireApp: App {
         StreakStore.selfCheck()
         Purchases.selfCheck()
         Analytics.selfCheck()
+        CloudSync.selfCheck()
         #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(
@@ -42,13 +44,17 @@ struct RewireApp: App {
                 .environment(gemStore)
                 .environment(shieldController)
                 .environment(purchases)
+                .environment(cloudSync)
                 // Scenes are fixed per screen (RonLab): Home is Void, check-in
                 // is Fog, stats are Ivory. There's nothing left for a light/dark
                 // toggle to switch, so the app is pinned dark and the Appearance
                 // setting is retired. `AppState.appearance` stays for snapshot
                 // compatibility with older installs.
                 .preferredColorScheme(.dark)
-                .task { await purchases.load() }
+                .task {
+                    await purchases.load()
+                    await cloudSync.syncIfEnabled(optedIn: appState.cloudSyncOptIn)
+                }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
                     // Drain any shield taps that happened while we were closed.
@@ -59,6 +65,8 @@ struct RewireApp: App {
                     // Renewals, expiries and refunds that happened while we were
                     // closed. Cheap, local, and it can revoke as well as grant.
                     Task { await purchases.refreshEntitlement() }
+                    // Pull anything another device recorded while we were away.
+                    Task { await cloudSync.syncIfEnabled(optedIn: appState.cloudSyncOptIn) }
                     if ShieldEventStore.pendingReshield {
                         shieldController.apply()
                         ShieldEventStore.pendingReshield = false

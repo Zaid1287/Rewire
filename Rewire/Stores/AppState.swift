@@ -63,6 +63,12 @@ final class AppState {
     /// sent on an assumption. Read by `Analytics.start(optedIn:)`.
     private(set) var analyticsOptIn: Bool = false { didSet { persist?() } }
 
+    /// iCloud backup consent. Default off: the data is special-category, and
+    /// even "your own iCloud" is still off the device, so it's the user's call.
+    private(set) var cloudSyncOptIn: Bool = false { didSet { persist?() } }
+
+    func setCloudSyncOptIn(_ on: Bool) { cloudSyncOptIn = on }
+
     func setAnalyticsOptIn(_ on: Bool) {
         analyticsOptIn = on
         Analytics.start(optedIn: on)
@@ -207,6 +213,7 @@ final class AppState {
         appearancePhotos = s.appearancePhotos ?? []
         reminderEnabled = s.reminderEnabled ?? false
         analyticsOptIn = s.analyticsOptIn ?? false
+        cloudSyncOptIn = s.cloudSyncOptIn ?? false
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0
         faceIDEnabled = s.faceIDEnabled ?? false
