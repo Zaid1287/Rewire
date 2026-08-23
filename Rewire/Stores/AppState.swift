@@ -92,12 +92,11 @@ final class AppState {
     /// is one mental model); Toolkit is the old Quit Porn hub minus the rows
     /// that were really settings. Direct labels over vague ones ("Home").
     enum Tab: Int, CaseIterable {
-        case today, progress, stats, toolkit, settings
+        case today, progress, toolkit, settings
         var title: String {
             switch self {
             case .today: "Today"
             case .progress: "Recovery"
-            case .stats: "Stats"
             case .toolkit: "Toolkit"
             case .settings: "Settings"
             }
@@ -106,7 +105,6 @@ final class AppState {
             switch self {
             case .today: "house"
             case .progress: "leaf"
-            case .stats: "chart.bar"
             case .toolkit: "wrench.and.screwdriver"
             case .settings: "gearshape"
             }
@@ -115,7 +113,6 @@ final class AppState {
             switch self {
             case .today: "house.fill"
             case .progress: "leaf.fill"
-            case .stats: "chart.bar.fill"
             case .toolkit: "wrench.and.screwdriver.fill"
             case .settings: "gearshape.fill"
             }
