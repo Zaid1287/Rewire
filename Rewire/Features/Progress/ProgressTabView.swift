@@ -20,9 +20,9 @@ struct ProgressTabView: View {
     /// reviewers punish invented percentages harder than anything else in the
     /// corpus (13 such complaints average 1.54★, 85% of them 1–2★ —
     /// *"Have fun with your pseudoscientific woo"*). This counts days.
-    private var cleanInLast90: Int {
-        streak.cleanDays(90).filter { $0 }.count
-    }
+    private var cleanInLast90: Int { streak.cleanDayCount(inLast: 90) }
+    /// Days actually tracked — a fresh install reads "1 / 1", never "90 / 90".
+    private var trackedWindow: Int { streak.trackedDayCount(inLast: 90) }
 
     /// Earned-but-unclaimed badges — the red bubble on the Badges card.
     private var unclaimedBadges: Int {
@@ -112,7 +112,7 @@ struct ProgressTabView: View {
         VStack(spacing: 10) {
             ZStack {
                 TickRing(count: 66,
-                         activeFraction: Double(cleanInLast90) / 90,
+                         activeFraction: Double(cleanInLast90) / Double(trackedWindow),
                          startAngle: .degrees(135), sweep: .degrees(270),
                          tickLength: 16,
                          inactiveColor: .white.opacity(0.22),
@@ -120,7 +120,7 @@ struct ProgressTabView: View {
                          positionDot: Theme.Colors.butter)
                     .frame(width: 250, height: 250)
                 VStack(spacing: 2) {
-                    HeroNumeral(value: "\(cleanInLast90)", unit: "/ 90", size: 76)
+                    HeroNumeral(value: "\(cleanInLast90)", unit: "/ \(trackedWindow)", size: 76)
                     Text("clean days")
                         .font(Theme.Typography.label())
                         .foregroundStyle(Theme.Colors.textLo)
@@ -129,7 +129,7 @@ struct ProgressTabView: View {
             // Deliberately a different measure from the Home numeral: that one
             // is the run you're on, this is how much of the last three months
             // held. A slip dents this instead of erasing it.
-            Text("Days you stayed clean over the last 90 — a slip costs one day here, not the whole picture.")
+            Text("Days you stayed clean out of the \(trackedWindow) we've tracked — a slip costs one day here, not the whole picture.")
                 .font(Theme.Typography.caption())
                 .foregroundStyle(Theme.Colors.textXlo)
                 .multilineTextAlignment(.center)
@@ -206,7 +206,8 @@ struct ProgressTabView: View {
 
     // MARK: History sections (from the old History tab)
 
-    private var streaksSection: some View {
+    @ViewBuilder private var streaksSection: some View {
+        if !streak.streaks.isEmpty {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             SectionHeader("My Streaks")
             VStack(spacing: 0) {
@@ -216,6 +217,7 @@ struct ProgressTabView: View {
                 }
             }
             .smokedGlass(radius: 24)
+        }
         }
     }
 
