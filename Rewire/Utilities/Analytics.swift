@@ -24,12 +24,11 @@ import PostHog
 ///    `$` metadata — app version, OS, device model — is kept: it's not user
 ///    content, and it's what makes funnel numbers readable.)
 enum Analytics {
-    /// Empty until the PostHog project exists — leave "" to ship with
-    /// analytics disabled regardless of consent. Set the real key once the org
-    /// account is ready, and switch `host` to `https://eu.i.posthog.com` if the
-    /// project is created in the EU cloud.
-    private static let apiKey = ""
-    private static let host = "https://us.i.posthog.com"
+    /// PostHog project 257570, EU cloud. This is a write-only *project* token
+    /// (client-side by design, safe to ship); it is not a personal API key.
+    /// Set back to "" to ship with analytics disabled regardless of consent.
+    private static let apiKey = "phc_vQWV8qoYApzjPNoKwvgeqZgiGLb846JLRngkdu8iP34g"
+    private static let host = "https://eu.i.posthog.com"
 
     /// The only property keys allowed to leave the device. Everything is a
     /// low-cardinality enum-ish string chosen by us — never user text.
