@@ -40,6 +40,8 @@ struct ProgressTabView: View {
                             collection
                             streaksSection
                             eventsSection
+                            historyGate
+                            patternGate
                             easier
                         }
                         .screenPadding()
@@ -243,6 +245,34 @@ struct ProgressTabView: View {
         }
     }
 
+
+    // MARK: Premium boundary — history depth
+
+    /// Free users get the last 30 days; Premium gets everything. The cut is by
+    /// date rather than by row count so it means the same thing to a heavy
+    /// logger and a light one, and so the gate copy ("past 30 days") is
+    /// literally true. Free tier still gets every slip they logged in the
+    /// window — the raw record is never withheld, only its depth in time.
+    private var historyWindowStart: Date? {
+        gems.isPremium ? nil : Calendar.current.date(byAdding: .day, value: -30, to: Date())
+    }
+
+    private func withinWindow(_ date: Date) -> Bool {
+        guard let start = historyWindowStart else { return true }
+        return date >= start
+    }
+
+    /// Events only. `Streak` carries no date — just index/duration/isOngoing —
+    /// so there is no honest way to window it by time, and the streak list is
+    /// short anyway. Events are where the history actually accumulates.
+    private var visibleEvents: [StreakEvent] {
+        streak.events.filter { withinWindow($0.date) }
+    }
+
+    /// How much is actually behind the gate. Zero means a new user, who should
+    /// not be shown a lock for history they never had.
+    private var hiddenHistoryCount: Int { streak.events.count - visibleEvents.count }
+
     // MARK: History sections (from the old History tab)
 
     @ViewBuilder private var streaksSection: some View {
@@ -261,17 +291,38 @@ struct ProgressTabView: View {
     }
 
     @ViewBuilder private var eventsSection: some View {
-        if !streak.events.isEmpty {
+        if !visibleEvents.isEmpty {
             VStack(alignment: .leading, spacing: Theme.Spacing.md) {
                 SectionHeader("Events")
                 VStack(spacing: 0) {
-                    ForEach(Array(streak.events.enumerated()), id: \.element.id) { idx, event in
+                    ForEach(Array(visibleEvents.enumerated()), id: \.element.id) { idx, event in
                         eventRow(event)
-                        if idx < streak.events.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
+                        if idx < visibleEvents.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
                     }
                 }
                 .smokedGlass(radius: 24)
             }
+        }
+    }
+
+    /// Only shown once there is history behind it — a brand-new user is never
+    /// told they're missing something they never had.
+    @ViewBuilder private var historyGate: some View {
+        if hiddenHistoryCount > 0 {
+            PremiumGateCard(
+                title: "Your full history",
+                message: "You're seeing the last 30 days. Premium opens \(hiddenHistoryCount) earlier \(hiddenHistoryCount == 1 ? "entry" : "entries") and the trends across all of it.")
+        }
+    }
+
+    /// The calm home for slip-pattern insights. The Slip Log deliberately does
+    /// not sell this at the moment someone logs a relapse; this is where the
+    /// ask belongs.
+    @ViewBuilder private var patternGate: some View {
+        if !gems.isPremium, streak.slipPatternInsight() != nil {
+            PremiumGateCard(
+                title: "Slip-pattern insights",
+                message: "There's a pattern in the slips you've logged — the time, the trigger, the feeling that keeps coming back. Premium names it.")
         }
     }
 

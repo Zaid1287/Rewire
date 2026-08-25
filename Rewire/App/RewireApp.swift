@@ -28,10 +28,30 @@ struct RewireApp: App {
         // reads the user's actual answer rather than defaulting to on.
         Analytics.start(optedIn: appState.analyticsOptIn)
 
+        let gems = gemStore
+
+        #if DEBUG
+        // Lets a debug run see the Premium side of the four gates without a
+        // sandbox purchase: REWIRE_PREMIUM=1. It has to intercept the
+        // entitlement callback rather than just set the flag once — StoreKit
+        // refreshes moments after launch and would immediately overwrite it
+        // with active: false. Still routed through applyEntitlement (the one
+        // writer), and compiled out of Release entirely.
+        let forcePremium = ProcessInfo.processInfo.environment["REWIRE_PREMIUM"] == "1"
+        if forcePremium {
+            gems.applyEntitlement(active: true, productID: Purchases.ProductID.yearly)
+        }
+        #endif
+
         // StoreKit is the only writer of premium state — GemStore just caches
         // its answer so the rest of the app has one thing to read.
-        let gems = gemStore
         purchases.onEntitlement = { active, productID in
+            #if DEBUG
+            if forcePremium {
+                gems.applyEntitlement(active: true, productID: Purchases.ProductID.yearly)
+                return
+            }
+            #endif
             gems.applyEntitlement(active: active, productID: productID)
         }
     }
