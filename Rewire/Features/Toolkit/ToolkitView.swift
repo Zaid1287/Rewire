@@ -13,6 +13,7 @@ import SwiftUI
 /// we hadn't built ("Rewire Community", "Private Support", "Must-Watch Videos")
 /// were cut — see the review evidence in CLUSTER-SOLUTIONS.md.
 struct ToolkitView: View {
+    @Environment(GemStore.self) private var gems
     @State private var path: [Route] = []
     @State private var showBreathing = false
     @State private var showMotivations = false
@@ -42,8 +43,37 @@ struct ToolkitView: View {
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .challenge: WeeklyChallengeView()
-                case .personalPlan: PersonalPlanView()
-                case .appearance: AppearanceTrackerView()
+                // Both rows stay visible and still go somewhere — a row that
+                // vanishes reads as a bug, and one that does nothing reads as
+                // broken. Free users land on a screen that says what it is.
+                case .personalPlan:
+                    if gems.isPremium {
+                        PersonalPlanView()
+                    } else {
+                        PremiumGateScreen(
+                            title: "21-day Personal Plan",
+                            icon: "21.circle",
+                            pitch: "A day-by-day path out, built around the answers you gave when you started.",
+                            details: [
+                                "21 days, each with one thing to do — not a reading list",
+                                "Shaped by your own quiz answers, not a generic programme",
+                                "Pick it back up where you left off after a slip"
+                            ])
+                    }
+                case .appearance:
+                    if gems.isPremium {
+                        AppearanceTrackerView()
+                    } else {
+                        PremiumGateScreen(
+                            title: "Appearance Tracker",
+                            icon: "camera.fill",
+                            pitch: "Watch the change happen, photo by photo.",
+                            details: [
+                                "Side-by-side comparison across your whole run",
+                                "Photos never leave your phone — they are not uploaded anywhere",
+                                "Nothing is shared, scored, or shown to anyone else"
+                            ])
+                    }
                 case .shield: MyShieldView()
                 case .guardSetup: GuardSetupView()
                 }
