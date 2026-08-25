@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A1000002000000000000003 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A1000002000000000000002 /* PostHog */; };
 		A10000000000000000000A2 /* RewireWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A1000000000000000000080 /* RewireWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A1000002000000000000003 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A1000002000000000000002 /* PostHog */; };
+		A1000003000000000000003 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A1000003000000000000002 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,13 +40,8 @@
 		A1000000000000000000080 /* RewireWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RewireWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		A1000001000000000000001 /* Rewire */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Rewire; sourceTree = "<group>"; };
-		A1000001000000000000002 /* RewireWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (A1000001000000000000003 /* Exceptions */, ); explicitFileTypes = {}; explicitFolders = (); path = RewireWidget; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
-
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A1000001000000000000003 /* Exceptions */ = {
+		A1000001000000000000003 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -54,12 +50,18 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		A1000001000000000000001 /* Rewire */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Rewire; sourceTree = "<group>"; };
+		A1000001000000000000002 /* RewireWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (A1000001000000000000003 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = RewireWidget; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		A1000000000000000000010 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				A1000002000000000000003 /* PostHog in Frameworks */,
+				A1000003000000000000003 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,6 +115,7 @@
 			name = Rewire;
 			packageProductDependencies = (
 				A1000002000000000000002 /* PostHog */,
+				A1000003000000000000002 /* Supabase */,
 			);
 			productName = Rewire;
 			productType = "com.apple.product-type.application";
@@ -169,6 +172,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A1000002000000000000001 /* XCRemoteSwiftPackageReference "posthog-ios" */,
+				A1000003000000000000001 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			productRefGroup = A1000000000000000000002 /* Products */;
 			projectDirPath = "";
@@ -504,6 +508,14 @@
 				minimumVersion = 3.0.0;
 			};
 		};
+		A1000003000000000000001 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -511,6 +523,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1000002000000000000001 /* XCRemoteSwiftPackageReference "posthog-ios" */;
 			productName = PostHog;
+		};
+		A1000003000000000000002 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1000003000000000000001 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
