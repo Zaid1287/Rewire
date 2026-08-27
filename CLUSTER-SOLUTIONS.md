@@ -50,6 +50,29 @@ _Source: competitor (No Nut) review analysis — 1,040 reviews across 14 cluster
 
 ---
 
+## Cluster: Personalized Motivation & Reminders
+**Type:** Strength — second-highest volume in the dataset (124 mentions, 11.9% of reviews, 4.53 avg, 75% 5★, 5.6% 1–2★). The sheet's own read: *"Strength — customers love this job. Protect."* Job: deepen what fans already love.
+**Loudest praise, in a reviewer's own words:** *"I particularly like that you can put in your own motivations and your phone will randomly give them as notifications throughout the day keeping you in this conscious mindset."*
+
+| Solution | Why (demand) | PR | Status |
+|---|---|---|---|
+| **Motivation reminders** — the user's own "why I quit" notes pushed back at them 1–5× a day at unpredictable times inside a 9:00–21:00 window | The quote above is the single most specific praise in the cluster. Reinforced by "with the daily reminders it makes my urges less and less stronger each day"; "I love the daily reminders and goal setting. It keeps me motivated"; "the daily motivation notifications"; "erinnert einen oft daran wofür man das ganze macht" (reminds you often what you're doing it all for). | [#7](https://github.com/Zaid1287/Rewire/pull/7) | 🟡 |
+
+**The gap it closes:** Rewire already stored motivations (Toolkit → My Motivations) and already had a notification pipeline — but the two were never connected. The single daily reminder sent the same fixed string forever ("Stay on track / Check in with your streak today"), and the motivations list was a screen nobody reopened. The competitor's most-praised mechanic was the wiring between them.
+
+**Design calls:**
+- **Their words, verbatim.** The notification body is the user's own motivation text; the title is a fixed "Remember why". No generic quote packs — the differentiated thing is that it's *theirs*.
+- **Unpredictable, not random-feeling-random.** Slots are evenly spaced across the window then jittered, and the rotation starts at a random offset so the same "why" isn't forever the 9am one. Clockwork is what people tune out.
+- **Never overnight.** Fixed 9:00–21:00 window, stated in the UI.
+- **Off by default, and impossible to enable empty.** The toggle is disabled until at least one motivation exists — otherwise it would silently schedule nothing and look broken. Deleting the last motivation cancels the batch but leaves the toggle on, so it resumes the moment a new one is written.
+- **Independent of the daily check-in reminder.** Separate toggle, separate identifiers — turning one off never silences the other.
+
+**Against a bug the competitor actually shipped:** one of their reviewers wrote *"My remember now just says reminder body 1,2 etc. please fix this."* — placeholder strings reaching production notifications. The scheduler's pure planner is split out from the `UNUserNotificationCenter` I/O so a debug-launch self-check can assert every body is a real, non-empty user motivation, that nothing fires outside the window or in the past, that ids are unique and cancellable, and that the batch stays under the iOS 64-pending cap.
+
+**Verified in the Simulator:** self-check asserts pass on launch, the section gates correctly on an empty motivations list, the toggle requests permission and persists, the 1–5 stepper clamps and persists, and state survives reinstall. Notification *delivery* itself is Apple's local-notification path — no physical-device caveat here, unlike the blocker work.
+
+---
+
 ## Cluster: Paywall / Pricing & Monetization
 **Type:** Underserved — the single biggest churn driver across every competitor. No Nut: 53 mentions (5%), 2.4★, ~138 star-points of drag. QUITTR: **298 (38%), 1.2★**. Seed: 101 (23%), 1.3★. Brainbuddy: 162 (15%), 1.6★.
 **Loudest ask:** stop the trap. Paywalled crisis tools, billing surprises, restore that doesn't work, fake urgency.

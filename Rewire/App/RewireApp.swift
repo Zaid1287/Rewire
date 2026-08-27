@@ -16,6 +16,7 @@ struct RewireApp: App {
         // No test target; streak- and money-critical logic checks itself on
         // debug launch.
         StreakStore.selfCheck()
+        ReminderScheduler.selfCheck()
         Purchases.selfCheck()
         Analytics.selfCheck()
         CloudSync.selfCheck()
@@ -83,6 +84,9 @@ struct RewireApp: App {
                     // wiring it now means S2 is extension-side only.
                     streakStore.ingestShieldEvents()
                     shieldController.refreshAuth()
+                    // Motivation reminders are dated one-shots, not a repeating
+                    // trigger — the 7-day batch has to be re-planned or it runs dry.
+                    appState.refreshMotivationReminders()
                     // Renewals, expiries and refunds that happened while we were
                     // closed. Cheap, local, and it can revoke as well as grant.
                     Task { await purchases.refreshEntitlement() }

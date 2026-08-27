@@ -76,6 +76,12 @@ final class AppState {
     private(set) var reminderHour: Int = 21 { didSet { persist?() } }
     private(set) var reminderMinute: Int = 0 { didSet { persist?() } }
 
+    /// Motivation reminders — the user's own `motivations` pushed back at them
+    /// through the day. Separate from the single daily check-in reminder above
+    /// so turning one off never silences the other.
+    private(set) var motivationRemindersEnabled: Bool = false { didSet { persist?() } }
+    private(set) var motivationsPerDay: Int = 3 { didSet { persist?() } }
+
     /// Face ID app-lock (Quit Porn → Privacy). Persisted.
     private(set) var faceIDEnabled: Bool = false { didSet { persist?() } }
 
@@ -139,10 +145,35 @@ final class AppState {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         motivations.insert(Motivation(text: trimmed), at: 0)
+        refreshMotivationReminders()
     }
 
     func deleteMotivation(_ m: Motivation) {
         motivations.removeAll { $0.id == m.id }
+        refreshMotivationReminders()
+    }
+
+    /// Turns motivation reminders on/off and/or changes how many fire per day.
+    /// The permission prompt stays in the view layer; only rescheduling lives
+    /// here, so every caller lands on the same code path.
+    func setMotivationReminders(enabled: Bool, perDay: Int? = nil) {
+        motivationRemindersEnabled = enabled
+        if let perDay { motivationsPerDay = perDay }
+        refreshMotivationReminders()
+    }
+
+    /// Re-plans the pre-scheduled batch from the current motivations. Called on
+    /// every add/delete/setting change and on foreground, so a deleted
+    /// motivation can never keep firing and the 7-day window keeps rolling.
+    /// A deleted last motivation silently cancels the batch — the toggle stays
+    /// on so it resumes the moment a new one is written.
+    func refreshMotivationReminders() {
+        guard motivationRemindersEnabled, !motivations.isEmpty else {
+            ReminderScheduler.cancelMotivations()
+            return
+        }
+        ReminderScheduler.scheduleMotivations(texts: motivations.map(\.text),
+                                              perDay: motivationsPerDay)
     }
 
     /// Directory the appearance photos are stored in, created on first use.
@@ -278,6 +309,8 @@ final class AppState {
         cloudSyncOptIn = s.cloudSyncOptIn ?? false
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0
+        motivationRemindersEnabled = s.motivationRemindersEnabled ?? false
+        motivationsPerDay = s.motivationsPerDay ?? 3
         faceIDEnabled = s.faceIDEnabled ?? false
         appearance = s.appearance ?? .dark
         // Cold launches must start locked when the lock is on — isUnlocked

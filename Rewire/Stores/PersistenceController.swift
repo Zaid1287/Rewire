@@ -58,6 +58,11 @@ struct AppSnapshot: Codable {
     /// before this field existed still decode.
     var premiumPlan: String? = nil
 
+    // AppState — motivation reminders. Optional with defaults so snapshots
+    // written before these fields existed still decode.
+    var motivationRemindersEnabled: Bool? = nil
+    var motivationsPerDay: Int? = nil
+
     // MARK: Sync bookkeeping
     /// When this snapshot was last written, used by `CloudSync.merge` to decide
     /// which side wins for scalar fields. Optional with a default so snapshots
@@ -158,6 +163,8 @@ final class PersistenceController {
             claimedBadges: gems.claimedBadges,
             achievements: gems.achievements,
             premiumPlan: gems.premiumPlan,
+            motivationRemindersEnabled: appState.motivationRemindersEnabled,
+            motivationsPerDay: appState.motivationsPerDay,
             updatedAt: Date()
         )
     }

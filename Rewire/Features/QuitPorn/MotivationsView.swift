@@ -28,7 +28,7 @@ struct MotivationsView: View {
 
             if appState.motivations.isEmpty {
                 Spacer()
-                Text("Write down why you're doing this — you'll see it when it matters most.")
+                Text("Write down why you're doing this. You'll see it in Panic Mode — and Rewire can send it back to you through the day.")
                     .font(Theme.Typography.body())
                     .foregroundStyle(Theme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
