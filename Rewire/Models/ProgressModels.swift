@@ -78,12 +78,13 @@ struct StreakEvent: Identifiable, Codable {
 }
 
 /// One day cell in the weekly-challenge list (Home → challenge).
-struct ChallengeDay: Identifiable, Codable {
-    var id = UUID()
-    let number: Int
-    let dateLabel: String
-    enum State: String, Codable { case pending, done, failed }
-    var state: State
+struct ChallengeDay: Identifiable {
+    let number: Int          // 1…7 within the week
+    let date: Date
+    /// Answered by the streak record, never by tapping.
+    enum State { case done, failed, today, upcoming }
+    let state: State
+    var id: Int { number }
 }
 
 /// A calendar day marker on the My Streak sheet.

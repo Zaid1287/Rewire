@@ -1,15 +1,13 @@
 import SwiftUI
 
 /// Home top bar: shield-% (green, with warning), flame streak minutes,
-/// gem count, and a gift icon.
+/// and the earned level name.
 struct HomeStatHeader: View {
     let shieldPercent: Int
     let streakText: String
-    let gems: Int
-    var gemDelta: String? = nil
+    let levelName: String
     /// Warning mark next to the shield % — shown while the goal isn't reached.
     var showsWarning: Bool = true
-    var onGiftTap: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 0) {
@@ -33,19 +31,12 @@ struct HomeStatHeader: View {
             }
             .frame(maxWidth: .infinity)
 
-            // Gems
+            // Level
             HStack(spacing: 4) {
-                GemIcon(size: 20)
-                Text(gemDelta ?? "\(gems)")
-                    .foregroundStyle(gemDelta != nil ? Theme.Colors.good : Theme.Colors.textLo)
+                Image(systemName: "trophy.fill").foregroundStyle(Theme.Colors.textLo)
+                Text(levelName)
+                    .foregroundStyle(Theme.Colors.textLo)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .contentTransition(.numericText())
-            }
-            .frame(maxWidth: .infinity)
-
-            // Gift
-            Button(action: onGiftTap) {
-                Text("🎁").font(.system(size: 22))
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
@@ -60,6 +51,6 @@ struct HomeStatHeader: View {
 }
 
 #Preview {
-    HomeStatHeader(shieldPercent: 5, streakText: "1m", gems: 250, gemDelta: "+250")
+    HomeStatHeader(shieldPercent: 5, streakText: "1m", levelName: "Newcomer")
         .background { SceneBackground(kind: .void) }
 }

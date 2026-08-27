@@ -57,6 +57,22 @@ final class AppState {
     /// actual `UNUserNotificationCenter` scheduling happens in the view layer
     /// (ReminderScheduler) — this store is just the persisted data holder.
     private(set) var reminderEnabled: Bool = false { didSet { persist?() } }
+
+    /// Analytics consent. **Default off, and it stays off until the user turns
+    /// it on** — this app holds special-category health data, so nothing is
+    /// sent on an assumption. Read by `Analytics.start(optedIn:)`.
+    private(set) var analyticsOptIn: Bool = false { didSet { persist?() } }
+
+    /// iCloud backup consent. Default off: the data is special-category, and
+    /// even "your own iCloud" is still off the device, so it's the user's call.
+    private(set) var cloudSyncOptIn: Bool = false { didSet { persist?() } }
+
+    func setCloudSyncOptIn(_ on: Bool) { cloudSyncOptIn = on }
+
+    func setAnalyticsOptIn(_ on: Bool) {
+        analyticsOptIn = on
+        Analytics.start(optedIn: on)
+    }
     private(set) var reminderHour: Int = 21 { didSet { persist?() } }
     private(set) var reminderMinute: Int = 0 { didSet { persist?() } }
 
@@ -82,12 +98,11 @@ final class AppState {
     /// is one mental model); Toolkit is the old Quit Porn hub minus the rows
     /// that were really settings. Direct labels over vague ones ("Home").
     enum Tab: Int, CaseIterable {
-        case today, progress, stats, toolkit, settings
+        case today, progress, toolkit, settings
         var title: String {
             switch self {
             case .today: "Today"
             case .progress: "Recovery"
-            case .stats: "Stats"
             case .toolkit: "Toolkit"
             case .settings: "Settings"
             }
@@ -96,7 +111,6 @@ final class AppState {
             switch self {
             case .today: "house"
             case .progress: "leaf"
-            case .stats: "chart.bar"
             case .toolkit: "wrench.and.screwdriver"
             case .settings: "gearshape"
             }
@@ -105,7 +119,6 @@ final class AppState {
             switch self {
             case .today: "house.fill"
             case .progress: "leaf.fill"
-            case .stats: "chart.bar.fill"
             case .toolkit: "wrench.and.screwdriver.fill"
             case .settings: "gearshape.fill"
             }
@@ -227,6 +240,8 @@ final class AppState {
         motivations = s.motivations ?? []
         appearancePhotos = s.appearancePhotos ?? []
         reminderEnabled = s.reminderEnabled ?? false
+        analyticsOptIn = s.analyticsOptIn ?? false
+        cloudSyncOptIn = s.cloudSyncOptIn ?? false
         reminderHour = s.reminderHour ?? 21
         reminderMinute = s.reminderMinute ?? 0
         motivationRemindersEnabled = s.motivationRemindersEnabled ?? false

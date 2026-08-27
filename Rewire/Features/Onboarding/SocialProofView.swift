@@ -1,7 +1,9 @@
 import SwiftUI
 
-/// Onboarding social proof (IMG_5427): chat testimonials, a 5-star "100k+ happy
-/// users" centerpiece flanked by laurels, and a "Start my test" CTA.
+/// Onboarding social proof: an honest, checkable "built from 3,800+ real
+/// recovery reviews" centerpiece flanked by laurels, and a "Start my test" CTA.
+/// (Fabricated user counts, fake-FOMO copy, and invented testimonials were cut —
+/// see §0 of SOP.md; presenting them as real is a dark pattern.)
 struct SocialProofView: View {
     var onStart: () -> Void
 
@@ -9,19 +11,10 @@ struct SocialProofView: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: Theme.Spacing.lg) {
-                    HStack(spacing: Theme.Spacing.sm) {
-                        Circle().fill(Theme.Colors.critical).frame(width: 22, height: 22)
-                        Text("Everyone has started joining July challenge.")
-                            .font(Theme.Typography.cardTitle())
-                            .foregroundStyle(Theme.Colors.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.top, Theme.Spacing.xxl)
+                    Spacer().frame(height: Theme.Spacing.xxl)
 
-                    TestimonialBubble(item: SampleData.chatTestimonials[0])
-                    TestimonialBubble(item: SampleData.chatTestimonials[1])
-
-                    // Centerpiece
+                    // Honest centerpiece: a true, checkable claim about how the
+                    // app was built — not an invented user count or fake FOMO.
                     HStack(spacing: Theme.Spacing.md) {
                         LaurelBranch(mirrored: false)
                         VStack(spacing: Theme.Spacing.xs) {
@@ -30,7 +23,7 @@ struct SocialProofView: View {
                                     Image(systemName: "star.fill").foregroundStyle(Theme.Colors.butter)
                                 }
                             }
-                            Text("100k+ porn free\nhappy users")
+                            Text("Built from 3,800+\nreal recovery reviews")
                                 .font(Theme.Typography.title())
                                 .foregroundStyle(Theme.Colors.textPrimary)
                                 .multilineTextAlignment(.center)
@@ -39,8 +32,12 @@ struct SocialProofView: View {
                     }
                     .padding(.vertical, Theme.Spacing.md)
 
-                    TestimonialBubble(item: SampleData.chatTestimonials[2])
-                    TestimonialBubble(item: SampleData.chatTestimonials[3])
+                    Text("We read thousands of App Store reviews and recovery threads, then built every screen around what actually helps — and cut what makes people quit.")
+                        .font(Theme.Typography.subtitle())
+                        .foregroundStyle(Theme.Colors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, Theme.Spacing.sm)
                 }
                 .screenPadding()
                 .padding(.bottom, Theme.Spacing.xl)

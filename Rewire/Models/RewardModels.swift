@@ -9,13 +9,12 @@ struct Badge: Identifiable {
     let state: State
 }
 
-/// A level tier (Recovery → Levels).
+/// A level tier (Recovery → Levels). Earned from real clean days, not bought.
 struct Level: Identifiable {
     let id = UUID()
     let rank: Int
     let name: String
-    let gemCost: Int?          // nil ⇒ current level ("You are here")
-    let isCurrent: Bool
+    let dayThreshold: Int      // clean days required to reach this level
 }
 
 /// A feature-hub row (Quit Porn tab, Recovery "make streaks easier").
@@ -32,9 +31,6 @@ struct FeatureItem: Identifiable {
 enum FeatureBadge {
     case popular
     case count(Int)
-    /// Coming-soon row: no destination yet — rendered dimmed with a "Soon"
-    /// capsule so it never reads as a working control.
-    case soon
 }
 
 /// A single day in the 21-day Personal Plan checklist.
@@ -45,11 +41,18 @@ struct PlanDay: Identifiable {
     var id: Int { day }
 }
 
-/// A subscription plan row.
+/// A display-ready paywall row, built from a real StoreKit `Product` by
+/// `Purchases.orderedPlans(from:)`. Every string here is already localized by
+/// the App Store — nothing about a price is hardcoded.
 struct Plan: Identifiable, Equatable {
-    let id = UUID()
-    let title: String
-    let subtitle: String
-    let price: String
+    /// The StoreKit product ID — also the stable identity, so two rows built
+    /// from the same product compare equal.
+    let id: String
+    let name: String        // "Monthly" / "Yearly" / "Lifetime"
+    let subtitle: String    // "billed monthly" / "$2.49 a month, billed yearly"
+    let price: String       // Product.displayPrice, in the storefront's currency
+    let cadence: String     // "/mo" / "/yr" / "once"
+    /// Price → renewal period, shown next to the CTA on every paywall.
+    let disclosure: String
     let isPopular: Bool
 }

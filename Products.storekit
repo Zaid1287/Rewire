@@ -1,0 +1,92 @@
+{
+  "identifier" : "REWIRE-LOCAL-STOREKIT",
+  "nonRenewingSubscriptions" : [
+  ],
+  "products" : [
+    {
+      "displayPrice" : "59.99",
+      "familyShareable" : false,
+      "internalID" : "3000000001",
+      "localizations" : [
+        {
+          "description" : "Pay once. Full stats history, slip-pattern insights, the 21-day plan and the Appearance Tracker, forever.",
+          "displayName" : "Rewire Premium — Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.manimacha.rewire.lifetime",
+      "referenceName" : "Premium Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "2000000001",
+      "localizations" : [
+      ],
+      "name" : "Rewire Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+          ],
+          "codeOffers" : [
+          ],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "1000000001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Full stats history, slip-pattern insights, the 21-day plan and the Appearance Tracker. Cancel anytime.",
+              "displayName" : "Rewire Premium — Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.manimacha.rewire.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium Monthly",
+          "subscriptionGroupID" : "2000000001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+          ]
+        },
+        {
+          "adHocOffers" : [
+          ],
+          "codeOffers" : [
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "1000000002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Full stats history, slip-pattern insights, the 21-day plan and the Appearance Tracker. Cancel anytime.",
+              "displayName" : "Rewire Premium — Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.manimacha.rewire.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium Yearly",
+          "subscriptionGroupID" : "2000000001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : [
+          ]
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

@@ -143,6 +143,10 @@ enum ReminderScheduler {
         assert(motivationPlan(texts: ["one reason"], perDay: 5, from: noon)
             .allSatisfy { $0.body == "one reason" })
 
+        // Say so, like the other four. A silent pass is indistinguishable from
+        // a check that never ran.
+        print("ReminderScheduler.selfCheck passed")
+
         // Out-of-range perDay is clamped, not trusted.
         let clamped = motivationPlan(texts: texts, perDay: 99, from: noon, calendar: cal)
         let perDayCounts = Dictionary(grouping: clamped, by: { $0.id.split(separator: "-")[1] })

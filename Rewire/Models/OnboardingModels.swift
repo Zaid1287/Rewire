@@ -26,7 +26,7 @@ struct QuoteTestimonial: Identifiable {
 }
 
 /// A benefit row (icon + title + subtitle) used on the benefits screen and
-/// reused as a Superpower.
+/// shown during onboarding.
 struct Benefit: Identifiable {
     let id = UUID()
     let symbol: String        // SF Symbol or emoji
@@ -35,10 +35,4 @@ struct Benefit: Identifiable {
     let iconBackground: Color
     let title: String
     let subtitle: String
-}
-
-/// The pros/cons rows on the "without / with Rewire" comparison screen.
-struct ComparisonPoint: Identifiable {
-    let id = UUID()
-    let text: String
 }

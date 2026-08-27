@@ -32,7 +32,7 @@ _Source: competitor (No Nut) review analysis — 1,040 reviews across 14 cluster
 
 **Why it works where the competitor failed:** filtering at the OS level covers Chrome/Brave/Firefox/in-app browsers (not one Safari extension), has no extension to switch off, and uses Apple's curated list instead of keyword-guessing. Exceptions inherit the commitment lock's rule — allowing a site is a *weakening* edit, refused while a commitment runs, so the allow-list can't become the bypass the competitor shipped.
 
-**Paused** at the lead's direction to prioritise Progress Tracking. Remaining sub-cause not yet addressed: **blocker-behind-paywall** (28 reviews) — but the blocker is already free in Rewire; the real issue is the paywall *copy* advertising it as premium. Proposal pending the lead's free/premium decision.
+**Paused** at the lead's direction to prioritise Progress Tracking. The remaining sub-cause — **blocker-behind-paywall** (28 reviews) — is now **resolved**: the free/premium decision landed on 2026-08-18 (free core, paid depth), the blocker is free forever by policy, and the paywall copy that advertised it as premium is gone. See the Paywall / Pricing cluster below.
 
 ---
 
@@ -74,21 +74,55 @@ _Source: competitor (No Nut) review analysis — 1,040 reviews across 14 cluster
 ---
 
 ## Cluster: Paywall / Pricing & Monetization
-**Type:** Kill-zone — the biggest churn driver across every competitor (No Nut 53 mentions, 2.4 avg; QUITTR 38% of reviews at 1.2 avg; Seed 23% at 1.3; Brainbuddy 15% at 1.6). Job: don't become them.
-**Audited 2026-07-26, nothing shipped yet.** Full work order: [PAYWALL-CLUSTER.md](PAYWALL-CLUSTER.md).
+**Type:** Underserved — the single biggest churn driver across every competitor. No Nut: 53 mentions (5%), 2.4★, ~138 star-points of drag. QUITTR: **298 (38%), 1.2★**. Seed: 101 (23%), 1.3★. Brainbuddy: 162 (15%), 1.6★.
+**Loudest ask:** stop the trap. Paywalled crisis tools, billing surprises, restore that doesn't work, fake urgency.
 
 | Solution | Why (demand) | PR | Status |
 |---|---|---|---|
-| **Real StoreKit restore** — "Restore Purchase" currently grants premium to anyone who taps it, no receipt check | Free-trial / billing-trap theme, 3–5% of competitor reviews at 1.3–1.6 avg; Seed's broken restore is a named 1★ cause | — | ⚪ |
-| **One trial policy, stated once** — the sheet says "no auto-charging trial", onboarding sells a 7-day one; post-trial price never shown on the CTA | Same billing-trap theme; also an Apple disclosure requirement | — | ⚪ |
-| **Drop the fake urgency** — a 6-min "special offer" clock paints a red notification dot on the gift icon, and the gift opens the gem chest, not an offer | "Paywall aggression" theme; artificial scarcity is the pattern the 1★ reviews punish | — | ⚪ |
-| **Un-monetize the crisis** — surviving an urge pays free users 25 gems vs premium's 150, plus a "See Premium" card in the post-crisis debrief | Reddit gap table names "upsell inside crisis moment" as a risk with "remove paywall from the panic path" as the action | — | ⚪ |
-| **Drop unsubstantiated claims** — "#1 Quit Porn Addiction App" plus fabricated testimonials on the onboarding paywall | App Store 1.4.1 / 2.3.1 / 3.1.2 exposure; not demand-driven, submission-driven | — | ⚪ |
-| **Make the paywall true** — no feature in the app is actually gated, yet both paywalls sell eight free features as premium (including the blocker) | This *is* the parked "blocker-behind-paywall" item (28 reviews) — it was a symptom, not a copy fix | — | 🔴 blocked on the free/premium decision |
+| **Restore Purchase actually restores** — real `AppStore.sync()` + entitlement re-read, honest "Nothing to restore" | Broken/ignored restore is a recurring 1★ theme across all three competitors. Ours was worse: it granted premium to anyone who tapped it | [#9](https://github.com/Zaid1287/Rewire/pull/9) → [#11](https://github.com/Zaid1287/Rewire/pull/11) | 🟢 |
+| **No fake urgency** — the 6-minute offer clock and the misleading "reward waiting" red dot deleted | Artificial scarcity is the pattern the competitor reviews punish hardest | [#10](https://github.com/Zaid1287/Rewire/pull/10) | 🟢 |
+| **Nothing fabricated** — "#1 Quit Porn App", invented testimonials, and bro-science benefits cut | *"right after setting it all up it turns out to be a subscription based app"*; App Store 1.4.1 / 2.3.1 exposure | [#9](https://github.com/Zaid1287/Rewire/pull/9), [#10](https://github.com/Zaid1287/Rewire/pull/10) | 🟢 |
+| **Crisis is never monetized** — no reward asymmetry, no upsell on the riding screen, identical copy on both tiers | *"The apps I keep on getting are paywall"* — r/QuitPornForever. Reddit names "upsell inside crisis moment" as a specific risk | [#8](https://github.com/Zaid1287/Rewire/pull/8), [#11](https://github.com/Zaid1287/Rewire/pull/11) | 🟢 |
+| **Real StoreKit 2 + real localized prices** — entitlement is the source of truth; hardcoded ₹ deleted | Every storefront outside India was shown rupees. Premium was a boolean anyone could flip | [#11](https://github.com/Zaid1287/Rewire/pull/11) | 🟢 |
+| **No free trial** — monthly is the trial; `price → renewal period` next to every CTA | Free-trial / billing-trap is its own theme at 3–5% of reviews across all three competitors, 1.3–1.6★ | [#11](https://github.com/Zaid1287/Rewire/pull/11) | 🟢 |
+| **The four Premium gates** — stats past 30 days, slip-pattern insights, 21-day plan, appearance tracker | Closes the last gap: the paywall now describes depth that isn't withheld yet | | ⚪ next |
 
-**Decision needed from the lead:** what Premium actually is — supporter tier (everything stays free), free core + paid depth, or real gates matching today's claims. Trade-offs in [PAYWALL-CLUSTER.md](PAYWALL-CLUSTER.md#open-decision-what-premium-actually-is). The first five rows above are independent of that call and could ship as one PR.
+**Design call — what Premium is (decided 2026-08-18): free core, paid depth.** Everything that gets someone through a bad night is free forever — Panic/Urge SOS, breathing, the streak and its backdate, the Screen Time blocker, daily check-in, unlimited slip logs. Premium buys the analysis that only exists once there's history to analyse. Two options were rejected: a *supporter tier* (all tools free, pay to support) gives up the revenue that funds the backend the buddy/sync reviews ask for; *keeping the old claims and gating them* would have locked the blocker and the crisis tools — precisely the pattern behind QUITTR's 298 complaints at 1.2★. Full reasoning in `PAYWALL-CLUSTER.md`.
 
-**Also unresolved:** prices are hardcoded ₹ with no StoreKit products behind them, so every non-India storefront sees rupees.
+**Honest about the ceiling:** the paywall now names four depth features that are not actually withheld from free users yet — the gates are the next card, and no build should go to external testers until both have shipped. Real products also don't exist in App Store Connect yet, so no purchase can complete outside the local test configuration.
+
+---
+
+## Cross-cutting: cutting what nobody asked for
+
+Re-ran the whole 3,299-review corpus against every feature in the app, counting mentions and the rating attached to them. Two results changed our minds, which is the point of going back to the data:
+
+| Feature | Mentions / 3,299 | Avg ★ | Call |
+|---|---|---|---|
+| **Superpowers** (like-toggle + progress meter) | **0** | — | **CUT.** Never mentioned by a single reviewer of any of the four apps. Its progress bar was hardcoded to 8% and never moved. |
+| "Soon" rows — Community, Private Support, Must-Watch Videos | — | — | **CUT.** Advertising unbuilt features is the "too much going on" complaint. |
+| Badges tied to those features, plus duplicates and dead ends | — | — | **CUT.** Community Member, Mentor Owner, Researcher, Rewire Supporter, Feedback Master — none could ever be earned. |
+| **Set Goal** | 76 (10 as an explicit feature ask) | **4.26** | **KEEP — reversed.** The cut-list wanted this folded away. Reviewers name it as a reason they love the app: *"the daily motivations, goal setting, and web blocker def help"*, *"I love the daily goal feature"*. |
+| **Challenges** | 19 | **4.05** | **KEEP — reversed**, and now rebuilt (below). *"App also gives you challenges and motivational notifications to help you stay on track."* |
+| Badges generally | 18 | **4.28** | **KEEP.** Only 11% are 1–2★. The system works; only the broken entries went. |
+| Videos / articles / courses | 72 | 2.94 | Stay cut. 39% are 1–2★. |
+| Leaderboards / avatars | 4 | — | Never build. |
+
+**The evidence for cutting at all**, from a QUITTR 1★: *"recently they've added so many pointless things it's hard to find anything in the app, there's just too much going on. Please make this app simpler again."* Brainbuddy 2★ echoes it: *"it has become way more slow and way more complicated to understand."*
+
+**Also fixed while in there:** the shield checklist advertised "Add home screen widgets" as *Soon* — the widget shipped in [#5](https://github.com/Zaid1287/Rewire/pull/5). And the **Content Blocker badge could never be earned** (it sat in a default `return false` arm), despite the blocker being the single biggest review cluster; it's now wired to the shield actually turning on.
+
+---
+
+**Weekly challenge, rebuilt (follow-up to the above).** The feature reviewers praise was, in our code, a hardcoded week of Jun 28 – Jul 4 with a **pre-marked failure on day 6** — a brand-new user opened it to a red X for a day they hadn't lived — and seven rows you ticked by hand, so a perfect week cost seven taps. It now shows the real current week and every day is answered by the streak record on the same rule as the Home strip and the widget: a logged slip marks its day, a finished day without one is clean, today stays open, future days stay blank. Nothing is tappable. Joining is per week rather than a permanent bool, so it's a commitment you renew; the Challenger badge moved to a separate permanent flag so it can't un-earn itself on a Monday. Failed days render grey, never red — a logged slip is honesty, not an alarm.
+
+---
+
+**Unevidenced neuroscience cut (the last of the fluff sweep).** The app rendered a *"% rewired"* gauge against a 90-day *"rewire window"*, captioned *"Neural pathways weaken after ~90 clean days"* — on the Progress ring, the Home stat card, the Statistics "Recovery score", a whole home-screen widget, and two copy lines. It is a claim about the user's brain that we cannot evidence, expressed as a precise percentage.
+
+The corpus is unambiguous about that pattern. **Complaints about made-up numbers average 1.54★ with 85% of them 1–2★ — the harshest signal in all 3,299 reviews.** Percentage claims generally: 43 mentions, 2.86★, 49% 1–2★. Verbatim: *"Have fun with your pseudoscientific woo"* · *"Untrue — %46 addicted to porn, Dopamine baseline %35 above average"* · *"How does master bating 2 a day make me 83% addictive"*. It is also App Store 1.4.1 exposure.
+
+Everything now **counts days instead**, on the one `relapseDayStarts` basis: the Progress ring and Home card show clean days in the last 90, the widget shows clean days in its published window, and the Statistics gauge is "Clean days" captioned *"90 days is a milestone people aim for, not a finish line."* The three surfaces measure genuinely different things now — current run on Home's numeral, 90-day consistency on the ring, lifetime total in Statistics — which also resolves the "three representations of one number" redundancy the cut-list flagged.
 
 ---
 

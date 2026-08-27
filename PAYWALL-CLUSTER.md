@@ -1,6 +1,9 @@
 # Cluster: Paywall / Pricing & Monetization — audit & backlog
 
-_Audited 2026-07-26. **Nothing here is fixed yet** — this file is the work order for a later date._
+_Audited 2026-07-26. Updated 2026-08-18 — findings #2, #4, #5 and #6 are **shipped and merged**
+(PRs [#8](https://github.com/Zaid1287/Rewire/pull/8), [#9](https://github.com/Zaid1287/Rewire/pull/9),
+[#10](https://github.com/Zaid1287/Rewire/pull/10)). #1 and #3 were blocked on the "what is Premium"
+decision — **that decision is now made, see [The decision](#the-decision-2026-08-18--free-core-paid-depth)**._
 _Cluster picked as the next lever after Progress Tracking shipped in TestFlight build 4._
 
 ---
@@ -59,7 +62,7 @@ cluster is about. It is also an App Store 2.3.1 (accurate metadata) / 3.1.2 expo
 
 ---
 
-### 2. 🔴 Restore Purchase hands premium to anyone who taps it
+### 2. ✅ RESOLVED (PR #9) — Restore Purchase handed premium to anyone who tapped it
 
 [`SettingsView.swift:115-118`](Rewire/Features/Settings/SettingsView.swift:115)
 
@@ -79,7 +82,7 @@ genuine "Nothing to restore" branch. Until StoreKit lands, this should at minimu
 
 ---
 
-### 3. 🟠 The two paywalls contradict each other on the trial
+### 3. 🟠 The two paywalls contradict each other on the trial *(closed by the decision below)*
 
 - [`PaywallSheet.swift:130`](Rewire/Features/Home/PaywallSheet.swift:130) — "No auto-charging trial · cancel anytime · restore in Settings"
 - [`OnboardingPaywallView.swift:108,117,221`](Rewire/Features/Onboarding/OnboardingPaywallView.swift:108) — "Start my 7-day free trial", "✓ No payment due today · Cancel anytime", "Annual includes a 7-day free trial"
@@ -96,7 +99,7 @@ what the free-trial-trap reviews describe.
 
 ---
 
-### 4. 🟠 Fake urgency + a misleading notification badge
+### 4. ✅ RESOLVED (PR #10) — Fake urgency + a misleading notification badge
 
 [`GemStore.swift:79-82`](Rewire/Stores/GemStore.swift:79)
 
@@ -122,7 +125,7 @@ delete — artificial scarcity in a recovery app is the pattern the competitor r
 
 ---
 
-### 5. 🟠 The crisis moment is monetized
+### 5. ✅ RESOLVED (PR #8) — The crisis moment was monetized
 
 [`PanicSheet.swift:136-140`](Rewire/Features/Home/PanicSheet.swift:136)
 
@@ -149,7 +152,7 @@ reduce it to a non-blocking line with no CTA.
 
 ---
 
-### 6. 🟠 Unsubstantiated superlative + fabricated testimonials
+### 6. ✅ RESOLVED (PR #9) — Unsubstantiated superlative + fabricated testimonials
 
 [`OnboardingPaywallView.swift:198`](Rewire/Features/Onboarding/OnboardingPaywallView.swift:198)
 
@@ -169,32 +172,65 @@ TestFlight feedback (and label it as such).
 
 ---
 
-## Open decision: what Premium actually is
+## The decision (2026-08-18) — free core, paid depth
 
-Needed before finding #1 can be closed. Options as presented, with the trade:
+**Decided by us** (the lead funds and approves spend only; every product call is ours per
+[SOP.md §1](SOP.md)). Recorded here because it ripples through the paywalls, the StoreKit work,
+the badge catalog and the App Store listing.
 
-| Option | What it means | Trade |
+### What Premium is
+
+> **Everything that gets someone through a bad night is free, forever. Premium pays for depth
+> over time — the analysis that only becomes possible once there's history to analyse.**
+
+| | Free, forever — never gated, never counted | Premium — depth |
 |---|---|---|
-| **Supporter tier** _(my recommendation)_ | Every recovery tool free forever. Premium = support the app + gem/cosmetic perks + supporter badge. | Paywall copy becomes literally true, zero rejection risk, strongest anti-QUITTR positioning in the dataset. Weakest revenue. |
-| **Free core, paid depth** | Crisis tools, streak, blocker, check-in free forever. Premium gates depth only: history/stats past 30 days, slip-pattern insights, 21-day plan, appearance tracker. | Revenue without touching the crisis path. Requires building the gates that don't exist yet. |
-| **Keep current claims, add real gates** | Make the code match what the paywalls already say — lock blocker, stats, insights, plan, tracker. | Honest, but walks straight into the "everything's paywalled" 1★ pattern that sank QUITTR and Seed. |
+| **Crisis** | Panic / Urge SOS, 4-4-4 breathing, urge-wave timer, motivations recall | — |
+| **Streak** | The streak itself, two-layer record/run, Edit Start backdate, widget, levels, badges | — |
+| **Blocker** | Screen Time shield, Apple web filter, custom denylist, site exceptions, commitment lock | — |
+| **Daily loop** | Daily check-in, slip log (unlimited), reminders | — |
+| **Stats** | Last 30 days of history | Full history beyond 30 days, trends across it |
+| **Insight** | The raw slips you logged | **Slip-pattern insights** (the fingerprint across them) |
+| **Program** | — | **21-day Personal Plan** |
+| **Body** | — | **Appearance Tracker** |
 
-Whichever wins, the benefit lists in both paywalls have to be rewritten to match, and anything free
-should be *labelled* free on the paywall — "the blocker is free, always" is a selling point given
-what the competitor reviews say.
+### Why this and not the other two options
 
-Also unresolved: prices are hardcoded ₹ in [`SampleData.swift:135-139`](Rewire/Models/SampleData.swift:135)
-with no StoreKit products behind them, so every storefront outside India sees rupees.
+- **vs. Supporter tier** (all tools free, pay to support): the honest-copy win is real but the
+  revenue is charity-shaped, and a recovery app that can't fund its own backend can't ship the
+  buddy/sync features Reddit asks loudest for. Free core already captures ~all of the anti-QUITTR
+  positioning; the supporter framing gives up the revenue for a marginal honesty gain.
+- **vs. keep the current claims and gate them**: those claims gate the blocker and the crisis
+  tools. That is exactly the pattern behind QUITTR's 298 paywall complaints at 1.2★ and the
+  28 "blocker behind paywall" reviews in our own competitor set. Non-starter.
+- **Free core, paid depth passes the §0 test:** nothing a person in crisis reaches for costs money,
+  so the paywall can never be in the way at the moment that matters. What's paid is the stuff
+  you only want on a calm Sunday — which is also the only stuff a user can fairly judge the
+  value of before paying, because they can see 30 days of it for free first.
 
----
+### Consequences (each becomes work)
 
-## Suggested order of work
+1. **Four gates to build** — stats > 30 days, slip-pattern insights, 21-day plan, appearance
+   tracker. Nothing else in the app gets a lock. Gate = a clear, non-nagging "this is Premium"
+   state with one CTA, never a hidden dead end, never a modal you can't dismiss.
+2. **Both paywall benefit lists rewritten to match** — and the free things *labelled free*
+   ("the blocker is free, always" is a selling point given the competitor reviews).
+3. **No free trial.** Closes finding #3 in the honest direction: the contradiction was between
+   "no auto-charging trial" and a 7-day trial on the annual plan, and the billing-trap reviews
+   are the single loudest complaint in the whole dataset. Monthly is the trial — it's cheap, it's
+   cancellable, and nothing auto-charges after a period the user has forgotten about. `price →
+   renewal period` shows next to every CTA.
+4. **Three products, no tiers** — monthly subscription, yearly subscription, lifetime non-consumable.
+   Real StoreKit products, localized prices from the App Store (the hardcoded ₹ dies).
+5. **Badge catalog:** "Premium Member" survives as an earned badge; badges tied to features that
+   may never ship (Community, Mentor, Videos) are still cut separately (P1, Design track).
 
-1. **#2 restore bug** — one-file fix, ships today, currently gives premium away.
-2. **#6 claims** — one-file fix, submission blocker.
-3. **#4 fake urgency** — deletion, small diff.
-4. **#5 crisis reward parity** — small diff, needs a copy call on the debrief card.
-5. **#3 trial policy** — needs the trial decision, then both surfaces edited together.
-6. **#1 packaging** — needs the decision above; the largest piece, and the one the cluster is really about.
+### Order of work
 
-Items 1–4 are independent of every open decision and could go out as one PR.
+- **Card A — StoreKit 2 (Engineering, this branch):** real products + purchase + restore +
+  entitlement as the single source of truth, no-trial policy stated identically in both surfaces,
+  hardcoded ₹ deleted. Paywall benefit copy is trimmed to statements that are true *today*.
+- **Card B — Premium gates + paywall packaging (Engineering/Marketing, next):** the four gates
+  above, then the benefit lists rewritten to sell exactly what B gates. **Neither A nor B alone
+  is submittable** — A without B sells depth that isn't gated, B without A can't take money.
+  Both land on `dev` before any TestFlight build goes external.

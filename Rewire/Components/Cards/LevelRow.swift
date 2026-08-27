@@ -1,9 +1,14 @@
 import SwiftUI
 
-/// A level row: trophy + "N. Name", trailing either the gem cost or the
-/// "You are here" current-level marker.
+/// A level row: trophy + "N. Name", trailing the "You are here" marker for
+/// the derived current level, a reached checkmark for tiers already passed,
+/// or the day threshold still needed for tiers ahead.
 struct LevelRow: View {
     let level: Level
+    let currentRank: Int
+
+    private var isCurrent: Bool { level.rank == currentRank }
+    private var isReached: Bool { level.rank < currentRank }
 
     var body: some View {
         HStack(spacing: Theme.Spacing.md) {
@@ -15,7 +20,7 @@ struct LevelRow: View {
 
             Spacer(minLength: Theme.Spacing.xs)
 
-            if level.isCurrent {
+            if isCurrent {
                 HStack(spacing: Theme.Spacing.xs) {
                     Circle()
                         .fill(Theme.Colors.textLo)
@@ -25,13 +30,18 @@ struct LevelRow: View {
                         .font(Theme.Typography.body())
                         .foregroundStyle(Theme.Colors.textPrimary)
                 }
-            } else if let cost = level.gemCost {
+            } else if isReached {
                 HStack(spacing: Theme.Spacing.xs) {
-                    GemIcon(size: 20)
-                    Text("\(cost)")
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Theme.Colors.good)
+                    Text("Reached")
+                        .font(Theme.Typography.body())
                         .foregroundStyle(Theme.Colors.textLo)
                 }
+            } else {
+                Text("Reach day \(level.dayThreshold)")
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .foregroundStyle(Theme.Colors.textLo)
             }
         }
         .padding(.vertical, Theme.Spacing.md)
