@@ -19,6 +19,7 @@ struct RewireApp: App {
         Purchases.selfCheck()
         Analytics.selfCheck()
         CloudSync.selfCheck()
+        SocialBackend.selfCheck()
         #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(
