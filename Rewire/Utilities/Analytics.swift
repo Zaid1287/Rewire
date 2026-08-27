@@ -46,6 +46,29 @@ enum Analytics {
     static func start(optedIn: Bool) {
         guard isAvailable else { enabled = false; return }
 
+        // **Do not configure the SDK for someone who hasn't opted in.**
+        // `setup()` is not inert: `captureApplicationLifecycleEvents` makes the
+        // SDK queue an "Application Installed" event and flush it immediately,
+        // which happened *before* the `optOut()` below could run. On a decline,
+        // one event reached PostHog from a user who had just said no — proven
+        // in the simulator by "Sending batch of 1 records / batch sent
+        // successfully" on the decline path. Not user content, but it breaks
+        // the promise the toggle makes and the App Store privacy answer with
+        // it. Nothing may touch the network before consent, so an un-consented
+        // user never reaches `setup()` at all.
+        guard optedIn else {
+            // Only meaningful if consent was granted earlier in this install
+            // and is now being withdrawn; otherwise there is nothing to stop.
+            if configured {
+                PostHogSDK.shared.optOut()
+                // Drop the anonymous id and any queued events, so turning it
+                // off isn't just "stop sending from now on".
+                PostHogSDK.shared.reset()
+            }
+            enabled = false
+            return
+        }
+
         if !configured {
             let config = PostHogConfig(projectToken: apiKey, host: host)
             // Anonymous forever: no identify() anywhere in the app, and no
@@ -65,19 +88,21 @@ enum Analytics {
                 }
                 return event
             }
+            #if DEBUG
+            // REWIRE_PH_DEBUG=1 makes the SDK log every event it accepts.
+            // Without it, "nothing was captured" and "captured then flushed"
+            // both look like an empty queue on disk, so there is no way to
+            // tell a working funnel from a silent one. Debug builds only.
+            if ProcessInfo.processInfo.environment["REWIRE_PH_DEBUG"] == "1" {
+                config.debug = true
+            }
+            #endif
             PostHogSDK.shared.setup(config)
             configured = true
         }
 
-        if optedIn {
-            PostHogSDK.shared.optIn()
-        } else {
-            PostHogSDK.shared.optOut()
-            // Drop the anonymous id and any queued events, so turning it off
-            // isn't just "stop sending from now on".
-            PostHogSDK.shared.reset()
-        }
-        enabled = optedIn
+        PostHogSDK.shared.optIn()
+        enabled = true
     }
 
     private static var configured = false
