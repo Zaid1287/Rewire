@@ -4,6 +4,7 @@ import SwiftUI
 /// carousel through the paywall-style screens into the main app.
 struct OnboardingFlow: View {
     @Environment(AppState.self) private var appState
+    @Environment(Purchases.self) private var purchases
 
     @State private var step: Step = .hero
     @State private var quizIndex = 0
@@ -50,7 +51,11 @@ struct OnboardingFlow: View {
                 case .quiz:
                     quizView
                 case .score:
-                    ScoreResultView { advance(to: .paywall) }
+                    // Skip the paywall entirely when there is nothing to sell —
+                    // otherwise the funnel's biggest moment is a screen that
+                    // reads "Plans aren't loading". Restores itself the moment
+                    // App Store Connect has products.
+                    ScoreResultView { advance(to: purchases.canSell ? .paywall : .benefits) }
                 case .paywall:
                     OnboardingPaywallView(
                         onSkip: { advance(to: .benefits) },

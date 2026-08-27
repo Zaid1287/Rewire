@@ -12,6 +12,20 @@ import ManagedSettings
 /// the privacy story working as intended, not a limitation to route around.
 @Observable
 final class ShieldController {
+
+    /// Whether the blocker is fit to show a user.
+    ///
+    /// **False on purpose.** What ships today shields hand-picked apps and sites
+    /// and never turns on Apple's web filter, so it can report "on" while
+    /// blocking nothing — the same failure that pulled ~111 star-points off the
+    /// reference app in its single biggest review cluster. The fix (web filter,
+    /// custom denylist, site exceptions, commitment lock) is written and waiting
+    /// in PRs #2 and #3 but is parked at the lead's direction.
+    ///
+    /// While this is false the Toolkit row and the shield checklist item are
+    /// hidden, so the app makes no claim it can't keep. Set it to `true` in the
+    /// same change that merges the blocker fix — and nowhere else.
+    static let isReady = false
     enum Auth: Equatable { case unknown, approved, denied(String) }
 
     private(set) var auth: Auth = .unknown

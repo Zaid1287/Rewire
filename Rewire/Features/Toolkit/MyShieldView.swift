@@ -29,6 +29,13 @@ struct MyShieldView: View {
     }
 
     private var tasks: [Task] {
+        // The blocker step is dropped while the shield isn't fit to show
+        // (ShieldController.isReady). Filtered rather than made optional so the
+        // checklist's own "n of m done" count stays honest about what's there.
+        allTasks.filter { ShieldController.isReady || $0.id != "blocker" }
+    }
+
+    private var allTasks: [Task] {
         [
             Task(id: "firstMinute", symbol: "1.circle",
                  title: "Complete your first 1 minute",

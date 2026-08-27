@@ -24,6 +24,7 @@ struct PanicSheet: View {
 /// can say no.
 struct PanicModeView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(Purchases.self) private var purchases
     @Environment(StreakStore.self) private var streak
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
@@ -303,7 +304,7 @@ struct PanicModeView: View {
                       selection: $whatHelped)
                 .screenPadding()
 
-            if !gems.isPremium {
+            if !gems.isPremium, purchases.canSell {
                 VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                     Text("Go further next time")
                         .font(Theme.Typography.headline())
