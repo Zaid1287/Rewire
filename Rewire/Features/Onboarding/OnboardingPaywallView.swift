@@ -173,7 +173,13 @@ struct OnboardingPaywallView: View {
                     Text("Your recovery plan is ready.")
                         .font(Theme.Typography.title())
                         .foregroundStyle(Theme.Colors.textPrimary)
-                    Text("Score \(appState.addictionScore)/100 — fully reversible. Most members feel the shift inside the first 30 days.")
+                    // Was: "Score N/100 — fully reversible. Most members feel
+                    // the shift inside the first 30 days." Two invented claims
+                    // in one line: the score (see AppState.dependencyReading)
+                    // and a statistic about members we do not have and have
+                    // never measured. Same family as the "100k+ happy users"
+                    // line cut in #10.
+                    Text("Built around what you told us. Everything that gets you through a bad night is free — Premium is the depth on top.")
                         .font(Theme.Typography.body())
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }

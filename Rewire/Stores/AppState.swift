@@ -190,15 +190,80 @@ final class AppState {
         faceIDEnabled = enabled
     }
 
-    /// Maps quiz answers to a 0–100 addiction score. Higher option index = worse.
-    /// Scales the answer sum over the max possible, clamped to a plausible band.
-    var addictionScore: Int {
-        let questions = SampleData.quizQuestions
-        let maxPossible = questions.reduce(0) { $0 + max(0, $1.options.count - 1) }
-        guard maxPossible > 0 else { return 35 }
-        let sum = quizAnswers.prefix(questions.count).reduce(0, +)
-        let pct = Int((Double(sum) / Double(maxPossible)) * 100)
-        return min(95, max(35, pct))
+    /// What the quiz can honestly say back to the user.
+    ///
+    /// **This replaced a 0–100 "addiction score"** that was invented three ways
+    /// over: it summed answers to questions that aren't dependency signals (age
+    /// of first porn, age of first sexual experience) as if they were, it treated
+    /// a higher option index as "worse" even where the options don't run that way
+    /// (index 0 of question 1 is "13 or younger"), and it clamped the result to
+    /// 35–95 — so a user answering every question in the healthiest available way
+    /// was still told they were 35% dependent. A downstream line then multiplied
+    /// it by 2.5 and presented the product as "about N days of clean time before
+    /// the pull fades".
+    ///
+    /// Invented numbers are the harshest signal in the review corpus: 1.54★
+    /// average, 85% of them 1–2★ (*"Have fun with your pseudoscientific woo"*).
+    /// Same reason the "% rewired" gauge was cut in #14.
+    ///
+    /// So this returns no number. It reflects back what the user actually told
+    /// us and names the pattern in words — claims we can stand behind, because
+    /// they are the user's own answers.
+    struct DependencyReading {
+        /// Plain-language name for the pattern. Never a diagnosis.
+        let band: String
+        /// What they said, quoted back — the evidence for the band.
+        let reflections: [String]
+        /// Forward-looking line. Encouraging, but never a timeline.
+        let outlook: String
+    }
+
+    /// Index of the answer to a question, if it was answered.
+    private func answer(_ index: Int) -> Int? {
+        guard quizAnswers.indices.contains(index) else { return nil }
+        return quizAnswers[index]
+    }
+
+    var dependencyReading: DependencyReading {
+        // Only the two questions that actually describe present-day use.
+        // Frequency: 0 = more than once a day … 4 = once a month.
+        // Boredom:   0 = frequently, 1 = sometimes, 2 = rarely or never.
+        let frequency = answer(1)
+        let boredom = answer(3)
+
+        var reflections: [String] = []
+        if let frequency, SampleData.quizQuestions.indices.contains(1),
+           SampleData.quizQuestions[1].options.indices.contains(frequency) {
+            reflections.append("You watch \(SampleData.quizQuestions[1].options[frequency].lowercased()).")
+        }
+        if let boredom {
+            switch boredom {
+            case 0: reflections.append("Boredom is a reliable trigger for you.")
+            case 1: reflections.append("Boredom sometimes leads you there.")
+            default: reflections.append("Boredom isn't usually what leads you there.")
+            }
+        }
+
+        // Daily use, or frequent use tightly coupled to boredom.
+        let isDaily = (frequency ?? 2) <= 1
+        let isCoupled = (frequency ?? 4) <= 2 && (boredom ?? 2) == 0
+
+        if isDaily {
+            return DependencyReading(
+                band: "A daily habit",
+                reflections: reflections,
+                outlook: "Daily habits are the ones that feel hardest to interrupt — and the ones where stopping changes the most. There's no timeline here, because nobody can honestly give you one.")
+        }
+        if isCoupled {
+            return DependencyReading(
+                band: "A habit with a trigger",
+                reflections: reflections,
+                outlook: "You've already named the thing that sets it off, which is most of the work. The app's job now is to be there at that moment.")
+        }
+        return DependencyReading(
+            band: "An occasional habit",
+            reflections: reflections,
+            outlook: "Occasional doesn't mean easy — it means you're starting from a good place. The tools work the same either way.")
     }
 
     // MARK: Persistence
