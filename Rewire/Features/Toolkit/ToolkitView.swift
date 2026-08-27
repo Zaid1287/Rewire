@@ -14,6 +14,10 @@ import SwiftUI
 /// were cut — see the review evidence in CLUSTER-SOLUTIONS.md.
 struct ToolkitView: View {
     @Environment(GemStore.self) private var gems
+    @Environment(Purchases.self) private var purchases
+
+    /// Premium is only withheld when it can actually be bought.
+    private var withholdsPremium: Bool { !gems.isPremium && purchases.canSell }
     @State private var path: [Route] = []
     @State private var showBreathing = false
     @State private var showMotivations = false
@@ -25,7 +29,11 @@ struct ToolkitView: View {
             ScrollView {
                 VStack(spacing: Theme.Spacing.xl) {
                     group("Recommended", SampleData.toolkitRecommended, iconColor: Theme.Colors.butter)
-                    group("Boost your progress", SampleData.toolkitBoost)
+                    // The blocker row is dropped entirely while the shield
+                    // isn't fit to show — see ShieldController.isReady.
+                    group("Boost your progress", SampleData.toolkitBoost.filter {
+                        ShieldController.isReady || $0.title != "Porn Blocker"
+                    })
                     group("Willpower", SampleData.toolkitWillpower)
                 }
                 .screenPadding()
@@ -47,7 +55,7 @@ struct ToolkitView: View {
                 // vanishes reads as a bug, and one that does nothing reads as
                 // broken. Free users land on a screen that says what it is.
                 case .personalPlan:
-                    if gems.isPremium {
+                    if !withholdsPremium {
                         PersonalPlanView()
                     } else {
                         PremiumGateScreen(
@@ -61,7 +69,7 @@ struct ToolkitView: View {
                             ])
                     }
                 case .appearance:
-                    if gems.isPremium {
+                    if !withholdsPremium {
                         AppearanceTrackerView()
                     } else {
                         PremiumGateScreen(

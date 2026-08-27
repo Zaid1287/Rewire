@@ -35,6 +35,17 @@ final class Purchases {
     // MARK: State the paywalls read
 
     private(set) var plans: [Plan] = []
+
+    /// Whether anything can actually be bought right now.
+    ///
+    /// False until App Store Connect has real products behind the identifiers —
+    /// which is the state the app is in today. It matters beyond the paywall
+    /// screen: a Premium lock with nothing purchasable behind it is a dead end,
+    /// and "never a hidden dead end" is the first rule the gates were built to.
+    /// So while this is false the app hides every upgrade entry point and stops
+    /// gating, rather than showing people a wall with no door. Flips itself the
+    /// moment `load()` returns products; no flag to remember to unset.
+    var canSell: Bool { !plans.isEmpty }
     private(set) var loadState: LoadState = .loading
     private(set) var isPurchasing = false
     private(set) var isEntitled = false

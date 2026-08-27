@@ -416,7 +416,9 @@ struct SettingsView: View {
 
     // MARK: Premium card — the expected, low-risk paywall entry
 
-    private var premiumCard: some View {
+    @ViewBuilder private var premiumCard: some View {
+        // Nothing to sell yet — don't advertise an upgrade that can't complete.
+        if purchases.canSell {
         Button { Haptics.tap(); showPaywall = true } label: {
             HStack(spacing: 14) {
                 VStack(alignment: .leading, spacing: 3) {
@@ -443,6 +445,7 @@ struct SettingsView: View {
                 in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         }
         .buttonStyle(PressableButtonStyle())
+        }
     }
 }
 

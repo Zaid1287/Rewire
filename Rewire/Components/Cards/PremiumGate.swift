@@ -25,11 +25,14 @@ struct PremiumGateCard: View {
     var cta: String = "See Premium"
 
     @Environment(GemStore.self) private var gems
+    @Environment(Purchases.self) private var purchases
     @State private var showPaywall = false
 
     var body: some View {
-        // Premium users never see the gate — not a locked-but-open state.
-        if !gems.isPremium {
+        // Premium users never see the gate — and neither does anyone else while
+        // there is nothing to buy, because a lock with no door is the dead end
+        // this component exists to avoid.
+        if !gems.isPremium, purchases.canSell {
             VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
                 HStack(spacing: Theme.Spacing.xs) {
                     Image(systemName: "lock.fill")
