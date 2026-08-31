@@ -13,14 +13,17 @@ struct RewireApp: App {
 
     init() {
         #if DEBUG
-        // No test target; streak- and money-critical logic checks itself on
-        // debug launch.
+        // No test target; streak-, money- and lock-critical logic checks
+        // itself on debug launch — a debug run fails loudly rather than
+        // shipping a broken pacer or an unlockable lock.
         StreakStore.selfCheck()
         ReminderScheduler.selfCheck()
         Purchases.selfCheck()
         Analytics.selfCheck()
         CloudSync.selfCheck()
         SocialBackend.selfCheck()
+        BreathPacer.selfCheck()
+        CommitmentLock.selfCheck()
         #endif
         Theme.Fonts.register()
         PersistenceController.shared.configure(
