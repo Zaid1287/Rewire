@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Rounded progress bar (green fill on a dark track). Used for quiz progress,
-/// goal progress, and superpower meters.
+/// and goal progress.
 struct ProgressBarView: View {
     var value: Double            // 0…1
     var height: CGFloat = 10

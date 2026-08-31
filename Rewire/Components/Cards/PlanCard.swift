@@ -1,29 +1,13 @@
 import SwiftUI
 
 /// Plan radio row (RonLab): quiet glass row, butter ring + fill when selected,
-/// price on the right, per-month equivalent underneath. A "BEST VALUE" tab
-/// rides the top edge of the popular plan. Used by the paywall sheet, the
-/// onboarding paywall, and Settings.
+/// price on the right, the billing line underneath. A "BEST VALUE" tab rides
+/// the top edge of the popular plan. Purely presentational — every string comes
+/// off the `Plan`, which comes off a real StoreKit product.
 struct PlanCard: View {
     let plan: Plan
     let isSelected: Bool
     var onTap: () -> Void = {}
-
-    /// Per-plan sell copy — presentation-only, so it lives here, not on the model.
-    private var cadence: String {
-        switch plan.title {
-        case "1 month":  "/mo"
-        case "1 year":   "/yr"
-        default:         "once"
-        }
-    }
-    private var subline: String {
-        switch plan.title {
-        case "1 month":  "billed monthly"
-        case "1 year":   plan.subtitle.replacingOccurrences(of: "only ", with: "")
-        default:         "pay once"
-        }
-    }
 
     var body: some View {
         Button(action: { Haptics.select(); onTap() }) {
@@ -40,11 +24,10 @@ struct PlanCard: View {
                     }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(plan.title.capitalized == "1 Month" ? "Monthly"
-                         : plan.title.capitalized == "1 Year" ? "Yearly" : "Lifetime")
+                    Text(plan.name)
                         .font(Theme.Typography.value())
                         .foregroundStyle(Theme.Colors.textHi)
-                    Text(subline)
+                    Text(plan.subtitle)
                         .font(Theme.Typography.caption())
                         .foregroundStyle(Theme.Colors.textXlo)
                 }
@@ -56,7 +39,7 @@ struct PlanCard: View {
                         .font(Theme.Typography.value())
                         .foregroundStyle(Theme.Colors.textHi)
                         .monospacedDigit()
-                    Text(cadence)
+                    Text(plan.cadence)
                         .font(Theme.Typography.caption())
                         .foregroundStyle(Theme.Colors.textXlo)
                 }
@@ -89,10 +72,23 @@ struct PlanCard: View {
 }
 
 #Preview {
-    ZStack {
+    // Previews can't construct a StoreKit Product, so the rows are hand-built
+    // here. Everything at runtime comes from Purchases.orderedPlans(from:).
+    let plans = [
+        Plan(id: "monthly", name: "Monthly", subtitle: "billed monthly", price: "$4.99",
+             cadence: "/mo", disclosure: "$4.99 per month, renews until you cancel.",
+             isPopular: false),
+        Plan(id: "yearly", name: "Yearly", subtitle: "$2.49 a month, billed yearly",
+             price: "$29.99", cadence: "/yr",
+             disclosure: "$29.99 per year, renews until you cancel.", isPopular: true),
+        Plan(id: "lifetime", name: "Lifetime", subtitle: "pay once, keep it forever",
+             price: "$59.99", cadence: "once",
+             disclosure: "$59.99 once. Not a subscription — nothing renews.", isPopular: false)
+    ]
+    return ZStack {
         SceneBackground(kind: .void)
         VStack(spacing: 10) {
-            ForEach(SampleData.plans) { plan in
+            ForEach(plans) { plan in
                 PlanCard(plan: plan, isSelected: plan.isPopular)
             }
         }

@@ -9,6 +9,7 @@ extension Theme {
         static let lg:  CGFloat = 16   // cards, shortcut tiles
         static let xl:  CGFloat = 20   // large cards, sheet inner
         static let sheet: CGFloat = 24 // bottom-sheet top corners
+        static let glass: CGFloat = 26 // Family A glass cards (RonLab 26–32)
         static let pill: CGFloat = 999 // fully rounded buttons / capsules
     }
 }

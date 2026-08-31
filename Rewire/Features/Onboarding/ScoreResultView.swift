@@ -1,33 +1,25 @@
 import SwiftUI
 
-/// Addiction-score result — RonLab Ember: the score is delivered as an
-/// instrument reading (fan gauge + dot-matrix numeral), not a red scare screen
-/// with sad faces. Same tiered honesty, none of the theatre.
+/// Onboarding result — what the quiz can honestly say back.
+///
+/// **This screen used to invent numbers.** It showed a percentage "dependency"
+/// score (floored at 35, so nobody could answer their way to a low one), drew
+/// it on a fan gauge, and added *"about N days of clean time before the pull
+/// fades"* — the score times 2.5. All of it presented as a reading about the
+/// user's brain.
+///
+/// Made-up numbers are the single harshest signal in the review corpus (1.54★,
+/// 85% of them 1–2★), and the same pattern was already cut once, in the
+/// "% rewired" gauge. So there is no number here now: the instrument chrome is
+/// gone, and what's left is the user's own answers repeated back, the pattern
+/// named in words, and a forward line that promises no timeline.
+///
+/// See `AppState.dependencyReading` for why the old score was not fixable.
 struct ScoreResultView: View {
     var onReady: () -> Void
     @Environment(AppState.self) private var appState
-    @State private var appeared = false
 
-    /// Days to recover, derived from score and rounded to the nearest 10.
-    private var recoveryDays: Int {
-        let raw = appState.addictionScore * 5 / 2
-        return (raw + 5) / 10 * 10
-    }
-
-    /// Tier label + copy — a 35% answer set shouldn't read like an 80% one.
-    private var tier: (word: String, color: Color, copy: String) {
-        switch appState.addictionScore {
-        case ..<40:
-            ("Mild", Theme.Colors.good,
-             "Your dependency reads mild. This is the easiest it will ever be to stop.")
-        case ..<70:
-            ("Moderate", Theme.Colors.butter,
-             "Your dependency reads moderate. Acting now is far easier than acting later.")
-        default:
-            ("Heavy", Theme.Colors.critical,
-             "Your dependency reads heavy. That's not a verdict — it's a starting point with a known path out.")
-        }
-    }
+    private var reading: AppState.DependencyReading { appState.dependencyReading }
 
     var body: some View {
         ZStack {
@@ -36,52 +28,45 @@ struct ScoreResultView: View {
             VStack(alignment: .leading, spacing: 0) {
                 Spacer().frame(height: 40)
 
-                Text("Your result".uppercased())
+                Text("What you told us".uppercased())
                     .font(Theme.Typography.caption())
                     .tracking(1.4)
                     .foregroundStyle(Theme.Colors.textXlo)
 
-                // The instrument reading
-                HStack(alignment: .center, spacing: 10) {
-                    HeroNumeral(value: "\(appState.addictionScore)", unit: "%", size: 92)
-                    Spacer(minLength: 0)
-                    VStack(alignment: .trailing, spacing: 8) {
-                        DotMatrixNumeral(text: String(format: "%02d", appState.addictionScore),
-                                         color: Theme.Colors.textHi.opacity(0.75))
-                        StatusLabel(color: tier.color, text: tier.word)
+                Text(reading.band)
+                    .font(Theme.Typography.title())
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 10)
+
+                // The evidence for the line above — their answers, not our maths.
+                VStack(alignment: .leading, spacing: Theme.Spacing.sm) {
+                    ForEach(reading.reflections, id: \.self) { line in
+                        HStack(alignment: .top, spacing: Theme.Spacing.sm) {
+                            Circle()
+                                .fill(Theme.Colors.butter)
+                                .frame(width: 5, height: 5)
+                                .padding(.top, 8)
+                            Text(line)
+                                .font(Theme.Typography.subtitle())
+                                .foregroundStyle(Theme.Colors.textLo)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
-                .padding(.top, 10)
+                .padding(.top, 24)
 
-                FanGauge(value: Double(appState.addictionScore) / 100,
-                         ink: Theme.Colors.textHi.opacity(0.9),
-                         faint: .white.opacity(0.18),
-                         glow: tier.color)
-                    .frame(height: 130)
-                    .padding(.top, 18)
-
-                HStack {
-                    Text("mild"); Spacer(); Text("heavy")
-                }
-                .font(Theme.Typography.caption())
-                .foregroundStyle(Theme.Colors.textXlo)
-
-                Text(tier.copy)
-                    .font(Theme.Typography.subtitle())
-                    .foregroundStyle(Theme.Colors.textLo)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 24)
-
-                Text("Estimate: about \(recoveryDays) days of clean time before the pull fades.")
+                Text(reading.outlook)
                     .font(Theme.Typography.subtitle())
                     .foregroundStyle(Theme.Colors.textHi)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 12)
+                    .padding(.top, 24)
 
-                Text("Based on your answers. Not a diagnosis.")
+                Text("This is your own answers repeated back — not a diagnosis, and not a prediction.")
                     .font(Theme.Typography.caption())
                     .foregroundStyle(Theme.Colors.textXlo)
-                    .padding(.top, 8)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 12)
 
                 Spacer()
 

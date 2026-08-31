@@ -6,12 +6,16 @@ import SwiftUI
 /// The Appearance picker is retired: scenes are fixed per screen, so a
 /// light/dark toggle has nothing left to switch.
 struct SettingsView: View {
+    @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
+    @Environment(Purchases.self) private var purchases
+    @Environment(CloudSync.self) private var cloudSync
     @Environment(\.openURL) private var openURL
     /// The four bundled icons — index 0 is the primary (nil alternate name).
     @AppStorage("selectedAppIcon") private var selectedIcon = 0
     @State private var showPaywall = false
     @State private var showRestoredAlert = false
+    @State private var isRestoring = false
     // Moved here from the old Quit Porn hub (Phase 4) — they're settings.
     @State private var showReminders = false
     @State private var showFaceIDSettings = false
@@ -54,14 +58,24 @@ struct SettingsView: View {
                             slateRow("arrow.down.circle", "Export Data",
                                      accessory: .value("JSON")) { showDataBackup = true }
                             divider
-                            slateRow("arrow.clockwise", "Restore Purchase",
+                            slateRow("arrow.clockwise",
+                                     isRestoring ? "Checking with the App Store…" : "Restore Purchase",
                                      accessory: .chevron) { restorePurchase() }
+                            // Hidden entirely when no analytics key is built in
+                            // — a switch that does nothing is worse than none.
+                            // Hidden until the iCloud capability exists — no
+                            // switch that does nothing.
+                            if CloudSync.containerID != nil {
+                                divider
+                                cloudSyncRow
+                            }
+                            if Analytics.isAvailable {
+                                divider
+                                analyticsRow
+                            }
                         }
 
                         section("Support") {
-                            slateRow("paperplane", "Give Feedback",
-                                     accessory: .chevron, enabled: false) {}
-                            divider
                             inviteRow
                         }
 
@@ -82,7 +96,7 @@ struct SettingsView: View {
             }
             // Floating glass header — content scrolls underneath.
             .safeAreaInset(edge: .top) {
-                NavHeader(title: "Settings") { CoinPill(count: gems.coins) }
+                NavHeader(title: "Settings")
                     .background { TopFadeScrim() }
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -90,7 +104,7 @@ struct SettingsView: View {
                 PaywallSheet().presentationDetents([.large])
             }
             .sheet(isPresented: $showReminders) {
-                ReminderSettingsView().presentationDetents([.medium])
+                ReminderSettingsView().presentationDetents([.large])
             }
             .sheet(isPresented: $showFaceIDSettings) {
                 FaceIDSettingsView().presentationDetents([.medium])
@@ -100,8 +114,8 @@ struct SettingsView: View {
             }
             .rewireAlert(isPresented: showRestoredAlert) {
                 RewireAlert(
-                    title: "Purchases Restored",
-                    message: "Your premium access has been restored.",
+                    title: "Nothing to Restore",
+                    message: "We couldn't find a previous purchase on this Apple ID.",
                     confirmTitle: "OK",
                     confirmIsDestructive: false,
                     onCancel: { showRestoredAlert = false },
@@ -112,10 +126,18 @@ struct SettingsView: View {
         .tint(Theme.Colors.butter)
     }
 
+    /// Real restore: AppStore.sync() + a re-read of the entitlements. It can
+    /// only ever restore something the Apple ID actually owns — the mock that
+    /// handed premium to anyone who tapped this is gone for good.
     private func restorePurchase() {
-        gems.unlockPremium(plan: "1 year")   // mock restore — real plan comes with StoreKit
-        Haptics.success()
-        showRestoredAlert = true
+        Haptics.tap()
+        guard !isRestoring else { return }
+        isRestoring = true
+        Task {
+            let restored = await purchases.restore()
+            isRestoring = false
+            if restored { Haptics.success() } else { showRestoredAlert = true }
+        }
     }
 
     // MARK: App icon picker
@@ -220,6 +242,105 @@ struct SettingsView: View {
             .padding(.leading, 62)
     }
 
+    /// iCloud backup, off unless the user turns it on. The copy says whose
+    /// iCloud and who can read it, because that's the whole question for this
+    /// data — see CloudSync for why it's the private database and not a server
+    /// we operate.
+    private var cloudSyncRow: some View {
+        Button {
+            Haptics.tap()
+            let on = !appState.cloudSyncOptIn
+            appState.setCloudSyncOptIn(on)
+            Task { await cloudSync.syncIfEnabled(optedIn: on) }
+        } label: {
+            HStack(spacing: 13) {
+                Image(systemName: "icloud")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .frame(width: 34, height: 34)
+                    .background(Color.white.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("iCloud backup")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textHi)
+                    Text(cloudStatusText)
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textXlo)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Text(appState.cloudSyncOptIn ? "On" : "Off")
+                    .font(Theme.Typography.unitSuffix(14))
+                    .foregroundStyle(appState.cloudSyncOptIn
+                                     ? Theme.Colors.good : Theme.Colors.textXlo)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableButtonStyle())
+    }
+
+    private var cloudStatusText: String {
+        switch cloudSync.status {
+        case .unavailable, .off:
+            "Keep a copy in your own iCloud so a new phone picks up where you left off. Apple encrypts it — we can't read it."
+        case .noAccount:
+            "Sign in to iCloud in the Settings app to use this."
+        case .syncing:
+            "Backing up…"
+        case .synced(let date):
+            "Last backed up \(RewireDate.full.string(from: date)). Stored in your own iCloud — we can't read it."
+        case .failed(let message):
+            "Couldn't back up: \(message)"
+        }
+    }
+
+    /// Anonymous usage stats, off unless the user turns it on. Sits in
+    /// Privacy & data because that's what it is, and it says plainly what does
+    /// and doesn't leave the phone — the honest version of a consent prompt.
+    ///
+    /// Built as a Button like every other row here rather than a bare `Toggle`:
+    /// a Toggle dropped into this card never received taps at all (the setter
+    /// was verifiably never called), and the row also has to carry two lines of
+    /// consent copy, which `slateRow` can't.
+    private var analyticsRow: some View {
+        Button {
+            Haptics.tap()
+            appState.setAnalyticsOptIn(!appState.analyticsOptIn)
+        } label: {
+            HStack(spacing: 13) {
+                Image(systemName: "chart.bar")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(Theme.Colors.textHi)
+                    .frame(width: 34, height: 34)
+                    .background(Color.white.opacity(0.06),
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Share anonymous usage")
+                        .font(Theme.Typography.body())
+                        .foregroundStyle(Theme.Colors.textHi)
+                    Text("Which screens get used, never what you wrote. No account, no profile — your slips, notes and photos never leave this phone.")
+                        .font(Theme.Typography.caption())
+                        .foregroundStyle(Theme.Colors.textXlo)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Text(appState.analyticsOptIn ? "On" : "Off")
+                    .font(Theme.Typography.unitSuffix(14))
+                    .foregroundStyle(appState.analyticsOptIn
+                                     ? Theme.Colors.good : Theme.Colors.textXlo)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableButtonStyle())
+    }
+
     private enum RowAccessory { case chevron, value(String), none }
 
     private func slateRow(_ symbol: String, _ title: String,
@@ -295,7 +416,9 @@ struct SettingsView: View {
 
     // MARK: Premium card — the expected, low-risk paywall entry
 
-    private var premiumCard: some View {
+    @ViewBuilder private var premiumCard: some View {
+        // Nothing to sell yet — don't advertise an upgrade that can't complete.
+        if purchases.canSell {
         Button { Haptics.tap(); showPaywall = true } label: {
             HStack(spacing: 14) {
                 VStack(alignment: .leading, spacing: 3) {
@@ -303,7 +426,7 @@ struct SettingsView: View {
                         .font(Theme.Typography.headline())
                         .foregroundStyle(Color(hex: 0x141416))
                     Text(gems.isPremium ? "Pay once, keep it forever"
-                                        : "Everything unlocked · \(SampleData.plans[1].subtitle.replacingOccurrences(of: "only ", with: ""))")
+                                        : "Full history, slip patterns, the 21-day plan & tracker")
                         .font(Theme.Typography.caption())
                         .foregroundStyle(Color(hex: 0x141416).opacity(0.72))
                 }
@@ -322,7 +445,12 @@ struct SettingsView: View {
                 in: RoundedRectangle(cornerRadius: 24, style: .continuous))
         }
         .buttonStyle(PressableButtonStyle())
+        }
     }
 }
 
-#Preview { SettingsView().environment(GemStore()) }
+#Preview {
+    SettingsView()
+        .environment(AppState()).environment(GemStore())
+        .environment(Purchases()).environment(CloudSync())
+}

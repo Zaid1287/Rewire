@@ -2,24 +2,19 @@ import SwiftUI
 import Combine
 
 /// Home tab — RonLab Void scene: goal pill, hero streak numeral with live
-/// remainder, 60-day morse strip, best-run/recovery glass cards, milk panic
+/// remainder, 60-day morse strip, best-run/clean-days glass cards, milk panic
 /// capsule. Three-state hero (first victory / post-slip / ongoing run) kept
 /// from the flow redesign.
 struct HomeView: View {
     @Environment(StreakStore.self) private var streak
-    @Environment(GemStore.self) private var gems
 
     @State private var path: [HomeRoute] = []
     @State private var showStreakSheet = false
     @State private var showPanicSheet = false
     @State private var showSlipLog = false
     @State private var showCheckIn = false
-    @State private var showRewardBox = false
-    /// Drives the offer countdown re-render; the deadline itself lives in GemStore.
-    @State private var now = Date()
-    private let offerTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    enum HomeRoute: Hashable { case setGoal, addDays, challenge }
+    enum HomeRoute: Hashable { case setGoal, editStart, challenge }
 
     /// The current run's time past its whole-day count, e.g. "19h 34m 08s".
     private var subDayRemainderText: String {
@@ -27,16 +22,10 @@ struct HomeView: View {
         return String(format: "%dh %02dm %02ds", rem / 3600, (rem % 3600) / 60, rem % 60)
     }
 
-    /// Seconds left on the one-time special offer (0 once expired or never started).
-    private var offerRemaining: Int {
-        guard let deadline = gems.offerDeadline else { return 0 }
-        return max(0, Int(deadline.timeIntervalSince(now)))
-    }
-
-    /// 90-day rewiring fraction (same basis as the Recovery gauge).
-    private var recoveryPercent: Int {
-        min(100, Int(streak.elapsed / 86_400 / 90 * 100))
-    }
+    /// Clean days in the last 90 — the same measure the Progress ring shows.
+    /// Was a "% recovered" figure against a 90-day rewiring window, which is a
+    /// claim about the user's brain that we can't evidence.
+    private var cleanInLast90: Int { streak.cleanDayCount(inLast: 90) }
 
     /// Last 60 days as rhythm: dashes for clean runs, red dots for relapses.
     private var morseMarks: [MorseMark] {
@@ -80,7 +69,7 @@ struct HomeView: View {
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
                 case .setGoal:   SetGoalView()
-                case .addDays:   AddDaysView()
+                case .editStart: EditStartView()
                 case .challenge: WeeklyChallengeView()
                 }
             }
@@ -96,14 +85,11 @@ struct HomeView: View {
                 // the old .medium detent clipped it.
                 CheckInFlow().presentationDetents([.large])
             }
-            .fullScreenCover(isPresented: $showRewardBox) { RewardBoxView() }
-            .onReceive(offerTimer) { now = $0 }
-            .onAppear { if !gems.isPremium { gems.startOfferIfNeeded() } }
         }
         .tint(Theme.Colors.butter)
     }
 
-    // MARK: Top row — brand squircle left, gift right (offer badge)
+    // MARK: Top row — brand squircle
 
     private var topRow: some View {
         HStack {
@@ -111,17 +97,6 @@ struct HomeView: View {
                 BrandDots(size: 20, color: Theme.Colors.textHi)
             }
             Spacer()
-            squircleButton { showRewardBox = true } content: {
-                Image(systemName: "gift")
-                    .font(.system(size: 17, weight: .regular))
-                    .foregroundStyle(Theme.Colors.textHi)
-            }
-            .overlay(alignment: .topTrailing) {
-                if offerRemaining > 0 && !gems.isPremium {
-                    Circle().fill(Color(hex: 0xE8352E)).frame(width: 7, height: 7)
-                        .offset(x: -9, y: 9)
-                }
-            }
         }
         .padding(.horizontal, Theme.Spacing.screen)
         .padding(.top, Theme.Spacing.xs)
@@ -202,14 +177,19 @@ struct HomeView: View {
                     .font(Theme.Typography.caption())
                     .foregroundStyle(Theme.Colors.textXlo)
                 Spacer()
-                Button { path.append(.addDays) } label: {
-                    Text("Add days")
+                Button { path.append(.editStart) } label: {
+                    Text("Edit start")
                         .font(Theme.Typography.caption())
                         .foregroundStyle(Theme.Colors.textLo)
                         .underline()
+                        // The 13pt link was well under the 44pt touch minimum —
+                        // pad the hit area out without moving the glyphs.
+                        .padding(.vertical, 12)
+                        .padding(.leading, 16)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
             }
-            .padding(.top, 6)
         }
     }
 
@@ -252,7 +232,8 @@ struct HomeView: View {
             miniCard(title: "Best run", value: "\(streak.bestRunDays)", unit: "days") {
                 showStreakSheet = true
             }
-            miniCard(title: "Recovery", value: "\(recoveryPercent)", unit: "%") {
+            miniCard(title: "Clean days", value: "\(cleanInLast90)",
+                     unit: "/ \(streak.trackedDayCount(inLast: 90))") {
                 showStreakSheet = true
             }
         }

@@ -6,6 +6,7 @@ struct BadgesView: View {
     @Environment(AppState.self) private var appState
     @Environment(StreakStore.self) private var streak
     @Environment(GemStore.self) private var gems
+    @Environment(Purchases.self) private var purchases
     @Environment(\.dismiss) private var dismiss
     /// Milestone-upsell hook (plan §6): a claim is a calm, positive moment —
     /// one of the two sanctioned paywall entry points. Free users see a soft
@@ -35,7 +36,7 @@ struct BadgesView: View {
                         SectionHeader("Deserved Badges")
                         badgeGroup(claimableNow)
                     }
-                    if justClaimed && !gems.isPremium {
+                    if justClaimed && !gems.isPremium && purchases.canSell {
                         milestoneUpsell
                             .transition(.scale(scale: 0.95).combined(with: .opacity))
                     }
@@ -90,7 +91,6 @@ struct BadgesView: View {
             ForEach(Array(badges.enumerated()), id: \.element.id) { idx, badge in
                 BadgeRow(badge: Badge(title: badge.title, requirement: badge.requirement, state: state(for: badge))) {
                     gems.claimBadge(badge.title)
-                    gems.award(50)
                     justClaimed = true
                     Analytics.capture("badge_claimed", ["badge": badge.title])
                 }

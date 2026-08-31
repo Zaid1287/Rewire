@@ -17,6 +17,11 @@ struct AppSnapshot: Codable {
     /// Daily reminder settings. Optional with a default so snapshots written
     /// before this field existed still decode.
     var reminderEnabled: Bool? = nil
+    /// Analytics consent. Optional with a default so snapshots written before
+    /// it existed decode — and absent means off, which is the safe direction.
+    var analyticsOptIn: Bool? = nil
+    /// iCloud backup consent. Optional with a default; absent means off.
+    var cloudSyncOptIn: Bool? = nil
     var reminderHour: Int? = nil
     var reminderMinute: Int? = nil
     /// Face ID app-lock. Optional with a default so snapshots written before
@@ -33,29 +38,58 @@ struct AppSnapshot: Codable {
     var reports: [DailyReport]
     var streaks: [Streak]
     var events: [StreakEvent]
-    var challengeJoined: Bool
-    var challengeDays: [ChallengeDay]
+    /// Legacy: a permanent "joined once" bool, before joining became weekly.
+    /// Optional with a default so both old and new snapshots decode.
+    var challengeJoined: Bool? = nil
+    /// The week the user last joined, e.g. "2026-W34".
+    var challengeWeek: String? = nil
+    var hasEverJoinedChallenge: Bool? = nil
     /// 21-day Personal Plan completion. Optional with a default so snapshots
     /// written before this field existed still decode.
     var completedPlanDays: Set<Int>? = nil
 
     // GemStore
-    var gems: Int
-    var coins: Int
     var isPremium: Bool
     var claimedBadges: Set<String>
-    var likedSuperpowers: Set<String>
-    var currentLevel: Int
-    /// One-time special-offer deadline. Optional with a default so snapshots
-    /// written before this field existed still decode.
-    var offerDeadline: Date? = nil
     /// Misc one-off unlocks. Optional with a default so snapshots written
     /// before this field existed still decode.
     var achievements: Set<String>? = nil
     /// Purchased plan title. Optional with a default so snapshots written
     /// before this field existed still decode.
     var premiumPlan: String? = nil
+
+    // AppState — motivation reminders. Optional with defaults so snapshots
+    // written before these fields existed still decode.
+    var motivationRemindersEnabled: Bool? = nil
+    var motivationsPerDay: Int? = nil
+
+    // MARK: Sync bookkeeping
+    /// When this snapshot was last written, used by `CloudSync.merge` to decide
+    /// which side wins for scalar fields. Optional with a default so snapshots
+    /// written before sync existed decode — `nil` sorts oldest, which is the
+    /// safe direction (a snapshot that never knew about sync never overwrites
+    /// one that did).
+    var updatedAt: Date? = nil
 }
+
+#if DEBUG
+extension AppSnapshot {
+    /// Minimal valid snapshot for `CloudSync.selfCheck`. Debug only — never a
+    /// source of app data.
+    static var selfCheckFixture: AppSnapshot {
+        AppSnapshot(phase: .main,
+                    quizAnswers: [],
+                    startDate: Date(timeIntervalSince1970: 0),
+                    goal: Goal(label: "fixture", seconds: 60),
+                    recordSeconds: 0,
+                    reports: [],
+                    streaks: [],
+                    events: [],
+                    isPremium: false,
+                    claimedBadges: [])
+    }
+}
+#endif
 
 /// Lightweight synchronous JSON persistence. `PersistenceController.shared`
 /// holds the three stores; `scheduleSave()` debounces writes so a burst of
@@ -91,6 +125,7 @@ final class PersistenceController {
         appState.persist = hook
         streak.persist = hook
         gems.persist = hook
+        streak.syncWidget()   // seed the widget on launch
     }
 
     /// Debounced save — coalesces rapid mutations into a single write.
@@ -109,6 +144,8 @@ final class PersistenceController {
             motivations: appState.motivations,
             appearancePhotos: appState.appearancePhotos,
             reminderEnabled: appState.reminderEnabled,
+            analyticsOptIn: appState.analyticsOptIn,
+            cloudSyncOptIn: appState.cloudSyncOptIn,
             reminderHour: appState.reminderHour,
             reminderMinute: appState.reminderMinute,
             faceIDEnabled: appState.faceIDEnabled,
@@ -119,20 +156,22 @@ final class PersistenceController {
             reports: streak.reports,
             streaks: streak.streaks,
             events: streak.events,
-            challengeJoined: streak.challengeJoined,
-            challengeDays: streak.challengeDays,
+            challengeWeek: streak.challengeWeek,
+            hasEverJoinedChallenge: streak.hasEverJoinedChallenge,
             completedPlanDays: streak.completedPlanDays,
-            gems: gems.gems,
-            coins: gems.coins,
             isPremium: gems.isPremium,
             claimedBadges: gems.claimedBadges,
-            likedSuperpowers: gems.likedSuperpowers,
-            currentLevel: gems.currentLevel,
-            offerDeadline: gems.offerDeadline,
             achievements: gems.achievements,
-            premiumPlan: gems.premiumPlan
+            premiumPlan: gems.premiumPlan,
+            motivationRemindersEnabled: appState.motivationRemindersEnabled,
+            motivationsPerDay: appState.motivationsPerDay,
+            updatedAt: Date()
         )
     }
+
+    /// The current state, for CloudSync to push. Same builder the disk write
+    /// uses, so the two can never drift apart.
+    func currentSnapshot() -> AppSnapshot? { snapshot() }
 
     /// Documents/rewire-state.json — exposed for the Data Backup export sheet.
     var backupURL: URL { url }

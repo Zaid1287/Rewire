@@ -2,11 +2,12 @@ import SwiftUI
 
 /// Progress tab (flow-redesign Phase 4, plan §1): Recovery + History merged —
 /// "how am I doing?" is one mental model. Recovery ring, badges/levels
-/// collection, superpowers preview, statistics, streak history, and events
+/// collection, the two counts the old Stats tab owned, streak history, and
+/// events — one Recovery tab instead of two that answered the same question
 /// (with slip undo), plus the floating Add Event button.
 /// Named ProgressTabView because SwiftUI owns `ProgressView`.
 struct ProgressTabView: View {
-    enum Route: Hashable { case superpowers, badges, levels, streakDetail(Int) }
+    enum Route: Hashable { case badges, levels, streakDetail(Int) }
     @Environment(AppState.self) private var appState
     @Environment(GemStore.self) private var gems
     @Environment(StreakStore.self) private var streak
@@ -14,10 +15,15 @@ struct ProgressTabView: View {
     @State private var showAddEvent = false
     @State private var showDeleteAlert = false
 
-    /// Recovery % — current streak against the standard 90-day rewire window.
-    private var recoveryPercent: Int {
-        min(100, Int(streak.elapsed / 86_400 / 90 * 100))
-    }
+    /// Clean days in the last 90, from the same record the Home strip and the
+    /// widget use. Replaces a "% rewired" figure against a 90-day "rewire
+    /// window": we cannot evidence a claim about anyone's neural pathways, and
+    /// reviewers punish invented percentages harder than anything else in the
+    /// corpus (13 such complaints average 1.54★, 85% of them 1–2★ —
+    /// *"Have fun with your pseudoscientific woo"*). This counts days.
+    private var cleanInLast90: Int { streak.cleanDayCount(inLast: 90) }
+    /// Days actually tracked — a fresh install reads "1 / 1", never "90 / 90".
+    private var trackedWindow: Int { streak.trackedDayCount(inLast: 90) }
 
     /// Earned-but-unclaimed badges — the red bubble on the Badges card.
     private var unclaimedBadges: Int {
@@ -30,10 +36,12 @@ struct ProgressTabView: View {
                     ScrollView {
                         VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                             recoveryHeader
+                            statPair
                             collection
-                            superpowersPreview
                             streaksSection
                             eventsSection
+                            historyGate
+                            patternGate
                             easier
                         }
                         .screenPadding()
@@ -77,7 +85,6 @@ struct ProgressTabView: View {
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
                 switch route {
-                case .superpowers: SuperpowersView()
                 case .badges:      BadgesView()
                 case .levels:      LevelsView()
                 case .streakDetail(let i): StreakDetailView(index: i)
@@ -109,7 +116,7 @@ struct ProgressTabView: View {
         VStack(spacing: 10) {
             ZStack {
                 TickRing(count: 66,
-                         activeFraction: Double(recoveryPercent) / 100,
+                         activeFraction: Double(cleanInLast90) / Double(trackedWindow),
                          startAngle: .degrees(135), sweep: .degrees(270),
                          tickLength: 16,
                          inactiveColor: .white.opacity(0.22),
@@ -117,24 +124,59 @@ struct ProgressTabView: View {
                          positionDot: Theme.Colors.butter)
                     .frame(width: 250, height: 250)
                 VStack(spacing: 2) {
-                    HeroNumeral(value: "\(recoveryPercent)", unit: "%", size: 76)
-                    Text("rewired")
+                    HeroNumeral(value: "\(cleanInLast90)", unit: "/ \(trackedWindow)", size: 76)
+                    Text("clean days")
                         .font(Theme.Typography.label())
                         .foregroundStyle(Theme.Colors.textLo)
                 }
             }
-            HStack {
-                Text("day 0"); Spacer(); Text("day 90")
-            }
-            .font(Theme.Typography.caption())
-            .foregroundStyle(Theme.Colors.textXlo)
-            .frame(width: 230)
-            Text("Neural pathways weaken after ~90 clean days — you're on day \(min(90, Int(streak.elapsed / 86_400))).")
+            // Deliberately a different measure from the Home numeral: that one
+            // is the run you're on, this is how much of the last three months
+            // held. A slip dents this instead of erasing it.
+            Text("Days you stayed clean out of the \(trackedWindow) we've tracked — a slip costs one day here, not the whole picture.")
                 .font(Theme.Typography.caption())
                 .foregroundStyle(Theme.Colors.textXlo)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, Theme.Spacing.lg)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    /// Urges ridden out — every logged event that isn't a relapse. Was the one
+    /// number the old Stats tab owned outright.
+    private var urgesBeaten: Int {
+        streak.events.filter { $0.type != .relapse }.count
+    }
+
+    /// Check-ins where nothing was flagged. The other number worth keeping.
+    private var cleanCheckIns: Int {
+        streak.reports.filter { !$0.watchedPorn && !$0.masturbated && !$0.relapsed }.count
+    }
+
+    /// The two counts the Stats tab existed for. Its clean-days gauge duplicated
+    /// the ring above, and its check-ins barcode duplicated Home's morse strip,
+    /// so only these came across.
+    private var statPair: some View {
+        HStack(spacing: 12) {
+            countCard("Urges beaten", urgesBeaten)
+            countCard("Clean check-ins", cleanCheckIns)
+        }
+    }
+
+    private func countCard(_ title: String, _ value: Int) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(Theme.Typography.label())
+                .foregroundStyle(Theme.Colors.textLo)
+            Text("\(value)")
+                .font(Theme.Typography.unitSuffix(34))
+                .foregroundStyle(Theme.Colors.textHi)
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(Theme.Spacing.md)
+        .smokedGlass(radius: 24)
     }
 
     private var collection: some View {
@@ -150,7 +192,7 @@ struct ProgressTabView: View {
                 collectionCard(icon: "trophy", iconColor: Theme.Colors.textLo,
                                title: "Levels",
                                badge: nil,
-                               value: SampleData.levels.first(where: { $0.rank == gems.currentLevel })?.name ?? "Newcomer",
+                               value: SampleData.level(forDays: streak.bestRunDays).name,
                                unit: nil) {
                     path.append(.levels)
                 }
@@ -190,21 +232,6 @@ struct ProgressTabView: View {
         .smokedGlass(radius: 24)
     }
 
-    private var superpowersPreview: some View {
-        VStack(spacing: Theme.Spacing.md) {
-            SectionHeader(title: "Superpowers") {
-                LinkButton(title: "Show All") { path.append(.superpowers) }
-            }
-            Card(padding: Theme.Spacing.md) {
-                VStack(spacing: 0) {
-                    BenefitRow(benefit: SampleData.benefits[0], showProgress: true, progress: 0.08)
-                    RowDivider()
-                    BenefitRow(benefit: SampleData.benefits[1], showProgress: true, progress: 0.08)
-                }
-            }
-        }
-    }
-
     private var easier: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             SectionHeader("Make your streaks easier")
@@ -218,9 +245,38 @@ struct ProgressTabView: View {
         }
     }
 
+
+    // MARK: Premium boundary — history depth
+
+    /// Free users get the last 30 days; Premium gets everything. The cut is by
+    /// date rather than by row count so it means the same thing to a heavy
+    /// logger and a light one, and so the gate copy ("past 30 days") is
+    /// literally true. Free tier still gets every slip they logged in the
+    /// window — the raw record is never withheld, only its depth in time.
+    private var historyWindowStart: Date? {
+        gems.isPremium ? nil : Calendar.current.date(byAdding: .day, value: -30, to: Date())
+    }
+
+    private func withinWindow(_ date: Date) -> Bool {
+        guard let start = historyWindowStart else { return true }
+        return date >= start
+    }
+
+    /// Events only. `Streak` carries no date — just index/duration/isOngoing —
+    /// so there is no honest way to window it by time, and the streak list is
+    /// short anyway. Events are where the history actually accumulates.
+    private var visibleEvents: [StreakEvent] {
+        streak.events.filter { withinWindow($0.date) }
+    }
+
+    /// How much is actually behind the gate. Zero means a new user, who should
+    /// not be shown a lock for history they never had.
+    private var hiddenHistoryCount: Int { streak.events.count - visibleEvents.count }
+
     // MARK: History sections (from the old History tab)
 
-    private var streaksSection: some View {
+    @ViewBuilder private var streaksSection: some View {
+        if !streak.streaks.isEmpty {
         VStack(alignment: .leading, spacing: Theme.Spacing.md) {
             SectionHeader("My Streaks")
             VStack(spacing: 0) {
@@ -231,20 +287,42 @@ struct ProgressTabView: View {
             }
             .smokedGlass(radius: 24)
         }
+        }
     }
 
     @ViewBuilder private var eventsSection: some View {
-        if !streak.events.isEmpty {
+        if !visibleEvents.isEmpty {
             VStack(alignment: .leading, spacing: Theme.Spacing.md) {
                 SectionHeader("Events")
                 VStack(spacing: 0) {
-                    ForEach(Array(streak.events.enumerated()), id: \.element.id) { idx, event in
+                    ForEach(Array(visibleEvents.enumerated()), id: \.element.id) { idx, event in
                         eventRow(event)
-                        if idx < streak.events.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
+                        if idx < visibleEvents.count - 1 { RowDivider(inset: Theme.Spacing.lg) }
                     }
                 }
                 .smokedGlass(radius: 24)
             }
+        }
+    }
+
+    /// Only shown once there is history behind it — a brand-new user is never
+    /// told they're missing something they never had.
+    @ViewBuilder private var historyGate: some View {
+        if hiddenHistoryCount > 0 {
+            PremiumGateCard(
+                title: "Your full history",
+                message: "You're seeing the last 30 days. Premium opens \(hiddenHistoryCount) earlier \(hiddenHistoryCount == 1 ? "entry" : "entries") and the trends across all of it.")
+        }
+    }
+
+    /// The calm home for slip-pattern insights. The Slip Log deliberately does
+    /// not sell this at the moment someone logs a relapse; this is where the
+    /// ask belongs.
+    @ViewBuilder private var patternGate: some View {
+        if !gems.isPremium, streak.slipPatternInsight() != nil {
+            PremiumGateCard(
+                title: "Slip-pattern insights",
+                message: "There's a pattern in the slips you've logged — the time, the trigger, the feeling that keeps coming back. Premium names it.")
         }
     }
 

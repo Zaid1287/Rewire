@@ -10,6 +10,11 @@ Originally built as a faithful recreation of a competitor's designs, then
 communities. Every major change maps to a documented churn driver in that
 research.
 
+> **Working on Rewire?** Read **[SOP.md](SOP.md)** first — the Standard of
+> Operations. It's the operating manual for keeping (or raising) the quality
+> bar: how work flows, the definition of done, the product-thinking lens, and
+> the non-negotiables. Anyone taking the project forward starts there.
+
 ## The redesign in one screen each
 
 | Surface | What changed & why |

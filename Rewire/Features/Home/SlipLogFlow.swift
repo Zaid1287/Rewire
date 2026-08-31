@@ -9,6 +9,7 @@ import SwiftUI
 /// costs nothing, and a misreport is undoable until midnight.
 struct SlipLogFlow: View {
     @Environment(StreakStore.self) private var streak
+    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
 
     @State private var step: Step = .log
@@ -114,13 +115,20 @@ struct SlipLogFlow: View {
                 .foregroundStyle(Theme.Colors.textXlo)
                 .padding(.top, 10)
 
-            Text("The streak number resets. The rewiring doesn't — your record kept every clean day you earned.")
+            Text("The streak number resets. Your record doesn't — it kept every clean day you earned.")
                 .font(Theme.Typography.subtitle())
                 .foregroundStyle(Theme.Colors.textLo)
                 .frame(maxWidth: 300, alignment: .leading)
                 .padding(.top, 14)
 
-            if let insight = streak.slipPatternInsight() {
+            // Premium (PAYWALL-CLUSTER.md packaging: free = the slips you
+            // logged, paid = the fingerprint across them). Deliberately no
+            // lock and no CTA here: this renders seconds after someone admits
+            // a relapse, and selling to them at that moment is the exact
+            // pattern behind QUITTR's 298 paywall complaints at 1.2★. Free
+            // users simply don't see it; the gate with the CTA lives on the
+            // Progress tab, where nobody is in crisis.
+            if gems.isPremium, let insight = streak.slipPatternInsight() {
                 HStack(alignment: .top, spacing: Theme.Spacing.sm) {
                     Image(systemName: "sparkles").foregroundStyle(Theme.Colors.butter)
                     VStack(alignment: .leading, spacing: 2) {
