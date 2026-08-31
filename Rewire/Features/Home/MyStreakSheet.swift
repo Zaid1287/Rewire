@@ -4,7 +4,6 @@ import SwiftUI
 /// the Rewire challenge milestone rail, a month calendar, and stat cards.
 struct MyStreakSheet: View {
     @Environment(StreakStore.self) private var streak
-    @Environment(GemStore.self) private var gems
     @Environment(\.dismiss) private var dismiss
 
     /// Reports with no P/M/O flags at all — a fully clean day.
@@ -52,9 +51,13 @@ struct MyStreakSheet: View {
                     .foregroundStyle(Theme.Colors.textPrimary)
             }
             Spacer()
-            VStack(alignment: .trailing, spacing: Theme.Spacing.xs) {
-                HStack(spacing: 4) { GemIcon(size: 20); Text("\(gems.gems)").foregroundStyle(Theme.Colors.textLo).font(.system(size: 16, weight: .semibold, design: .rounded)) }
-                HStack(spacing: 4) { CoinIcon(size: 20); Text("\(gems.coins)").foregroundStyle(Theme.Colors.textPrimary).font(.system(size: 16, weight: .semibold, design: .rounded)) }
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("Level")
+                    .font(Theme.Typography.caption())
+                    .foregroundStyle(Theme.Colors.textLo)
+                Text(SampleData.level(forDays: streak.bestRunDays).name)
+                    .foregroundStyle(Theme.Colors.textPrimary)
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
             }
         }
     }
@@ -63,9 +66,11 @@ struct MyStreakSheet: View {
         let remaining = streak.recordSeconds - streak.elapsed
         return HStack(spacing: Theme.Spacing.sm) {
             Image(systemName: "star.fill").foregroundStyle(Theme.Colors.butter)
-            Text(remaining <= 0
-                 ? "New record! You've beaten your own streak record."
-                 : "\(remaining.humanShort()) left to break your own streak record.")
+            Text(streak.recordSeconds <= 0
+                 ? "No record yet — this run is setting it."
+                 : remaining <= 0
+                   ? "New record! You've beaten your own streak record."
+                   : "\(remaining.humanShort()) left to break your own streak record.")
                 .font(Theme.Typography.body())
                 .foregroundStyle(Theme.Colors.textPrimary)
         }

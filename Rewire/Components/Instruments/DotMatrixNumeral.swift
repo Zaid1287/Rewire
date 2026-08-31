@@ -1,28 +1,5 @@
 import SwiftUI
 
-/// Dense 2px-bar micro-chart; the last few bars carry the accent. Sits in stat
-/// card footers where a sparkline would normally go.
-struct BarcodeChart: View {
-    /// Bar heights, 0…1 (scaled to the view height).
-    var values: [Double]
-    var accentCount = 5
-    var barColor: Color = .white.opacity(0.35)
-    var accent: Color = Theme.Colors.butter
-
-    var body: some View {
-        GeometryReader { geo in
-            HStack(alignment: .bottom, spacing: 2) {
-                ForEach(Array(values.enumerated()), id: \.offset) { i, v in
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(i >= values.count - accentCount ? accent : barColor)
-                        .frame(width: 2, height: max(3, geo.size.height * v))
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-        }
-    }
-}
-
 /// 5×7 LED dot-matrix numerals — secondary readouts (`68`, `33/54`).
 struct DotMatrixNumeral: View {
     var text: String

@@ -2,29 +2,52 @@ import SwiftUI
 import Combine
 
 /// Drives the live streak timer, current goal, progress, and saved reports.
-/// The screenshots show a brand-new user (streak measured in seconds/minutes),
-/// so the timer starts near zero and ticks up live.
+/// A new install starts at genuine zero: no prior streaks, no personal best,
+/// no seconds already on the clock. The old defaults were screenshot-era
+/// sample data, which meant a first launch showed history the user never had.
 @Observable
 final class StreakStore {
     /// When the current streak began. Settable internally so `addDays` can shift it.
     private(set) var startDate: Date
     /// Selected goal (defaults to the "2 hours" option shown selected).
     var goal: Goal = SampleData.goals[0] { didSet { persist?() } }
-    /// Best streak so far, for the "1 minute left to break your record" line.
-    private(set) var recordSeconds: TimeInterval = 60 { didSet { persist?() } }
+    /// Best streak so far. Zero until the user actually banks one.
+    private(set) var recordSeconds: TimeInterval = 0 { didSet { persist?() } }
 
-    private(set) var elapsed: TimeInterval = 57   // matches "57 seconds" first-victory shot
+    private(set) var elapsed: TimeInterval = 0
     private var timer: AnyCancellable?
 
     var reports: [DailyReport] = [] { didSet { persist?() } }
-    var streaks: [Streak] = SampleData.streaks { didSet { persist?() } }
+    /// The run in progress, and every run banked before it. Starts as the one
+    /// real run this install is on — not two sample rows from the screenshots.
+    var streaks: [Streak] = [Streak(index: 1, duration: 0, isOngoing: true)] {
+        didSet { persist?() }
+    }
 
     /// History events (History → Add Event).
     private(set) var events: [StreakEvent] = [] { didSet { persist?() } }
 
-    /// Weekly-challenge participation.
-    private(set) var challengeJoined: Bool = false { didSet { persist?() } }
-    private(set) var challengeDays: [ChallengeDay] = SampleData.challengeDays { didSet { persist?() } }
+    /// Weekly-challenge participation. Joining is per week — `"2026-W34"` —
+    /// so it's a commitment you renew, not a box you ticked once in July.
+    private(set) var challengeWeek: String? = nil { didSet { persist?() } }
+    /// Permanent: the Challenger badge shouldn't un-earn itself on Monday.
+    private(set) var hasEverJoinedChallenge: Bool = false { didSet { persist?() } }
+
+    var challengeJoined: Bool { challengeWeek == Self.weekKey(for: Date()) }
+
+    /// This week's seven days, derived — nothing here is tappable or stored.
+    var challengeDays: [ChallengeDay] {
+        Self.weekDays(containing: Date(), relapseDays: relapseDayStarts)
+    }
+
+    /// Clean days out of *finished* days. Today is excluded from both sides
+    /// while it's still running — counting a day you haven't finished as one
+    /// you failed to keep clean would read as a deficit you can't be behind on.
+    var challengeProgress: (clean: Int, finished: Int) {
+        let days = challengeDays
+        return (days.filter { $0.state == .done }.count,
+                days.filter { $0.state == .done || $0.state == .failed }.count)
+    }
 
     /// 21-day Personal Plan — set of completed day numbers.
     private(set) var completedPlanDays: Set<Int> = [] { didSet { persist?() } }
@@ -32,7 +55,64 @@ final class StreakStore {
     /// Saver injected by RewireApp so mutations flush to disk.
     var persist: (() -> Void)?
 
-    init(startSecondsAgo: TimeInterval = 57) {
+    /// Push the streak primitives to the widget. Called only from the points
+    /// where the start or the record actually move — never from the per-second
+    /// `elapsed` tick, which would hammer WidgetCenter.
+    func syncWidget() {
+        WidgetBridge.publish(startDate: startDate,
+                             goalSeconds: goal.seconds,
+                             bestRunDays: bestRunDays,
+                             checkedInToday: checkedInToday,
+                             cleanDays30: cleanDays(trackedDayCount(inLast: 30)))
+    }
+
+    /// The days a relapse was logged on, normalised to midnight. The single
+    /// definition of "was this day clean" — the Home strip, the widgets and the
+    /// weekly challenge all answer from it, so they can never disagree.
+    private var relapseDayStarts: Set<Date> {
+        let cal = Calendar.current
+        return Set(events.filter { $0.type == .relapse }.map { cal.startOfDay(for: $0.date) })
+    }
+
+    /// The earliest day we have any basis to speak about — the current run's
+    /// start, or the oldest thing the user ever logged. Days before this are
+    /// not "clean", they are days we know nothing about.
+    var trackedSince: Date {
+        let cal = Calendar.current
+        let candidates = [startDate] + events.map(\.date) + reports.map(\.date)
+        return cal.startOfDay(for: candidates.min() ?? startDate)
+    }
+
+    /// How many days we have actually tracked, capped at `n` and never below 1
+    /// (today always counts). This is the honest denominator: a user who
+    /// installed this morning has been tracked for one day, not ninety.
+    func trackedDayCount(inLast n: Int) -> Int {
+        let cal = Calendar.current
+        let elapsedDays = cal.dateComponents([.day], from: trackedSince,
+                                             to: cal.startOfDay(for: Date())).day ?? 0
+        return max(1, min(n, elapsedDays + 1))
+    }
+
+    /// Clean days *among the days we have tracked*. Counting the full window
+    /// would hand a brand-new install 90 clean days it never lived — the same
+    /// fabrication the "% rewired" gauge was cut for.
+    func cleanDayCount(inLast n: Int) -> Int {
+        cleanDays(trackedDayCount(inLast: n)).filter { $0 }.count
+    }
+
+    /// Last `n` days oldest→newest, true = no logged relapse that day. Same
+    /// basis as the Home morse strip, exposed for the widgets.
+    func cleanDays(_ n: Int) -> [Bool] {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let relapseDays = relapseDayStarts
+        return (0..<n).reversed().map { offset in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { return true }
+            return !relapseDays.contains(day)
+        }
+    }
+
+    init(startSecondsAgo: TimeInterval = 0) {
         startDate = Date().addingTimeInterval(-startSecondsAgo)
         elapsed = startSecondsAgo
         start()
@@ -70,7 +150,7 @@ final class StreakStore {
     var currentRunDays: Int { Int(elapsed / 86_400) }
 
     /// True once a clean check-in has been logged today. Gates the daily ritual
-    /// so it can't be spammed for repeat gems / duplicate reports.
+    /// so it can't be spammed for duplicate reports.
     var checkedInToday: Bool {
         reports.contains { !$0.relapsed && Calendar.current.isDateInToday($0.date) }
     }
@@ -118,6 +198,7 @@ final class StreakStore {
         streaks.insert(Streak(index: nextIndex, duration: elapsed, isOngoing: false), at: 0)
         startDate = Date()
         elapsed = 0
+        syncWidget()
     }
 
     // MARK: Slip Log (flow-redesign Phase 2)
@@ -151,6 +232,7 @@ final class StreakStore {
 
         startDate = date
         elapsed = Date().timeIntervalSince(date)
+        syncWidget()
         return event
     }
 
@@ -192,6 +274,7 @@ final class StreakStore {
         if let start = event.preStartDate {
             startDate = start
             elapsed = Date().timeIntervalSince(start)
+            syncWidget()
         }
         if let rec = event.preRecordSeconds { recordSeconds = rec }
         if let bankedID = event.bankedStreakID {
@@ -232,21 +315,64 @@ final class StreakStore {
         streaks.removeAll { $0.id == streak.id }
     }
 
-    /// Shift the streak start back `n` days (the "add days" cheat in the screenshots).
-    func addDays(_ n: Int) {
-        startDate -= TimeInterval(n * 86_400)
-        elapsed = Date().timeIntervalSince(startDate)
+    /// Set the current run's start to an exact instant.
+    ///
+    /// `addDays` can only shift back in whole days, so it can't fix "I actually
+    /// started at 9pm three days ago", can't correct an over-add, and can't set
+    /// the real start on first install. Those are the loudest concrete request
+    /// in the tracking reviews — *"won't let me change my start day and time"*,
+    /// *"just a counter and being able to adjust it for a date in the past"*.
+    ///
+    /// A future date is refused: the counter must never read negative, and
+    /// "started tomorrow" is meaningless. Returns whether it took.
+    @discardableResult
+    func setStartDate(_ date: Date) -> Bool {
+        guard date <= Date() else { return false }
+        startDate = date
+        elapsed = Date().timeIntervalSince(date)
+        // `bestRunDays` already reads max(recordSeconds, elapsed), so a longer
+        // backdated run shows up there without banking it into the permanent
+        // record — banking an unfinished run early would leave the record
+        // inflated after the next relapse.
         persist?()
+        syncWidget()
+        return true
     }
 
     // MARK: Weekly challenge
 
-    func joinChallenge() { challengeJoined = true }
+    func joinChallenge() {
+        challengeWeek = Self.weekKey(for: Date())
+        hasEverJoinedChallenge = true
+    }
 
-    /// Set the state of a challenge day by its number.
-    func setChallengeDay(_ number: Int, to state: ChallengeDay.State) {
-        guard let i = challengeDays.firstIndex(where: { $0.number == number }) else { return }
-        challengeDays[i].state = state
+    /// `"2026-W34"` — the ISO-ish week a date falls in. Uses
+    /// `yearForWeekOfYear` so the last days of December land in the right week.
+    static func weekKey(for date: Date, calendar: Calendar = .current) -> String {
+        let c = calendar.dateComponents([.weekOfYear, .yearForWeekOfYear], from: date)
+        return "\(c.yearForWeekOfYear ?? 0)-W\(c.weekOfYear ?? 0)"
+    }
+
+    /// The seven days of the week containing `date`. A day is failed if a slip
+    /// was logged on it, done once it's over without one, today while it's
+    /// still running, and upcoming before it arrives — so a week can never show
+    /// a failure the user hasn't had, and future days are never pre-marked.
+    static func weekDays(containing date: Date,
+                         relapseDays: Set<Date>,
+                         calendar: Calendar = .current) -> [ChallengeDay] {
+        guard let weekStart = calendar.dateInterval(of: .weekOfYear, for: date)?.start
+        else { return [] }
+        let today = calendar.startOfDay(for: date)
+        return (0..<7).compactMap { offset in
+            guard let day = calendar.date(byAdding: .day, value: offset, to: weekStart)
+            else { return nil }
+            let state: ChallengeDay.State
+            if relapseDays.contains(day)  { state = .failed }
+            else if day > today           { state = .upcoming }
+            else if day == today          { state = .today }
+            else                          { state = .done }
+            return ChallengeDay(number: offset + 1, date: day, state: state)
+        }
     }
 
     // MARK: 21-day Personal Plan
@@ -272,8 +398,57 @@ final class StreakStore {
         reports = s.reports
         streaks = s.streaks
         events = s.events
-        challengeJoined = s.challengeJoined
-        challengeDays = s.challengeDays
+        challengeWeek = s.challengeWeek
+        // Pre-weekly snapshots only knew a permanent bool; carry it into the
+        // badge flag so nobody loses a Challenger badge they earned.
+        hasEverJoinedChallenge = s.hasEverJoinedChallenge ?? s.challengeJoined ?? false
         completedPlanDays = s.completedPlanDays ?? []
     }
+
+    #if DEBUG
+    /// The start-date editor is a streak-critical path with a real guard; the
+    /// project has no test target, so it checks itself on debug launch.
+    static func selfCheck() {
+        let s = StreakStore()
+        let record = s.recordSeconds
+
+        // Future start is refused and changes nothing.
+        let before = s.startDate
+        precondition(s.setStartDate(Date().addingTimeInterval(3600)) == false)
+        precondition(s.startDate == before, "a refused edit must not move the start")
+
+        // Backdating three days is accepted and the counter follows.
+        let threeDaysAgo = Date().addingTimeInterval(-3 * 86_400)
+        precondition(s.setStartDate(threeDaysAgo) == true)
+        precondition(Int(s.elapsed / 86_400) == 3, "elapsed should read 3 days")
+
+        // A long backdated run shows in bestRunDays without banking into the
+        // permanent record — the record only moves on a real relapse.
+        precondition(s.bestRunDays >= 3)
+        precondition(s.recordSeconds == record, "setStartDate must not touch the record")
+        // Weekly challenge: derived from the record, so it must never invent a
+        // failure or pre-mark a day that hasn't happened.
+        var cal = Calendar(identifier: .gregorian)
+        cal.firstWeekday = 1
+        let now = Date()
+        let today = cal.startOfDay(for: now)
+        let week = weekDays(containing: now, relapseDays: [], calendar: cal)
+        precondition(week.count == 7)
+        precondition(week.allSatisfy { $0.state != .failed },
+                     "a clean record must never render a failed day")
+        precondition(week.filter { $0.state == .today }.count == 1)
+        precondition(!week.contains { $0.state == .done && $0.date >= today },
+                     "today and later can never already be done")
+        precondition(!week.contains { $0.state == .upcoming && $0.date <= today },
+                     "a day that has arrived is not upcoming")
+        // A slip logged today marks today, not some other day.
+        let slipped = weekDays(containing: now, relapseDays: [today], calendar: cal)
+        precondition(slipped.filter { $0.state == .failed }.map(\.date) == [today])
+        // Joining is per week: the key moves when the week does.
+        precondition(weekKey(for: now, calendar: cal)
+                     != weekKey(for: now.addingTimeInterval(7 * 86_400), calendar: cal))
+
+        print("StreakStore.selfCheck passed")
+    }
+    #endif
 }

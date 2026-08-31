@@ -25,11 +25,17 @@ struct MyShieldView: View {
         let title: String
         let subtitle: String
         let done: Bool
-        var soon: Bool = false
         var action: (() -> Void)? = nil
     }
 
     private var tasks: [Task] {
+        // The blocker step is dropped while the shield isn't fit to show
+        // (ShieldController.isReady). Filtered rather than made optional so the
+        // checklist's own "n of m done" count stays honest about what's there.
+        allTasks.filter { ShieldController.isReady || $0.id != "blocker" }
+    }
+
+    private var allTasks: [Task] {
         [
             Task(id: "firstMinute", symbol: "1.circle",
                  title: "Complete your first 1 minute",
@@ -49,14 +55,6 @@ struct MyShieldView: View {
                  title: "Start your personal plan",
                  subtitle: "Complete the first step of your personal plan.",
                  done: !streak.completedPlanDays.isEmpty),
-            Task(id: "community", symbol: "person.2",
-                 title: "Join our private community",
-                 subtitle: "Join the private Telegram group. Get amazing support.",
-                 done: false, soon: true),
-            Task(id: "widgets", symbol: "square.on.square.dashed",
-                 title: "Add home screen widgets",
-                 subtitle: "Rewire widgets will keep you on your toes.",
-                 done: false, soon: true),
             Task(id: "motivations", symbol: "bolt",
                  title: "Add your motivations",
                  subtitle: "Never forget why you want to quit your addiction.",
@@ -143,7 +141,7 @@ struct MyShieldView: View {
             NavigationStack { GuardSetupView() }
         }
         .sheet(isPresented: $showReminders) {
-            ReminderSettingsView().presentationDetents([.medium])
+            ReminderSettingsView().presentationDetents([.large])
         }
         .sheet(isPresented: $showMotivations) {
             MotivationsView().presentationDetents([.large])
@@ -200,19 +198,9 @@ struct MyShieldView: View {
                 .frame(width: 28)
 
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: Theme.Spacing.xs) {
-                    Text(task.title)
-                        .font(Theme.Typography.headline())
-                        .foregroundStyle(Theme.Colors.textPrimary)
-                    if task.soon {
-                        Text("Soon")
-                            .font(Theme.Typography.caption())
-                            .foregroundStyle(Theme.Colors.textSecondary)
-                            .padding(.horizontal, Theme.Spacing.xs)
-                            .padding(.vertical, 2)
-                            .background(Theme.Colors.surface2, in: Capsule())
-                    }
-                }
+                Text(task.title)
+                    .font(Theme.Typography.headline())
+                    .foregroundStyle(Theme.Colors.textPrimary)
                 Text(task.subtitle)
                     .font(Theme.Typography.subtitle())
                     .foregroundStyle(Theme.Colors.textSecondary)
@@ -226,9 +214,8 @@ struct MyShieldView: View {
             }
         }
         .padding(Theme.Spacing.md)
-        .opacity(task.soon ? 0.45 : 1)
 
-        if let action = task.action, !task.done, !task.soon {
+        if let action = task.action, !task.done {
             Button(action: { Haptics.tap(); action() }) { content }
                 .buttonStyle(.plain)
         } else {

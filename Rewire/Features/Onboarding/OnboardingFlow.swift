@@ -4,22 +4,29 @@ import SwiftUI
 /// carousel through the paywall-style screens into the main app.
 struct OnboardingFlow: View {
     @Environment(AppState.self) private var appState
+    @Environment(Purchases.self) private var purchases
 
     @State private var step: Step = .hero
     @State private var quizIndex = 0
 
-    /// Gem totals shown in the quiz header per question (IMG_5428–5431).
-    private let quizGems = [100, 150, 250, 350]
-
-    /// Funnel (flow-redesign Phase 5 + paywall, Jul 16): hero → social proof →
-    /// quiz → score → PAYWALL (soft, multipage, skippable) → comparison →
-    /// commit → welcome. The paywall fires at peak motivation (right after the
+    /// Funnel (flow-redesign Phase 5 + paywall, Jul 16): hero → consent →
+    /// social proof → quiz → score → PAYWALL (soft, multipage, skippable) →
+    /// comparison → commit → welcome. The paywall fires at peak motivation (right after the
     /// personalized score) but skipping routes back into the normal sell —
     /// nothing is gated. Cut from the original 10: fake loader, second
     /// testimonials, in-onboarding reminders ask (now contextual post-check-in).
     enum Step: Equatable {
-        case hero, socialProof, quiz, score, paywall, benefits, welcome
+        case hero, consent, socialProof, quiz, score, paywall, benefits, welcome
     }
+
+    /// The consent screen sits second on purpose. Analytics is off by default
+    /// and the Settings toggle only exists after onboarding, so asking any
+    /// later means the entire acquisition funnel — every `onboarding_step`,
+    /// the paywall shown/skipped pair, `onboarding_completed` — is dropped for
+    /// every user who ever installs. Asking here is the difference between
+    /// having that funnel and not. It follows the hero rather than opening the
+    /// app because the hero is where we make the "no account, no cloud" promise,
+    /// and the honest place to ask is right after the claim.
 
     var body: some View {
         ZStack {
@@ -28,13 +35,27 @@ struct OnboardingFlow: View {
             Group {
                 switch step {
                 case .hero:
-                    HeroCarouselView { advance(to: .socialProof) }
+                    HeroCarouselView { advance(to: .consent) }
+                case .consent:
+                    AnalyticsConsentView { granted in
+                        // Same setter Settings uses, so there is one consent
+                        // path in the app and Settings reflects this answer.
+                        appState.setAnalyticsOptIn(granted)
+                        // Deliberately after the setter: when the answer is
+                        // yes, this is the first event that can be captured,
+                        // and it marks the top of the measurable funnel.
+                        advance(to: .socialProof)
+                    }
                 case .socialProof:
                     SocialProofView { advance(to: .quiz) }
                 case .quiz:
                     quizView
                 case .score:
-                    ScoreResultView { advance(to: .paywall) }
+                    // Skip the paywall entirely when there is nothing to sell —
+                    // otherwise the funnel's biggest moment is a screen that
+                    // reads "Plans aren't loading". Restores itself the moment
+                    // App Store Connect has products.
+                    ScoreResultView { advance(to: purchases.canSell ? .paywall : .benefits) }
                 case .paywall:
                     OnboardingPaywallView(
                         onSkip: { advance(to: .benefits) },
@@ -59,7 +80,6 @@ struct OnboardingFlow: View {
         return QuestionScaffold(
             showsBack: quizIndex > 0,
             onBack: { withAnimation(Theme.Motion.standard) { quizIndex -= 1 } },
-            gemCount: quizGems[min(quizIndex, quizGems.count - 1)],
             progress: quizIndex == 0 ? nil : Double(quizIndex) / Double(SampleData.quizQuestions.count),
             question: q.prompt
         ) {
