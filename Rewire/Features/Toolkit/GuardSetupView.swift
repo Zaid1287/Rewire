@@ -18,6 +18,11 @@ struct GuardSetupView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var showPicker = false
+    @State private var showCommitSheet = false
+    @State private var showExceptions = false
+    /// Ticks the countdown copy while a cooling-off wait is running.
+    @State private var now = Date()
+    private let clock = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         @Bindable var guardController = guardController
@@ -30,9 +35,11 @@ struct GuardSetupView: View {
                     switch guardController.auth {
                     case .unknown: notAuthorized
                     case .denied(let reason): denied(reason)
-                    case .approved:
-                        if guardController.hasSelection { guarding(guardController) }
-                        else { emptyAuthorized }
+                    // The web filter protects an empty selection, so being
+                    // authorized is enough to land on the real screen — gating
+                    // it behind a pick used to hide the blocker from anyone who
+                    // hadn't chosen apps yet.
+                    case .approved: guarding(guardController)
                     }
                 }
                 .screenPadding()
@@ -48,6 +55,15 @@ struct GuardSetupView: View {
         .onChange(of: guardController.selection) { guardController.selectionChanged() }
         // Screen Time access can be revoked in Settings while we're backgrounded.
         .onAppear { guardController.refreshAuth() }
+        .onReceive(clock) { now = $0 }
+        .navigationDestination(isPresented: $showExceptions) { SiteExceptionsView() }
+        .sheet(isPresented: $showCommitSheet) {
+            CommitSheet { duration in
+                guardController.commit(for: duration)
+                Haptics.success()
+            }
+            .presentationDetents([.large])
+        }
     }
 
     // MARK: States
@@ -76,29 +92,14 @@ struct GuardSetupView: View {
         }
     }
 
-    private var emptyAuthorized: some View {
-        VStack(spacing: Theme.Spacing.xl) {
-            hero(icon: "shield.slash.fill",
-                 tint: Theme.Colors.textTertiary,
-                 title: "Nothing guarded yet",
-                 subtitle: "Choose the apps and websites to block. You can change them anytime.")
-
-            howItWorks
-
-            PrimaryButton(title: "Choose what to block") { showPicker = true }
-
-            privacyNote
-        }
-    }
-
     private func guarding(_ guardController: ShieldController) -> some View {
         VStack(spacing: Theme.Spacing.xl) {
             hero(icon: guardController.enabled ? "checkmark.shield.fill" : "shield.slash.fill",
                  tint: guardController.enabled ? Theme.Colors.good : Theme.Colors.textTertiary,
                  title: guardController.enabled ? "Blocker is on" : "Blocker is off",
                  subtitle: guardController.enabled
-                    ? "Guarding \(selectionSummary). Reaching for one shows the shield."
-                    : "You're guarding \(selectionSummary), but the blocker is switched off.")
+                    ? "Adult sites are blocked in every browser\(extraSummary)."
+                    : "Turn it on to block adult sites across every browser and app.")
 
             // On/off — the primary control once something is selected.
             HStack(spacing: Theme.Spacing.md) {
@@ -114,25 +115,42 @@ struct GuardSetupView: View {
                         .foregroundStyle(Theme.Colors.textSecondary)
                 }
                 Spacer(minLength: 0)
-                Toggle("", isOn: Binding(
-                    get: { guardController.enabled },
-                    set: { on in
-                        guardController.setEnabled(on)
-                        // The one place the shield is armed by hand, so the one
-                        // place the Content Blocker badge can be earned.
-                        if on { gems.recordAchievement("blocker") }
-                    }
-                ))
-                .labelsHidden()
-                .tint(Theme.Colors.good)
+                if guardController.isBound {
+                    // Not a disabled toggle: a disabled control reads as broken.
+                    // The lock is the reason, so show the reason.
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 17))
+                        .foregroundStyle(Theme.Colors.butter)
+                } else {
+                    Toggle("", isOn: Binding(
+                        get: { guardController.enabled },
+                        set: { on in
+                            guardController.setEnabled(on)
+                            // The one place the shield is armed by hand, so the
+                            // one place the Content Blocker badge can be earned.
+                            if on { gems.recordAchievement("blocker") }
+                        }
+                    ))
+                    .labelsHidden()
+                    .tint(Theme.Colors.good)
+                }
             }
             .padding(Theme.Spacing.md)
             .background(Theme.Colors.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.lg))
 
+            if guardController.enabled {
+                WebFilterCard(isOn: true,
+                              allowedCount: guardController.allowedDomains.count,
+                              blockedCount: guardController.blockedDomains.count,
+                              onOpenExceptions: { showExceptions = true })
+            }
+
+            commitmentSection
+
             Button { showPicker = true } label: {
                 HStack(spacing: Theme.Spacing.xs) {
                     Image(systemName: "slider.horizontal.3")
-                    Text("Edit what's blocked")
+                    Text(guardController.isBound ? "Add more to block" : "Edit what's blocked")
                 }
                 .font(Theme.Typography.button())
                 .foregroundStyle(Theme.Colors.textPrimary)
@@ -143,6 +161,23 @@ struct GuardSetupView: View {
             .buttonStyle(PressableButtonStyle())
 
             privacyNote
+        }
+    }
+
+    // MARK: Commitment lock
+
+    /// Shown only once the blocker is actually on — committing to a blocker
+    /// that isn't running would be theatre.
+    @ViewBuilder
+    private var commitmentSection: some View {
+        if guardController.enabled {
+            CommitmentCard(
+                state: guardController.lockState,
+                now: now,
+                onCommit: { showCommitSheet = true },
+                onRequestUnlock: { guardController.requestUnlock(); Haptics.warning() },
+                onCancelRequest: { guardController.cancelUnlockRequest(); Haptics.success() }
+            )
         }
     }
 
@@ -225,6 +260,14 @@ struct GuardSetupView: View {
         .font(Theme.Typography.caption())
         .foregroundStyle(Theme.Colors.textTertiary)
         .frame(maxWidth: .infinity, alignment: .center)
+    }
+
+    /// Trailing clause naming anything shielded on top of the filter.
+    private var extraSummary: String {
+        // Reads the real counts rather than `hasSelection`, which the Simulator
+        // fake overrides — trusting it printed "plus nothing yet".
+        let s = selectionSummary
+        return s == "nothing yet" ? "" : ", plus \(s)"
     }
 
     /// Counts only — the tokens are opaque, so there are no names to show even
